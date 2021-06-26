@@ -27,10 +27,8 @@ namespace z3y
         private MaterialProperty gsaaThreshold = null;
         
         private MaterialProperty specularHighlightsToggle = null;
-        private MaterialProperty specularOcclusion = null;
         private MaterialProperty glossyReflectionsToggle = null;
         private MaterialProperty reflectance = null;
-        private MaterialProperty anisotrpy = null;
 
         public MaterialProperty overrideQuest = null;
         
@@ -59,10 +57,8 @@ namespace z3y
 
             
             specularHighlightsToggle = FindProperty("_SpecularHighlights", props);
-            specularOcclusion = FindProperty("_SpecularOcclusion", props);
             glossyReflectionsToggle = FindProperty("_GlossyReflections", props);
             reflectance = FindProperty("_Reflectance", props);
-            anisotrpy = FindProperty("_Anisotropy", props);
             
             overrideQuest = FindProperty("_OverrideQuest", props);
         }
@@ -122,12 +118,15 @@ namespace z3y
 
             
             me.TexturePropertySingleLine(new GUIContent("Metallic"), metallicMap, metallicScale);
+            sRGBWarning(metallicMap);
+
             me.TexturePropertySingleLine(new GUIContent("Roughness"), roughnessMap, roughnessScale);
- 
+            sRGBWarning(roughnessMap);
+            
             me.TexturePropertySingleLine(new GUIContent("Normal Map"), normalMap, normalScale);
             
             me.TexturePropertySingleLine(new GUIContent("Occlusion"), occlusionMap, occlusionScale);
-            
+            sRGBWarning(occlusionMap);
 
 
             EditorGUILayout.Space();
@@ -138,9 +137,7 @@ namespace z3y
 
             
             
-            _showAdvanced = EditorGUILayout.Foldout(_showAdvanced, "Advanced Options", EditorStyles.standardFont);
-            if (_showAdvanced)
-            {
+
                 EditorGUILayout.Space();
                 
                 me.ShaderProperty(gsaa, new GUIContent("Geometric Specular AA"), 0);
@@ -153,11 +150,9 @@ namespace z3y
                 
                 me.ShaderProperty(glossyReflectionsToggle, new GUIContent("Reflections"));
                 EditorGUILayout.Space();
-                me.ShaderProperty(specularOcclusion, new GUIContent("Specular Occlusion"),2);
                 me.ShaderProperty(reflectance,new GUIContent("Reflectace"),2);
                 
                 
-                me.ShaderProperty(anisotrpy, new GUIContent("Anisotrpy"));
                 
                 me.ShaderProperty(overrideQuest, new GUIContent("Override Quest Platform Config"), 0);
                 
@@ -185,10 +180,7 @@ namespace z3y
 
 
                 me.RenderQueueField();
-            }
-            
 
-            GUI.enabled = true;
 
 
             if (EditorGUI.EndChangeCheck())

@@ -30,9 +30,7 @@
         [ToggleUI()] _SpecularHighlights("Specular Highlights", int) = 1
         [ToggleUI()] _GlossyReflections("Glossy Reflections", int) = 1
         _Reflectance ("Reflectance", Range(0,1)) = 0.5
-        _Anisotropy ("Anisotropy", Range(-1,1)) = 0
         
-        _SpecularOcclusion ("Specular Occlusion", Range(0,1)) = 0
         
 
         

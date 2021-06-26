@@ -126,6 +126,7 @@ float3 getIndirectDiffuse(float3 normal)
 
 float3 getBoxProjection (float3 direction, float3 position, float4 cubemapPosition, float3 boxMin, float3 boxMax)
 {
+
      #if defined(UNITY_SPECCUBE_BLENDING) // For some reason this doesn't work?
         if (cubemapPosition.w > 0) {
             float3 factors =
@@ -175,24 +176,18 @@ float3 getIndirectSpecular(float metallic, float roughness, float3 reflDir, floa
         //    float specMultiplier = max(0, lerp(1, pow(length(lightmap), _SpecularOcclusion), _SpecularOcclusion));
        //     spec *= specMultiplier;
       //  #endif
+
     #endif
     return spec;
 }
 
-float3 getDirectSpecular(float perceptualRoughness, float NoH, float NoV, float NoL, float LoH, float3 f0, float anisotropy)
+float3 getDirectSpecular(float perceptualRoughness, float NoH, float NoV, float NoL, float LoH, float3 f0)
 {
     float roughness = max(perceptualRoughness * perceptualRoughness, 0.0045);
 
-    #if defined(_REQUIRE_UV2) // anisotropy
-    anisotropy *= saturate(5.0 * perceptualRoughness);
-    float at = max(roughness * (1.0 + anisotropy), 0.001);
-    float ab = max(roughness * (1.0 - anisotropy), 0.001);
-    float D = 1;//D_GGX_Anisotropic(NoH, );
-    
-    #else // non aniso
+
     float D = D_GGX(NoH, roughness);
-    #endif
-    
+
     #ifdef PLATFORM_QUEST 
     float V = V_SmithGGXCorrelatedFast(NoV, NoL, roughness);
     #else
@@ -347,14 +342,6 @@ float computeSpecularAO(float NoV, float ao, float roughness) {
     return clamp(pow(NoV + ao, exp2(-16.0 * roughness - 1.0)) - 1.0 + ao, 0.0, 1.0);
 }
 
-float3 getFresnel(const float3 f0, float LoH) {
-    #if defined(PLATFORM_QUEST)
-    return F_Schlick(f0, LoH);
-    #else
-    float f90 = dot(f0, (50.0 * 0.33));
-    return F_Schlick(f0, f90, LoH);
-    #endif
-}
 
 
 

@@ -3,6 +3,7 @@
 
 #pragma exclude_renderers gles
 
+
 UNITY_DECLARE_TEX2D(_MainTex);
 uniform half4 _MainTex_ST;
 uniform float4 _Color;
@@ -35,11 +36,9 @@ uniform float _specularAntiAliasingThreshold;
 
 
 uniform float _Reflectance;
-uniform float _Anisotropy;
 
 
 
-uniform float _SpecularOcclusion;
 
 
 #include "VRS_Lighting.cginc"

@@ -44,7 +44,9 @@ fixed4 frag(v2f i) : SV_Target
     #endif
 
     
-    
+    #ifdef UNITY_UI_CLIP_RECT // geometric specular antialiasing
+    perceptualRoughness = GSAA_Filament(worldNormal, perceptualRoughness);
+    #endif
 
 
     #ifdef _NORMALMAP // normal map
@@ -52,9 +54,7 @@ fixed4 frag(v2f i) : SV_Target
     initBumpedNormalTangentBitangent(normalMap, bitangent, tangent, worldNormal, _BumpScale);
     #endif
 
-    #ifdef UNITY_UI_CLIP_RECT // geometric specular antialiasing
-    perceptualRoughness = GSAA_Filament(worldNormal, perceptualRoughness);
-    #endif
+    
 
 
     
@@ -69,8 +69,8 @@ fixed4 frag(v2f i) : SV_Target
     bool lightEnv = any(_WorldSpaceLightPos0.xyz);
     float3 indirectDominantColor = half3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w);
     float3 lightDir = getLightDir(lightEnv, i.worldPos);
-    float3 lightCol = getLightCol(lightEnv, _LightColor0.rgb, indirectDominantColor);
-   // float3 lightCol = _LightColor0.rgb;
+  //  float3 lightCol = getLightCol(lightEnv, _LightColor0.rgb, indirectDominantColor);
+    float3 lightCol = _LightColor0.rgb;
     
     float NoL = saturate(dot(worldNormal, lightDir));
 
@@ -142,12 +142,12 @@ float3 col = directDiffuse;
 
 
     float3 f0 = 0.16 * reflectance * reflectance * oneMinusMetallic + diffuse * metallic;
-    
-    float3 fresnel = getFresnel(f0,LoH);
 
-    #if defined(PLATFORM_QUEST)
-    fresnel = lerp(fresnel, f0, metallic); // kill fresnel on metallics, it looks bad.
-    #endif
+    float3 fresnel = F_Schlick(f0, NoV);
+
+   #if !defined(PLATFORM_QUEST)
+   fresnel = lerp(fresnel, f0, metallic); // kill fresnel on metallics, it looks bad.
+   #endif
 
     
 
@@ -164,7 +164,7 @@ float3 col = directDiffuse;
     float3 indirectSpecular = getIndirectSpecular(metallic, perceptualRoughness, reflViewDir, worldPos, directDiffuse, worldNormal) * lerp(fresnel, f0, perceptualRoughness);
 
     #if defined(_DETAIL_MULX2)
- //  indirectSpecular *= computeSpecularAO(NoV,occlusion,roughnessMap);
+   indirectSpecular *= computeSpecularAO(NoV,occlusion,roughness);
     #endif
 
 
@@ -180,16 +180,7 @@ col += indirectSpecular;
     
     float NoH = saturate(dot(worldNormal, halfVector));
 
-    #if defined(_REQUIRE_UV2)
-    //float at = max(roughness * (1.0 + _Anisotropy), 0.001);
-    //float ab = max(roughness * (1.0 - _Anisotropy), 0.001);
-    
-    #else
-    
-    
-    
-    float3 directSpecular = getDirectSpecular(perceptualRoughness, NoH, NoV, NoL, LoH, f0, _Anisotropy) * attenuation * NtL;
-    #endif
+    float3 directSpecular = getDirectSpecular(perceptualRoughness, NoH, NoV, NoL, LoH, f0) * attenuation * NtL;
 
     
     
