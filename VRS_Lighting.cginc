@@ -187,22 +187,15 @@ float3 getDirectSpecular(float perceptualRoughness, float NoH, float NoV, float 
 
 
     float D = D_GGX(NoH, roughness);
-
-    #ifdef PLATFORM_QUEST 
-    float V = V_SmithGGXCorrelatedFast(NoV, NoL, roughness);
-    #else
     float V = V_SmithGGXCorrelated(NoV, NoL, roughness);
-    #endif
-
     float3 F = F_Schlick(f0, LoH);
    
-
     float3 directSpecular = max(0, (D * V) * F);
 
-    #if !defined(PLATFORM_QUEST) // energy compensation // probably wrong
+// energy compensation // probably wrong
     float3 energyCompensation = 1.0 + f0 * (1.0 / lerp(1,V, roughness) - 1.0);
     directSpecular *= energyCompensation;
-    #endif
+
     
 
     return directSpecular * 3;

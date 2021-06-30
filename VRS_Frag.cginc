@@ -13,7 +13,7 @@ fixed4 frag(v2f i) : SV_Target
     
 
 
-    #ifdef _METALLICGLOSSMAP // metalic map
+    #if defined(PROP_ENABLEMETALLICMAP) || !defined(OPTIMIZER_ENABLED) // metalic map
     float4 metallicMap = _MetallicMap.Sample(sampler_MainTex, i.uv);
     float metallic = metallicMap * _Metallic;
     float reflectance = metallicMap * _Reflectance;
@@ -26,7 +26,7 @@ fixed4 frag(v2f i) : SV_Target
     albedo.rgb *= oneMinusMetallic;
 
 
-    #ifdef _SPECGLOSSMAP // roughness map
+    #if defined(PROP_ENABLEROUGHNESSMAP) || !defined(OPTIMIZER_ENABLED) // roughness map
     float4 roughnessMap = _RoughnessMap.Sample(sampler_MainTex, i.uv);
     float perceptualRoughness = _Roughness * roughnessMap;
     #else
@@ -37,7 +37,8 @@ fixed4 frag(v2f i) : SV_Target
 
 
     
-   float3 worldNormal = normalize(i.worldNormal);
+    float3 worldNormal = normalize(i.worldNormal);
+    
     #if defined(_GLOSSYREFLECTIONS_OFF) || defined(_SPECULARHIGHLIGHTS_OFF) || defined (_NORMALMAP)
     float3 tangent = i.tangent;
     float3 bitangent = i.bitangent;
@@ -59,7 +60,7 @@ fixed4 frag(v2f i) : SV_Target
 
     
 
-    #ifdef _DETAIL_MULX2 // occlusion
+    #if defined(PROP_ENABLEOCCLUSION) || !defined(OPTIMIZER_ENABLED) // occlusion
     float4 occlusionMap = _OcclusionMap.Sample(sampler_MainTex, i.uv);
     float occlusion = lerp(1,occlusionMap.g , _OcclusionStrength);
     #endif
@@ -145,9 +146,8 @@ float3 col = directDiffuse;
 
     float3 fresnel = F_Schlick(f0, NoV);
 
-   #if !defined(PLATFORM_QUEST)
+
    fresnel = lerp(fresnel, f0, metallic); // kill fresnel on metallics, it looks bad.
-   #endif
 
     
 
@@ -196,8 +196,8 @@ col += directSpecular;
 
 
 
-
     return float4(col , 1);
+    
 
 
     #endif

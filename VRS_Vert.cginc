@@ -21,7 +21,6 @@ v2f vert(appdata v)
     o.tangent = tangent;
     o.worldNormal = worldNormal;
 
-
     o.worldPos = mul(unity_ObjectToWorld, v.vertex);
 
     #if !defined(UNITY_PASS_SHADOWCASTER)
