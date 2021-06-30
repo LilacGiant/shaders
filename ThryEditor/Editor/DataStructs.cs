@@ -180,10 +180,11 @@ namespace Thry
 
         public bool Execute(MaterialProperty p)
         {
-            if((p.floatValue.ToString()==value) 
-                || ( p.colorValue.ToString() == value) 
-                || ( p.vectorValue.ToString() == value )
-                || (p.textureValue != null && p.textureValue.ToString() == value))
+            if((p.type == MaterialProperty.PropType.Texture && p.floatValue.ToString() == value)
+               || ( p.colorValue.ToString() == value) 
+               || ( p.vectorValue.ToString() == value )
+               || (p.type == MaterialProperty.PropType.Texture && ((value == "1") == (p.textureValue != null)))
+            )
             {
                 foreach (DefineableAction a in actions)
                     a.Perform();
@@ -264,6 +265,16 @@ namespace Thry
                             m.shader = shader;
                     }
                     break;
+                case DefineableActionType.SET_KEYWORD:
+                    Debug.Log(data);
+                    string[] keyword = Regex.Split(data, @"=");
+                    bool state;
+                    if (keyword[1] == "true")
+                        state = true;
+                    else
+                        state = false;
+                    MaterialHelper.ToggleKeyword(ShaderEditor.active.materials, keyword[0],state);
+                    break;
             }
         }
 
@@ -317,7 +328,8 @@ namespace Thry
         URL,
         SET_PROPERTY,
         SET_SHADER,
-        SET_TAG
+        SET_TAG,
+        SET_KEYWORD
     }
 
     public class DefineableCondition

@@ -10,7 +10,6 @@ Shader "VR Standard"
         [HideInInspector] m_Main ("Main", Float) = 1
         _MainTex ("Albedo --{reference_property:_Color}", 2D) = "white" {}
         [HideInInspector] _Color ("Color", Color) = (1,1,1,1)
-        [Space(10)]_Saturation ("Saturation", Range(-1,1)) = 0
         
         [ToggleUI] _UseVertexColors ("Use Vertex Colors", Float) = 0
                
@@ -27,9 +26,8 @@ Shader "VR Standard"
         [HideInInspector]_Metallic ("Metallic", Range(0,1)) = 0
         
 
-        [HideInInspector] [Toggle(_NORMALMAP)] _EnableNormalMap("Normal Map", Float) = 0
-        [NoScaleOffset] [Normal] _BumpMap ("Normal Map --{reference_property:_BumpScale}", 2D) = "bump" {}
-        [HideInInspector] _BumpScale ("Bump Scale", Range(-2,2)) = 1
+        [NoScaleOffset] [Normal] _BumpMap ("Normal Map--{on_value_actions:[{value:0,actions:[{type:SET_KEYWORD,data:_NORMALMAP=false}]},{value:1,actions:[{type:SET_KEYWORD,data:_NORMALMAP=true}]}]} ", 2D) = "bump" {}
+        [HideInInspector] _BumpScale ("Bump Scale", Float) = 1
 
 
 
