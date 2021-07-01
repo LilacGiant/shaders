@@ -13,18 +13,18 @@ uniform UNITY_DECLARE_TEX2D_NOSAMPLER(_BumpMap);
 uniform float _BumpScale;
 #endif
 
-#if defined(PROP_ENABLEMETALLICMAP) || !defined(OPTIMIZER_ENABLED)
+#if (PROP_ENABLEMETALLICMAP==1) || !defined(OPTIMIZER_ENABLED)
 uniform UNITY_DECLARE_TEX2D_NOSAMPLER(_MetallicMap);
 #endif
 uniform float _Metallic;
 
 
-#if defined(PROP_ENABLEROUGHNESSMAP) || !defined(OPTIMIZER_ENABLED)
+#if (PROP_ENABLEROUGHNESSMAP==1) || !defined(OPTIMIZER_ENABLED)
 uniform UNITY_DECLARE_TEX2D_NOSAMPLER(_RoughnessMap);
 #endif
 uniform float _Roughness;
 
-#if defined(PROP_ENABLEOCCLUSION) || !defined(OPTIMIZER_ENABLED)
+#if (PROP_ENABLEOCCLUSION==1) || !defined(OPTIMIZER_ENABLED)
 uniform UNITY_DECLARE_TEX2D_NOSAMPLER(_OcclusionMap);
 uniform float _OcclusionStrength;
 #endif

@@ -17,16 +17,16 @@ Shader "VR Standard"
 
 
         [HideInInspector] [ToggleUI] _EnableRoughnessMap ("Enable Roughness Map ", Float) = 0
-        [NoScaleOffset] _RoughnessMap ("Roughness--{reference_property:_Roughness}", 2D) = "white" {}
+        [NoScaleOffset] _RoughnessMap ("Roughness--{reference_property:_Roughness,on_value_actions:[{value:0,actions:[{type:SET_PROPERTY,data:_EnableRoughnessMap=0}]},{value:1,actions:[{type:SET_PROPERTY,data:_EnableRoughnessMap=1}]}]} ", 2D) = "white" {}
         [HideInInspector]_Roughness ("Roughness", Range(0,1)) = 0.5
 
         
         [HideInInspector] [ToggleUI] _EnableMetallicMap ("Enable Metallic Map", Float) = 0
-        [NoScaleOffset]_MetallicMap ("Metallic--{reference_property:_Metallic}", 2D) = "white" {}
+        [NoScaleOffset]_MetallicMap ("Metallic--{reference_property:_Metallic,on_value_actions:[{value:0,actions:[{type:SET_PROPERTY,data:_EnableMetallicMap=0}]},{value:1,actions:[{type:SET_PROPERTY,data:_EnableMetallicMap=1}]}]} ", 2D) = "white" {}
         [HideInInspector]_Metallic ("Metallic", Range(0,1)) = 0
         
-
-        [NoScaleOffset] [Normal] _BumpMap ("Normal Map--{on_value_actions:[{value:0,actions:[{type:SET_KEYWORD,data:_NORMALMAP=false}]},{value:1,actions:[{type:SET_KEYWORD,data:_NORMALMAP=true}]}]} ", 2D) = "bump" {}
+        [HideInInspector] [Toggle(_NORMALMAP)] _EnableNormalMap ("Enable Normal Map", Float) = 0
+        [NoScaleOffset] [Normal] _BumpMap ("Normal Map--{reference_property:_BumpScale,on_value_actions:[{value:0,actions:[{type:SET_PROPERTY,data:_EnableNormalMap=0}]},{value:1,actions:[{type:SET_PROPERTY,data:_EnableNormalMap=1}]}]} ", 2D) = "bump" {}
         [HideInInspector] _BumpScale ("Bump Scale", Float) = 1
 
 
@@ -80,13 +80,10 @@ Shader "VR Standard"
             #pragma vertex vert
             #pragma fragment frag
             #pragma multi_compile_fwdbase
-            #pragma fragmentoption ARB_precision_hFloat_fastest
+            #pragma fragmentoption ARB_precision_hint_fastest
 
             #pragma shader_feature UNITY_UI_CLIP_RECT // GSAA
             #pragma shader_feature _NORMALMAP // normal map
-      //      #pragma shader_feature _METALLICGLOSSMAP // metalic map
-      //      #pragma shader_feature _SPECGLOSSMAP // roughness map
-      //      #pragma shader_feature _DETAIL_MULX2 // occlusion map
             #pragma shader_feature _SPECULARHIGHLIGHTS_OFF
             #pragma shader_feature _GLOSSYREFLECTIONS_OFF
 
@@ -148,9 +145,6 @@ Shader "VR Standard"
             #pragma multi_compile_fwdadd_fullshadows
             #pragma shader_feature UNITY_UI_CLIP_RECT // GSAA
             #pragma shader_feature _NORMALMAP // normal map
-    //        #pragma shader_feature _METALLICGLOSSMAP // metalic map
-    //        #pragma shader_feature _SPECGLOSSMAP // roughness map
-    //        #pragma shader_feature _DETAIL_MULX2 // occlusion Map
             #pragma shader_feature _SPECULARHIGHLIGHTS_OFF
             #pragma shader_feature _GLOSSYREFLECTIONS_OFF
             #pragma shader_feature _REQUIRE_UV2 // anisotropy
@@ -208,7 +202,7 @@ Shader "VR Standard"
             #pragma vertex vert
             #pragma fragment frag
             #pragma multi_compile_shadowcaster
-            #pragma fragmentoption ARB_precision_hFloat_fastest
+            #pragma fragmentoption ARB_precision_hint_fastest
             #pragma skip_variants FOG_LINEAR FOG_EXP FOG_EXP2
 
 

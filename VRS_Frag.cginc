@@ -13,7 +13,7 @@ fixed4 frag(v2f i) : SV_Target
     
 
 
-    #if defined(PROP_ENABLEMETALLICMAP) || !defined(OPTIMIZER_ENABLED) // metalic map
+    #if (PROP_ENABLEMETALLICMAP==1) || !defined(OPTIMIZER_ENABLED) // metalic map
     float4 metallicMap = _MetallicMap.Sample(sampler_MainTex, i.uv);
     float metallic = metallicMap * _Metallic;
     float reflectance = metallicMap * _Reflectance;
@@ -26,7 +26,7 @@ fixed4 frag(v2f i) : SV_Target
     albedo.rgb *= oneMinusMetallic;
 
 
-    #if defined(PROP_ENABLEROUGHNESSMAP) || !defined(OPTIMIZER_ENABLED) // roughness map
+    #if (PROP_ENABLEROUGHNESSMAP==1) || !defined(OPTIMIZER_ENABLED) // roughness map
     float4 roughnessMap = _RoughnessMap.Sample(sampler_MainTex, i.uv);
     float perceptualRoughness = _Roughness * roughnessMap;
     #else
@@ -60,7 +60,7 @@ fixed4 frag(v2f i) : SV_Target
 
     
 
-    #if defined(PROP_ENABLEOCCLUSION) || !defined(OPTIMIZER_ENABLED) // occlusion
+    #if (PROP_ENABLEOCCLUSION==1) || !defined(OPTIMIZER_ENABLED) // occlusion
     float4 occlusionMap = _OcclusionMap.Sample(sampler_MainTex, i.uv);
     float occlusion = lerp(1,occlusionMap.g , _OcclusionStrength);
     #endif
