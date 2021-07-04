@@ -1,4 +1,4 @@
-Shader "VR Standard"
+Shader "VRStandard"
 {
 
     Properties
@@ -37,7 +37,7 @@ Shader "VR Standard"
         
 
         [HideInInspector] [ToggleUI] _EnableOcclusion("Occlusion", Float) = 0
-        [NoScaleOffset] _OcclusionMap ("Occlusion--{reference_property:_OcclusionStrength}", 2D) = "white" {}
+        [NoScaleOffset] _OcclusionMap ("Occlusion--{reference_property:_OcclusionStrength,on_value_actions:[{value:0,actions:[{type:SET_PROPERTY,data:_EnableOcclusion=0}]},{value:1,actions:[{type:SET_PROPERTY,data:_EnableOcclusion=1}]}]} ", 2D) = "white" {}
         [HideInInspector] _OcclusionStrength ("OcclusionStrength", Range(0, 1)) = 1
 
         
@@ -50,8 +50,8 @@ Shader "VR Standard"
         [HideInInspector] m_ShaderFeatures ("Shader Features", Float) = 0
         [HideInInspector] m_start_GSAA ("Geometric Specular Anti-Aliasing --{reference_property:_GSAA}", Float) = 0
         [HideInInspector] [Toggle(UNITY_UI_CLIP_RECT)] _GSAA("GSAA", Float) = 0
-        _specularAntiAliasingVariance ("Variance", Range(0.0, 1.0)) = 0.01
-        _specularAntiAliasingThreshold ("Threshold", Range(0.0, 1.0)) = 0.1
+        [PowerSlider(3)] _specularAntiAliasingVariance ("Variance", Range(0.0, 1.0)) = 0.01
+        [PowerSlider(3)] _specularAntiAliasingThreshold ("Threshold", Range(0.0, 1.0)) = 0.1
         [HideInInspector] m_end_GSAA ("", Float) = 0
         
 

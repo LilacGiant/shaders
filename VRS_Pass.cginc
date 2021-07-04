@@ -3,40 +3,49 @@
 
 #pragma exclude_renderers gles
 
+#ifdef UNITY_UI_CLIP_RECT
+#define ENABLE_GSAA
+#endif
+
+
 
 UNITY_DECLARE_TEX2D(_MainTex);
-uniform half4 _MainTex_ST;
-uniform float4 _Color;
+float4 _MainTex_ST;
+float4 _Color;
 
 #ifdef _NORMALMAP
-uniform UNITY_DECLARE_TEX2D_NOSAMPLER(_BumpMap);
-uniform float _BumpScale;
+UNITY_DECLARE_TEX2D(_BumpMap);
+float4 _BumpMap_ST;
+float _BumpScale;
 #endif
 
 #if (PROP_ENABLEMETALLICMAP==1) || !defined(OPTIMIZER_ENABLED)
-uniform UNITY_DECLARE_TEX2D_NOSAMPLER(_MetallicMap);
+#define ENABLE_METALLICMAP
+Texture2D _MetallicMap;
 #endif
-uniform float _Metallic;
+float _Metallic;
 
 
 #if (PROP_ENABLEROUGHNESSMAP==1) || !defined(OPTIMIZER_ENABLED)
-uniform UNITY_DECLARE_TEX2D_NOSAMPLER(_RoughnessMap);
+#define ENABLE_ROUGHNESSMAP
+Texture2D _RoughnessMap;
 #endif
-uniform float _Roughness;
+float _Roughness;
 
 #if (PROP_ENABLEOCCLUSION==1) || !defined(OPTIMIZER_ENABLED)
-uniform UNITY_DECLARE_TEX2D_NOSAMPLER(_OcclusionMap);
-uniform float _OcclusionStrength;
+#define ENABLE_OCCLUSIONMAP
+Texture2D _OcclusionMap;
+float _OcclusionStrength;
 #endif
 
 
 #ifdef UNITY_UI_CLIP_RECT
-uniform float _specularAntiAliasingVariance;
-uniform float _specularAntiAliasingThreshold;
+float _specularAntiAliasingVariance;
+float _specularAntiAliasingThreshold;
 #endif
 
 
-uniform float _Reflectance;
+float _Reflectance;
 
 
 

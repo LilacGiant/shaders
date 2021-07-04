@@ -296,7 +296,7 @@ float3 getLightCol(bool lightEnv, float3 lightColor, float3 indirectDominantColo
 
 
 
-#ifdef UNITY_UI_CLIP_RECT
+#ifdef ENABLE_GSAA
 float GSAA_Filament(const float3 worldNormal,float perceptualRoughness) {
     // Kaplanyan 2016, "Stable specular highlights"
     // Tokuyoshi 2017, "Error Reduction and Simplification for Shading Anti-Aliasing"

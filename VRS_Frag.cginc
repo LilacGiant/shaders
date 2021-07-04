@@ -13,7 +13,7 @@ fixed4 frag(v2f i) : SV_Target
     
 
 
-    #if (PROP_ENABLEMETALLICMAP==1) || !defined(OPTIMIZER_ENABLED) // metalic map
+    #ifdef ENABLE_METALLICMAP
     float4 metallicMap = _MetallicMap.Sample(sampler_MainTex, i.uv);
     float metallic = metallicMap * _Metallic;
     float reflectance = metallicMap * _Reflectance;
@@ -26,7 +26,7 @@ fixed4 frag(v2f i) : SV_Target
     albedo.rgb *= oneMinusMetallic;
 
 
-    #if (PROP_ENABLEROUGHNESSMAP==1) || !defined(OPTIMIZER_ENABLED) // roughness map
+    #ifdef ENABLE_ROUGHNESSMAP
     float4 roughnessMap = _RoughnessMap.Sample(sampler_MainTex, i.uv);
     float perceptualRoughness = _Roughness * roughnessMap;
     #else
@@ -45,14 +45,14 @@ fixed4 frag(v2f i) : SV_Target
     #endif
 
     
-    #ifdef UNITY_UI_CLIP_RECT // geometric specular antialiasing
+    
+    #ifdef ENABLE_GSAA
     perceptualRoughness = GSAA_Filament(worldNormal, perceptualRoughness);
     #endif
 
-
-    #ifdef _NORMALMAP // normal map
-    float4 normalMap = _BumpMap.Sample(sampler_MainTex, i.uv);
-    initBumpedNormalTangentBitangent(normalMap, bitangent, tangent, worldNormal, _BumpScale);
+    #ifdef _NORMALMAP 
+    float4 normalMap = _BumpMap.Sample(sampler_BumpMap, i.uv);
+    initBumpedNormalTangentBitangent(normalMap, bitangent, tangent, worldNormal, _BumpScale); // broken
     #endif
 
     
@@ -60,10 +60,13 @@ fixed4 frag(v2f i) : SV_Target
 
     
 
-    #if (PROP_ENABLEOCCLUSION==1) || !defined(OPTIMIZER_ENABLED) // occlusion
+    #ifdef ENABLE_OCCLUSIONMAP
     float4 occlusionMap = _OcclusionMap.Sample(sampler_MainTex, i.uv);
-    float occlusion = lerp(1,occlusionMap.g , _OcclusionStrength);
+    float occlusion = lerp(1,occlusionMap , _OcclusionStrength);
+
     #endif
+
+    
 
     
     
@@ -93,9 +96,7 @@ fixed4 frag(v2f i) : SV_Target
     
 
     float3 NtL = NoL * lightCol;
-    #if defined(_DETAIL_MULX2)
-    NtL *= occlusion;
-    #endif
+
     float3 light = (NtL * attenuation);
     float3 directDiffuse = albedo;
 
@@ -103,14 +104,13 @@ fixed4 frag(v2f i) : SV_Target
 		float3 lightMap = getLightmap(i.uv1, worldNormal, i.worldPos);
         
         
-    #if defined(DYNAMICLIGHTMAP_ON) // apply realtime lightmap
+    #if defined(DYNAMICLIGHTMAP_ON) // apply realtime lightmap // IDK
         float3 realtimeLightMap = getRealtimeLightmap(i.uv2, worldNormal);
-        directDiffuse *= lightMap + realtimeLightMap; 
+        directDiffuse *= lightMap + realtimeLightMap + light; 
 
     
     #else
-    directDiffuse *= lightMap;
-    directDiffuse += light;
+    directDiffuse *= lightMap + light;
     #endif
 
     
@@ -163,9 +163,7 @@ float3 col = directDiffuse;
     float3 reflViewDir = reflect(-viewDir, worldNormal);
     float3 indirectSpecular = getIndirectSpecular(metallic, perceptualRoughness, reflViewDir, worldPos, directDiffuse, worldNormal) * lerp(fresnel, f0, perceptualRoughness);
 
-    #if defined(_DETAIL_MULX2)
-   indirectSpecular *= computeSpecularAO(NoV,occlusion,roughness);
-    #endif
+
 
 
 
@@ -182,7 +180,7 @@ col += indirectSpecular;
 
     float3 directSpecular = getDirectSpecular(perceptualRoughness, NoH, NoV, NoL, LoH, f0) * attenuation * NtL;
 
-    
+
     
 col += directSpecular;
     #endif
@@ -191,9 +189,9 @@ col += directSpecular;
 
 
 
-
-
-
+    #ifdef ENABLE_OCCLUSIONMAP
+col*= occlusion;
+    #endif
 
 
     return float4(col , 1);
