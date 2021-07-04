@@ -14,7 +14,9 @@ Shader "VRStandard"
         [ToggleUI] _UseVertexColors ("Use Vertex Colors", Float) = 0
                
                 
-
+        [Toggle(UNITY_UI_ALPHACLIP)] _EnablePackedMode ("Packed Textures", Float) = 1
+        
+        [NoScaleOffset] _PackedTexture ("Mask Map--{on_value_actions:[{value:0,actions:[{type:SET_PROPERTY,data:_EnablePackedMode=0}]},{value:1,actions:[{type:SET_PROPERTY,data:_EnablePackedMode=1}]}]} ", 2D) = "white" {}
 
         [HideInInspector] [ToggleUI] _EnableRoughnessMap ("Enable Roughness Map ", Float) = 0
         [NoScaleOffset] _RoughnessMap ("Roughness--{reference_property:_Roughness,on_value_actions:[{value:0,actions:[{type:SET_PROPERTY,data:_EnableRoughnessMap=0}]},{value:1,actions:[{type:SET_PROPERTY,data:_EnableRoughnessMap=1}]}]} ", 2D) = "white" {}
@@ -57,7 +59,6 @@ Shader "VRStandard"
 
 
 
-
     }
 
     SubShader
@@ -86,6 +87,7 @@ Shader "VRStandard"
             #pragma shader_feature _NORMALMAP // normal map
             #pragma shader_feature _SPECULARHIGHLIGHTS_OFF
             #pragma shader_feature _GLOSSYREFLECTIONS_OFF
+            #pragma shader_feature UNITY_UI_ALPHACLIP
 
 
             #ifndef UNITY_PASS_FORWARDBASE
@@ -147,7 +149,7 @@ Shader "VRStandard"
             #pragma shader_feature _NORMALMAP // normal map
             #pragma shader_feature _SPECULARHIGHLIGHTS_OFF
             #pragma shader_feature _GLOSSYREFLECTIONS_OFF
-            #pragma shader_feature _REQUIRE_UV2 // anisotropy
+            #pragma shader_feature UNITY_UI_ALPHACLIP
 
 
 

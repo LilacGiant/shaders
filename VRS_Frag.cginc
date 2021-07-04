@@ -11,29 +11,55 @@ fixed4 frag(v2f i) : SV_Target
     float4 diffuse = albedo;
 
     
-
-
+    #ifndef ENABLE_PACKED_MODE
+    
     #ifdef ENABLE_METALLICMAP
     float4 metallicMap = _MetallicMap.Sample(sampler_MainTex, i.uv);
+    #endif
+    
+    #ifdef ENABLE_ROUGHNESSMAP
+    float roughnessMap = _RoughnessMap.Sample(sampler_MainTex, i.uv);
+    #endif
+    
+    #ifdef ENABLE_OCCLUSIONMAP
+    float occlusionMap = _OcclusionMap.Sample(sampler_MainTex, i.uv);
+    #endif
+
+    
+    #else
+    #define ENABLE_ROUGHNESSMAP
+    #define ENABLE_OCCLUSIONMAP
+    #define ENABLE_METALLICMAP
+    float4 packedTex = _PackedTexture.Sample(sampler_MainTex, i.uv);
+    float metallicMap = packedTex.r;
+    float roughnessMap = packedTex.a;
+    float occlusionMap = packedTex.g;
+    #endif
+
+    
+    #ifdef ENABLE_ROUGHNESSMAP
+    float perceptualRoughness = _Roughness * roughnessMap;
+    #else
+    float perceptualRoughness = _Roughness;
+    #endif
+
+    #ifdef ENABLE_METALLICMAP
     float metallic = metallicMap * _Metallic;
     float reflectance = metallicMap * _Reflectance;
     #else
     float reflectance = _Reflectance;
     float metallic = _Metallic;
     #endif
-
-    float oneMinusMetallic =  1 - metallic;
-    albedo.rgb *= oneMinusMetallic;
-
-
-    #ifdef ENABLE_ROUGHNESSMAP
-    float4 roughnessMap = _RoughnessMap.Sample(sampler_MainTex, i.uv);
-    float perceptualRoughness = _Roughness * roughnessMap;
-    #else
-    float perceptualRoughness = _Roughness;
+    
+    #ifdef ENABLE_OCCLUSIONMAP
+    float occlusion = lerp(1,occlusionMap , _OcclusionStrength);
     #endif
 
+    float oneMinusMetallic =  1 - metallic;
     float roughness = perceptualRoughness*perceptualRoughness;
+    
+    albedo.rgb *= oneMinusMetallic;
+    
 
 
     
@@ -60,11 +86,7 @@ fixed4 frag(v2f i) : SV_Target
 
     
 
-    #ifdef ENABLE_OCCLUSIONMAP
-    float4 occlusionMap = _OcclusionMap.Sample(sampler_MainTex, i.uv);
-    float occlusion = lerp(1,occlusionMap , _OcclusionStrength);
-
-    #endif
+    
 
     
 
