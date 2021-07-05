@@ -14,7 +14,8 @@ Shader "VRStandard"
         [ToggleUI] _UseVertexColors ("Use Vertex Colors", Float) = 0
                
                 
-        [Toggle(UNITY_UI_ALPHACLIP)] _EnablePackedMode ("Packed Textures", Float) = 1
+        
+        
         
         [NoScaleOffset] _PackedTexture ("Mask Map--{on_value_actions:[{value:0,actions:[{type:SET_PROPERTY,data:_EnablePackedMode=0}]},{value:1,actions:[{type:SET_PROPERTY,data:_EnablePackedMode=1}]}]} ", 2D) = "white" {}
 
@@ -56,6 +57,12 @@ Shader "VRStandard"
         [PowerSlider(3)] _specularAntiAliasingThreshold ("Threshold", Range(0.0, 1.0)) = 0.1
         [HideInInspector] m_end_GSAA ("", Float) = 0
         
+        [HideInInspector] m_RenderingOptions ("Advanced Options", Float) = 0
+        [Enum(UnityEngine.Rendering.CullMode)] _Cull ("Cull", Float) = 2
+        [Toggle(UNITY_UI_ALPHACLIP)] _EnablePackedMode ("Packed Textures", Float) = 0
+        [Toggle(_DETAIL_MULX2)] _BicubicLightmap ("Bicubic Lightmap Sampling", Float) = 0
+        
+        
 
 
 
@@ -75,6 +82,7 @@ Shader "VRStandard"
             {
                 "LightMode"="ForwardBase"
             }
+            Cull [_Cull]
 
             CGPROGRAM
             #pragma target 3.0
@@ -88,6 +96,7 @@ Shader "VRStandard"
             #pragma shader_feature _SPECULARHIGHLIGHTS_OFF
             #pragma shader_feature _GLOSSYREFLECTIONS_OFF
             #pragma shader_feature UNITY_UI_ALPHACLIP
+            #pragma shader_feature _DETAIL_MULX2
 
 
             #ifndef UNITY_PASS_FORWARDBASE
@@ -138,6 +147,7 @@ Shader "VRStandard"
                 "LightMode"="ForwardAdd"
             }
             Blend One One
+            Cull [_Cull]
             ZWrite Off
 
             CGPROGRAM
@@ -197,7 +207,7 @@ Shader "VRStandard"
                 "LightMode"="ShadowCaster"
             }
             ZWrite On ZTest LEqual
-            Cull Back
+            Cull [_Cull]
 
             CGPROGRAM
             #pragma target 3.0

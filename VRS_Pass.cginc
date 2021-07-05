@@ -7,6 +7,10 @@
 #define ENABLE_GSAA
 #endif
 
+#ifdef _DETAIL_MULX2
+#define ENABLE_BICUBIC_LIGHTMAP
+#endif
+
 
 
 

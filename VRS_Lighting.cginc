@@ -1,8 +1,4 @@
-//This file contains all of the neccisary functions for lighting to work a'la standard shading.
-//Feel free to add to this.
 #define grayscaleVec float3(0.2125, 0.7154, 0.0721)
-
-
 
 float pow5(float x) {
     float x2 = x * x;
@@ -29,7 +25,6 @@ float D_GGX_Anisotropic(float NoH, const float3 h, const float3 t, const float3 
     float w2 = a2 / v2;
     return a2 * w2 * w2 * (1.0 / UNITY_PI);
 }
-
 
 
 float V_Kelemen(float LoH) {
@@ -146,8 +141,7 @@ float Fd_Lambert()
 
 half3 BetterSH9 (half4 normal) {
     float3 indirect;
-    float3 L0 = float3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w)
-     + float3(unity_SHBr.z, unity_SHBg.z, unity_SHBb.z) / 3.0;
+    float3 L0 = float3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w) + float3(unity_SHBr.z, unity_SHBg.z, unity_SHBb.z) / 3.0;
     indirect.r = shEvaluateDiffuseL1Geomerics_local(L0.r, unity_SHAr.xyz, normal);
     indirect.g = shEvaluateDiffuseL1Geomerics_local(L0.g, unity_SHAg.xyz, normal);
     indirect.b = shEvaluateDiffuseL1Geomerics_local(L0.b, unity_SHAb.xyz, normal);
@@ -161,7 +155,7 @@ half3 BetterSH9 (half4 normal) {
 
 float3 getIndirectDiffuse(float3 normal)
 {
-    float3 indirectDiffuse = max(0, BetterSH9(float4(normal, 1)));
+    float3 indirectDiffuse = BetterSH9(float4(normal, 1));
     return indirectDiffuse;
 }
 
@@ -344,7 +338,7 @@ float h1(float a)
 
 float3 tex2DFastBicubicLightmap(float2 uv)
 {
-    #ifdef SHADER_API_D3D11
+    #if defined(SHADER_API_D3D11) && defined(ENABLE_BICUBIC_LIGHTMAP)
     float width;
     float height;
     unity_Lightmap.GetDimensions(width, height);
@@ -374,7 +368,7 @@ float3 tex2DFastBicubicLightmap(float2 uv)
                          g1x * UNITY_SAMPLE_TEX2D(unity_Lightmap, (float2(px + h1x, py + h1y) * 1.0f/width)));
     return DecodeLightmap(r);
     #else
-        return DecodeLightmap(UNITY_SAMPLE_TEX2D(unity_Lightmap, uv));
+    return DecodeLightmap(UNITY_SAMPLE_TEX2D(unity_Lightmap, uv));
     #endif
 }
 
