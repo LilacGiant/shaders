@@ -237,7 +237,7 @@ float3 getDirectSpecular(float perceptualRoughness, float NoH, float NoV, float 
 }
 
 
-#ifdef _NORMALMAP
+#ifdef ENABLE_NORMALMAP
 void initBumpedNormalTangentBitangent(float4 normalMap, inout float3 bitangent, inout float3 tangent, inout float3 normal, float3 nScale)
 {
     

@@ -65,7 +65,7 @@ fixed4 frag(v2f i) : SV_Target
     
     float3 worldNormal = normalize(i.worldNormal);
     
-    #if defined(_GLOSSYREFLECTIONS_OFF) || defined(_SPECULARHIGHLIGHTS_OFF) || defined (_NORMALMAP)
+    #if defined(_GLOSSYREFLECTIONS_OFF) || defined(_SPECULARHIGHLIGHTS_OFF) || defined (ENABLE_NORMALMAP)
     float3 tangent = i.tangent;
     float3 bitangent = i.bitangent;
     #endif
@@ -76,7 +76,8 @@ fixed4 frag(v2f i) : SV_Target
     perceptualRoughness = GSAA_Filament(worldNormal, perceptualRoughness);
     #endif
 
-    #ifdef _NORMALMAP 
+
+    #ifdef ENABLE_NORMALMAP 
     float4 normalMap = _BumpMap.Sample(sampler_BumpMap, i.uv);
     initBumpedNormalTangentBitangent(normalMap, bitangent, tangent, worldNormal, _BumpScale); // broken
     #endif
@@ -217,8 +218,7 @@ col += directSpecular;
 col*= occlusion;
     #endif
 
-
-    return float4(col , 0.2);
+    return float4(col , albedo.a);
     
 
 

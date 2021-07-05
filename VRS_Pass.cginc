@@ -20,7 +20,9 @@ UNITY_DECLARE_TEX2D(_MainTex);
 float4 _MainTex_ST;
 float4 _Color;
 
-#ifdef _NORMALMAP
+
+#if (PROP_ENABLENORMALMAP==1) || !defined(OPTIMIZER_ENABLED)
+#define ENABLE_NORMALMAP
 UNITY_DECLARE_TEX2D(_BumpMap);
 float4 _BumpMap_ST;
 float _BumpScale;
