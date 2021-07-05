@@ -179,19 +179,22 @@ namespace Thry
         public DefineableAction[] actions;
 
         public bool Execute(MaterialProperty p)
-        {
-            if((p.type == MaterialProperty.PropType.Texture && p.floatValue.ToString() == value)
-               || ( p.colorValue.ToString() == value) 
-               || ( p.vectorValue.ToString() == value )
-               || (p.type == MaterialProperty.PropType.Texture && ((value == "1") == (p.textureValue != null)))
-            )
-            {
-                foreach (DefineableAction a in actions)
-                    a.Perform();
-                return true;
-            }
-            return false;
-        }
+                {
+        
+                        if ((p.type == MaterialProperty.PropType.Texture && p.floatValue.ToString() == value && (p.textureValue != null))
+                            || (p.floatValue.ToString()==value) 
+                            || (p.colorValue.ToString() == value)
+                            || (p.vectorValue.ToString() == value)
+                            || (p.type == MaterialProperty.PropType.Texture && ((value == "1") == (p.textureValue != null)))
+                        )
+                        {
+                            foreach (DefineableAction a in actions)
+                                a.Perform();
+                            return true;
+                        }
+                        
+                    return false;
+                }
         
         private static PropertyValueAction ParseForThryParser(string s)
         {

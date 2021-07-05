@@ -218,7 +218,7 @@ col*= occlusion;
     #endif
 
 
-    return float4(col , 1);
+    return float4(col , 0.2);
     
 
 
