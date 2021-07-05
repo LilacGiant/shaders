@@ -840,6 +840,8 @@ namespace Thry
                         throw new ArgumentOutOfRangeException(nameof(material), "This property type should not be renamed and can not be set.");
                 }
             }
+            foreach (string keyword in material.shaderKeywords)
+                material.DisableKeyword(keyword);
             return true;
         }
 
