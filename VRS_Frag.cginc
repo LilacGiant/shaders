@@ -2,13 +2,24 @@
 #define VRS_FRAG
 fixed4 frag(v2f i) : SV_Target
 {
+    float4 albedo = _MainTex.Sample(sampler_MainTex, i.uv) * _Color;
+    
+    #ifdef ENABLE_TRANSPARENCY
+    float alpha = calcAlpha(_Cutoff,albedo.a,_Mode);
+    #else
+    float alpha = 1;
+    #endif
     
     #if defined(UNITY_PASS_SHADOWCASTER)
         SHADOW_CASTER_FRAGMENT(i);
     #else
 
-    float4 albedo = _MainTex.Sample(sampler_MainTex, i.uv) * _Color;
     float4 diffuse = albedo;
+
+    
+    #if defined(TRANSPARENT) || defined(ALPHATOCOVERAGE)
+    alpha = diffuse.a; //should be maintex * color
+    #endif
 
     
     #ifndef ENABLE_PACKED_MODE
@@ -218,7 +229,9 @@ col += directSpecular;
 col*= occlusion;
     #endif
 
-    return float4(col , albedo.a);
+    
+
+    return float4(col , alpha);
     
 
 

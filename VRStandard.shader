@@ -21,6 +21,9 @@ Shader "VRStandard"
             {value:7,actions:[{type:SET_PROPERTY,data:render_queue=3000}, {type:SET_PROPERTY,data:render_type=Transparent},       {type:SET_PROPERTY,data:_BlendOp=0}, {type:SET_PROPERTY,data:_BlendOpAlpha=0}, {type:SET_PROPERTY,data:_Cutoff=0},  {type:SET_PROPERTY,data:_SrcBlend=2}, {type:SET_PROPERTY,data:_DstBlend=3},  {type:SET_PROPERTY,data:_AlphaToMask=0},  {type:SET_PROPERTY,data:_ZWrite=0}, {type:SET_PROPERTY,data:_ZTest=4},   {type:SET_PROPERTY,data:_AlphaPremultiply=0}]}
         }]}]}", Int) = 0
         
+
+        _Cutoff ("Alpha Cuttoff--{condition_show:{type:PROPERTY_BOOL,data:_Mode==1}}", Range(0, 1.001)) = 0.5
+
         _MainTex ("Albedo --{reference_property:_Color}", 2D) = "white" {}
         [HideInInspector] _Color ("Color", Color) = (1,1,1,1)
         
@@ -79,7 +82,7 @@ Shader "VRStandard"
         [Enum(Thry.BlendOp)]_BlendOpAlpha ("Alpha Blend Op", Int) = 0
         [Enum(UnityEngine.Rendering.BlendMode)] _SrcBlend ("Source Blend", Int) = 1
         [Enum(UnityEngine.Rendering.BlendMode)] _DstBlend ("Destination Blend", Int) = 0
-        _Cutoff ("Alpha Cuttoff", Range(0, 1.001)) = 0.5
+        
 
 //        [Toggle(UNITY_UI_ALPHACLIP)] _EnablePackedMode ("Packed Textures", Float) = 0
         [Toggle(_DETAIL_MULX2)] _BicubicLightmap ("Bicubic Lightmap Sampling", Float) = 0
@@ -120,7 +123,6 @@ Shader "VRStandard"
             #pragma fragmentoption ARB_precision_hint_fastest
 
             #pragma shader_feature UNITY_UI_CLIP_RECT // GSAA
-            #pragma shader_feature _NORMALMAP // normal map
             #pragma shader_feature _SPECULARHIGHLIGHTS_OFF
             #pragma shader_feature _GLOSSYREFLECTIONS_OFF
             #pragma shader_feature UNITY_UI_ALPHACLIP
@@ -186,12 +188,9 @@ Shader "VRStandard"
             #pragma fragment frag
             #pragma multi_compile_fwdadd_fullshadows
             #pragma shader_feature UNITY_UI_CLIP_RECT // GSAA
-            #pragma shader_feature _NORMALMAP // normal map
             #pragma shader_feature _SPECULARHIGHLIGHTS_OFF
             #pragma shader_feature _GLOSSYREFLECTIONS_OFF
             #pragma shader_feature UNITY_UI_ALPHACLIP
-
-
 
             #ifndef UNITY_PASS_FORWARDADD
             #define UNITY_PASS_FORWARDADD
@@ -248,7 +247,6 @@ Shader "VRStandard"
             #pragma multi_compile_shadowcaster
             #pragma fragmentoption ARB_precision_hint_fastest
             #pragma skip_variants FOG_LINEAR FOG_EXP FOG_EXP2
-
 
             #ifndef UNITY_PASS_SHADOWCASTER
             #define UNITY_PASS_SHADOWCASTER

@@ -455,6 +455,16 @@ float computeSpecularAO(float NoV, float ao, float roughness) {
     return clamp(pow(NoV + ao, exp2(-16.0 * roughness - 1.0)) - 1.0 + ao, 0.0, 1.0);
 }
 
+float calcAlpha(float cutoff, float alpha, float mode)
+{
+    if(mode==1)
+    {
+        clip(alpha - cutoff);
+        return alpha;
+    }
+    else return alpha;
+
+}
 
 
 

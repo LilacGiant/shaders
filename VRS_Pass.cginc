@@ -66,6 +66,11 @@ float _specularAntiAliasingThreshold;
 
 float _Reflectance;
 
+#if (PROP_MODE!=0) || !defined(OPTIMIZER_ENABLED)
+#define ENABLE_TRANSPARENCY
+float _Cutoff;
+float _Mode;
+#endif
 
 
 
