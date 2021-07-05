@@ -123,7 +123,9 @@ fixed4 frag(v2f i) : SV_Target
     float3 directDiffuse = albedo;
 
     #if defined(LIGHTMAP_ON) // apply lightmap /// fuck
-		float3 lightMap = getLightmap(i.uv1, worldNormal, i.worldPos);
+
+    float3 lightMap = getLightmap(i.uv1, worldNormal, i.worldPos);
+
         
         
     #if defined(DYNAMICLIGHTMAP_ON) // apply realtime lightmap // IDK
@@ -132,7 +134,7 @@ fixed4 frag(v2f i) : SV_Target
 
     
     #else
-    directDiffuse *= lightMap + light;
+    directDiffuse *= lightMap + light ;
     #endif
 
     

@@ -92,6 +92,34 @@ float shEvaluateDiffuseL1Geomerics(float L0, float3 L1, float3 n)
     return R0 * (a + (1.0f - a) * (p + 1.0f) * pow(q, p));
 }
 
+float shEvaluateDiffuseL1Geomerics_local(float L0, float3 L1, float3 n)
+{
+    // average energy
+    // Add max0 to fix an issue caused by probes having a negative ambient component (???)
+    // I'm not sure how normal that is but this can't handle it
+    float R0 = max(L0, 0);
+
+    // avg direction of incoming light
+    float3 R1 = 0.5f * L1;
+
+    // directional brightness
+    float lenR1 = length(R1);
+
+    // linear angle between normal and direction 0-1
+    float q = dot(normalize(R1), n) * 0.5 + 0.5;
+    q = saturate(q); // Thanks to ScruffyRuffles for the bug identity.
+
+    // power for q
+    // lerps from 1 (linear) to 3 (cubic) based on directionality
+    float p = 1.0f + 2.0f * lenR1 / R0;
+
+    // dynamic range constant
+    // should vary between 4 (highly directional) and 0 (ambient)
+    float a = (1.0f - lenR1 / R0) / (1.0f + lenR1 / R0);
+
+    return R0 * (a + (1.0f - a) * (p + 1.0f) * pow(q, p));
+}
+
 // Energy conserving wrap diffuse term, does *not* include the divide by pi
 float Fd_Wrap(float NoL, float w) {
     return saturate((NoL + w) / sq(1.0 + w));
@@ -116,11 +144,24 @@ float Fd_Lambert()
     return 1.0 / UNITY_PI;
 }
 
+half3 BetterSH9 (half4 normal) {
+    float3 indirect;
+    float3 L0 = float3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w)
+     + float3(unity_SHBr.z, unity_SHBg.z, unity_SHBb.z) / 3.0;
+    indirect.r = shEvaluateDiffuseL1Geomerics_local(L0.r, unity_SHAr.xyz, normal);
+    indirect.g = shEvaluateDiffuseL1Geomerics_local(L0.g, unity_SHAg.xyz, normal);
+    indirect.b = shEvaluateDiffuseL1Geomerics_local(L0.b, unity_SHAb.xyz, normal);
+    indirect = max(0, indirect);
+    indirect += SHEvalLinearL2(normal);
+    return indirect;
+}
+
+
 
 
 float3 getIndirectDiffuse(float3 normal)
 {
-    float3 indirectDiffuse = max(0, ShadeSH9(float4(normal, 1)));
+    float3 indirectDiffuse = max(0, BetterSH9(float4(normal, 1)));
     return indirectDiffuse;
 }
 
@@ -253,11 +294,96 @@ float3 getRealtimeLightmap(float2 uv, float3 worldNormal)
 }
 #endif
 
+
+// w0, w1, w2, and w3 are the four cubic B-spline basis functions
+float w0(float a)
+{
+    //    return (1.0f/6.0f)*(-a*a*a + 3.0f*a*a - 3.0f*a + 1.0f);
+    return (1.0f/6.0f)*(a*(a*(-a + 3.0f) - 3.0f) + 1.0f);   // optimized
+}
+
+float w1(float a)
+{
+    //    return (1.0f/6.0f)*(3.0f*a*a*a - 6.0f*a*a + 4.0f);
+    return (1.0f/6.0f)*(a*a*(3.0f*a - 6.0f) + 4.0f);
+}
+
+float w2(float a)
+{
+    //    return (1.0f/6.0f)*(-3.0f*a*a*a + 3.0f*a*a + 3.0f*a + 1.0f);
+    return (1.0f/6.0f)*(a*(a*(-3.0f*a + 3.0f) + 3.0f) + 1.0f);
+}
+
+float w3(float a)
+{
+    return (1.0f/6.0f)*(a*a*a);
+}
+
+// g0 and g1 are the two amplitude functions
+float g0(float a)
+{
+    return w0(a) + w1(a);
+}
+
+float g1(float a)
+{
+    return w2(a) + w3(a);
+}
+
+// h0 and h1 are the two offset functions
+float h0(float a)
+{
+    // note +0.5 offset to compensate for CUDA linear filtering convention
+    return -1.0f + w1(a) / (w0(a) + w1(a)) + 0.5f;
+}
+
+float h1(float a)
+{
+    return 1.0f + w3(a) / (w2(a) + w3(a)) + 0.5f;
+}
+
+float3 tex2DFastBicubicLightmap(float2 uv)
+{
+    #ifdef SHADER_API_D3D11
+    float width;
+    float height;
+    unity_Lightmap.GetDimensions(width, height);
+    float x = uv.x * width;
+    float y = uv.y * height;
+
+    
+    
+    x -= 0.5f;
+    y -= 0.5f;
+    float px = floor(x);
+    float py = floor(y);
+    float fx = x - px;
+    float fy = y - py;
+
+    // note: we could store these functions in a lookup table texture, but maths is cheap
+    float g0x = g0(fx);
+    float g1x = g1(fx);
+    float h0x = h0(fx);
+    float h1x = h1(fx);
+    float h0y = h0(fy);
+    float h1y = h1(fy);
+
+    float4 r = g0(fy) * ( g0x * UNITY_SAMPLE_TEX2D(unity_Lightmap, (float2(px + h0x, py + h0y) * 1.0f/width)) +
+                         g1x * UNITY_SAMPLE_TEX2D(unity_Lightmap, (float2(px + h1x, py + h0y) * 1.0f/width))) +
+                         g1(fy) * ( g0x * UNITY_SAMPLE_TEX2D(unity_Lightmap, (float2(px + h0x, py + h1y) * 1.0f/width)) +
+                         g1x * UNITY_SAMPLE_TEX2D(unity_Lightmap, (float2(px + h1x, py + h1y) * 1.0f/width)));
+    return DecodeLightmap(r);
+    #else
+        return DecodeLightmap(UNITY_SAMPLE_TEX2D(unity_Lightmap, uv));
+    #endif
+}
+
 float3 getLightmap(float2 uv, float3 worldNormal, float3 worldPos)
 {
     float2 lightmapUV = uv * unity_LightmapST.xy + unity_LightmapST.zw;
-    float4 bakedColorTex = UNITY_SAMPLE_TEX2D(unity_Lightmap, lightmapUV);
-    float3 lightMap = DecodeLightmap(bakedColorTex);
+ //   float4 bakedColorTex = UNITY_SAMPLE_TEX2D(unity_Lightmap, lightmapUV);
+    half3 lightMap = tex2DFastBicubicLightmap(lightmapUV);
+
 
     #ifdef DIRLIGHTMAP_COMBINED
         fixed4 bakedDirTex = UNITY_SAMPLE_TEX2D_SAMPLER (unity_LightmapInd, unity_Lightmap, lightmapUV);
