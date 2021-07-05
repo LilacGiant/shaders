@@ -72,7 +72,9 @@ float _Cutoff;
 float _Mode;
 #endif
 
-
+#if !defined(OPTIMIZER_ENABLED)
+float _EnableNormalMap;
+#endif
 
 
 #include "VRS_Lighting.cginc"

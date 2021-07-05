@@ -72,7 +72,7 @@ fixed4 frag(v2f i) : SV_Target
     albedo.rgb *= oneMinusMetallic;
     
 
-
+    
     
     float3 worldNormal = normalize(i.worldNormal);
     
@@ -88,7 +88,11 @@ fixed4 frag(v2f i) : SV_Target
     #endif
 
 
-    #ifdef ENABLE_NORMALMAP 
+    #ifdef ENABLE_NORMALMAP
+    #if !defined(OPTIMIZER_ENABLED)
+    if(_EnableNormalMap==0) _BumpScale = 0;
+    #endif
+    
     float4 normalMap = _BumpMap.Sample(sampler_BumpMap, i.uv);
     initBumpedNormalTangentBitangent(normalMap, bitangent, tangent, worldNormal, _BumpScale); // broken
     #endif
