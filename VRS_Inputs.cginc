@@ -6,6 +6,7 @@
 UNITY_DECLARE_TEX2D(_MainTex);
 uniform float4 _MainTex_ST;
 uniform float4 _Color;
+uniform float _Saturation;
 uniform float _EnableVertexColor;
 
 uniform float _EnableNormalMap;

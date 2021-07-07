@@ -2,11 +2,19 @@
 #define VRS_FRAG
 fixed4 frag(v2f i) : SV_Target
 {
-    float4 albedo = _MainTex.Sample(sampler_MainTex, i.uv) * _Color;
+    float4 mainTex = _MainTex.Sample(sampler_MainTex, i.uv);
+
+    float intensity = dot(mainTex, grayscaleVec);
+    mainTex.rgb = lerp(intensity, mainTex, (_Saturation+1));
+
+
+    float4 albedo = mainTex * _Color;
     #ifdef ENABLE_VERTEXCOLOR
     UNITY_BRANCH
-    if(_EnableVertexColor)
-        albedo.rgb *= i.color;
+    if(_EnableVertexColor){
+        float3 vertexColor = GammaToLinearSpace(i.color);
+        albedo.rgb *= vertexColor;
+    }
     #endif
     
     #ifdef ENABLE_TRANSPARENCY
@@ -19,12 +27,7 @@ fixed4 frag(v2f i) : SV_Target
         SHADOW_CASTER_FRAGMENT(i);
     #else
 
-    float4 diffuse = albedo;
-
-    
-    #if defined(TRANSPARENT) || defined(ALPHATOCOVERAGE)
-    alpha = diffuse.a; //should be maintex * color
-    #endif
+    float3 diffuse = albedo;
 
     
     #ifndef ENABLE_PACKED_MODE
@@ -220,8 +223,8 @@ float3 col = directDiffuse;
     #if defined(LIGHTMAP_ON)
     UNITY_BRANCH
     if(_SpecularOcclusion > 0){
-            float specMultiplier = saturate(max(0, lerp(1, pow(length(lightMap), _SpecularOcclusion), _SpecularOcclusion)));
-            specMultiplier = lerp(specMultiplier,1,_Metallic);
+            float specMultiplier = saturate(lerp(1, pow(length(lightMap), _SpecularOcclusion), _SpecularOcclusion));
+            specMultiplier = lerp(specMultiplier,1,metallic);
             indirectSpecular *= specMultiplier;
     }
     #endif
