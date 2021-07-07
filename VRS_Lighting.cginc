@@ -207,10 +207,7 @@ float3 getIndirectSpecular(float metallic, float roughness, float3 reflDir, floa
         indirectSpecular *= horizon * horizon;
 
         spec = indirectSpecular;
-      //  #if defined(LIGHTMAP_ON) 
-        //    float specMultiplier = max(0, lerp(1, pow(length(lightmap), _SpecularOcclusion), _SpecularOcclusion));
-       //     spec *= specMultiplier;
-      //  #endif
+        
 
     #endif
     return spec;
@@ -376,7 +373,7 @@ float3 getLightmap(float2 uv, float3 worldNormal, float3 worldPos)
 {
     float2 lightmapUV = uv * unity_LightmapST.xy + unity_LightmapST.zw;
  //   float4 bakedColorTex = UNITY_SAMPLE_TEX2D(unity_Lightmap, lightmapUV);
-    half3 lightMap = tex2DFastBicubicLightmap(lightmapUV);
+    half3 lightMap = tex2DFastBicubicLightmap(lightmapUV) * (_LightmapMultiplier);
 
 
     #ifdef DIRLIGHTMAP_COMBINED

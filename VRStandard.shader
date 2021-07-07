@@ -30,7 +30,7 @@ Shader "VRStandard"
         _MainTex ("Albedo --{reference_property:_Color}", 2D) = "white" {}
         [HideInInspector] _Color ("Color", Color) = (1,1,1,1)
         
-        [ToggleUI] _UseVertexColors ("Use Vertex Colors", Float) = 0
+        [ToggleUI] _EnableVertexColor ("Vertex Colors", Float) = 0
                
                 
         
@@ -52,6 +52,7 @@ Shader "VRStandard"
         [HideInInspector] _BumpScale ("Bump Scale", Float) = 1
         
 
+        
 
 
 
@@ -76,9 +77,17 @@ Shader "VRStandard"
         [PowerSlider(3)] _specularAntiAliasingVariance ("Variance", Range(0.0, 1.0)) = 0.01
         [PowerSlider(3)] _specularAntiAliasingThreshold ("Threshold", Range(0.0, 1.0)) = 0.1
         [HideInInspector] m_end_GSAA ("", Float) = 0
+
+        [HideInInspector] m_start_Emission ("Emission --{reference_property:_EnableEmission}", Float) = 0
+        [HideInInspector] [ToggleUI] _EnableEmission ("Emission", Float) = 0
+        [NoScaleOffset] _EmissionMap ("Emission Map--{reference_property:_EmissionColor}", 2D) = "white" {}
+        [HideInInspector] [HDR] _EmissionColor ("Color", Color) = (0,0,0)
+        [HideInInspector] m_end_Emission ("", Float) = 0
         
         [HideInInspector] m_start_Lightmap ("Lightmap", Float) = 0
         [Toggle(_DETAIL_MULX2)] _BicubicLightmap ("Bicubic Lightmap Sampling", Float) = 0
+        _LightmapMultiplier ("Multiplier", Range(0, 2)) = 1
+        _SpecularOcclusion ("Specular Occlusion", Range(0, 1)) = 0
         [HideInInspector] m_end_Lightmap ("", Float) = 0
         
 
@@ -145,10 +154,7 @@ Shader "VRStandard"
             #define UNITY_PASS_FORWARDBASE
             #endif
 
-
-            #include "UnityCG.cginc"
-            #include "Lighting.cginc"
-            #include "AutoLight.cginc"
+            #include "VRS_Inputs.cginc"
 
 
             struct appdata
@@ -159,6 +165,10 @@ Shader "VRStandard"
                 float2 uv2 : TEXCOORD2;
                 float3 normal : NORMAL;
                 float4 tangent : TANGENT;
+
+                #ifdef ENABLE_VERTEXCOLOR
+                fixed4 color : COLOR;
+                #endif
             };
 
             struct v2f
@@ -174,6 +184,10 @@ Shader "VRStandard"
 
                 float3 worldPos : TEXCOORD6;
                 SHADOW_COORDS(7)
+
+                #ifdef ENABLE_VERTEXCOLOR
+                fixed4 color : COLOR;
+                #endif
             };
 
 
@@ -209,9 +223,7 @@ Shader "VRStandard"
             #endif
 
 
-            #include "UnityCG.cginc"
-            #include "Lighting.cginc"
-            #include "AutoLight.cginc"
+            #include "VRS_Inputs.cginc"
 
 
             struct appdata
@@ -220,6 +232,9 @@ Shader "VRStandard"
                 float2 uv : TEXCOORD0;
                 float3 normal : NORMAL;
                 float4 tangent : TANGENT;
+                #ifdef ENABLE_VERTEXCOLOR
+                fixed4 color : COLOR;
+                #endif
             };
 
             struct v2f
@@ -233,6 +248,9 @@ Shader "VRStandard"
 
                 float3 worldPos : TEXCOORD4;
                 SHADOW_COORDS(5)
+                #ifdef ENABLE_VERTEXCOLOR
+                fixed4 color : COLOR;
+                #endif
             };
 
             #include "VRS_Pass.cginc"
@@ -265,9 +283,7 @@ Shader "VRStandard"
             #endif
 
 
-            #include "UnityCG.cginc"
-            #include "Lighting.cginc"
-            #include "AutoLight.cginc"
+            #include "VRS_Inputs.cginc"
 
 
             struct appdata
@@ -276,6 +292,9 @@ Shader "VRStandard"
                 float2 uv : TEXCOORD0;
                 float3 normal : NORMAL;
                 float4 tangent : TANGENT;
+                #ifdef ENABLE_VERTEXCOLOR
+                fixed4 color : COLOR;
+                #endif
             };
 
             struct v2f
@@ -286,6 +305,9 @@ Shader "VRStandard"
                 float3 tangent : TEXCOORD2;
                 float3 worldNormal : TEXCOORD3;
                 float3 worldPos : TEXCOORD4;
+                #ifdef ENABLE_VERTEXCOLOR
+                fixed4 color : COLOR;
+                #endif
             };
 
 

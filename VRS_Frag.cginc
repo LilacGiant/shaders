@@ -3,6 +3,11 @@
 fixed4 frag(v2f i) : SV_Target
 {
     float4 albedo = _MainTex.Sample(sampler_MainTex, i.uv) * _Color;
+    #ifdef ENABLE_VERTEXCOLOR
+    UNITY_BRANCH
+    if(_EnableVertexColor)
+        albedo.rgb *= i.color;
+    #endif
     
     #ifdef ENABLE_TRANSPARENCY
     float alpha = calcAlpha(_Cutoff,albedo.a,_Mode);
@@ -179,6 +184,9 @@ float3 col = directDiffuse;
 
     float3 halfVector = normalize(lightDir + viewDir);
     float LoH = saturate(dot(lightDir, halfVector));
+
+    
+    
     
 
 
@@ -188,6 +196,9 @@ float3 col = directDiffuse;
 
 
    fresnel = lerp(fresnel, f0, metallic); // kill fresnel on metallics, it looks bad.
+
+
+    
 
     
 
@@ -206,6 +217,15 @@ float3 col = directDiffuse;
 
 
 
+    #if defined(LIGHTMAP_ON)
+    UNITY_BRANCH
+    if(_SpecularOcclusion > 0){
+            float specMultiplier = saturate(max(0, lerp(1, pow(length(lightMap), _SpecularOcclusion), _SpecularOcclusion)));
+            specMultiplier = lerp(specMultiplier,1,_Metallic);
+            indirectSpecular *= specMultiplier;
+    }
+    #endif
+
 
 col += indirectSpecular;
     #endif
@@ -220,6 +240,8 @@ col += indirectSpecular;
 
     float3 directSpecular = getDirectSpecular(perceptualRoughness, NoH, NoV, NoL, LoH, f0) * attenuation * NtL;
 
+    
+
 
     
 col += directSpecular;
@@ -233,7 +255,12 @@ col += directSpecular;
 col*= occlusion;
     #endif
 
-    
+#ifdef ENABLE_EMISSION
+UNITY_BRANCH
+if(_EnableEmission==1)
+    col += _EmissionMap.Sample(sampler_MainTex, i.uv) * _EmissionColor;
+#endif
+
 
     return float4(col , alpha);
     

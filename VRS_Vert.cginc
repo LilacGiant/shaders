@@ -12,6 +12,10 @@ v2f vert(appdata v)
     o.uv2 = v.uv2;
     #endif
 
+    #ifdef ENABLE_VERTEXCOLOR
+    o.color = v.color;
+    #endif
+
 
     float3 worldNormal = UnityObjectToWorldNormal(v.normal);
     float3 tangent = UnityObjectToWorldDir(v.tangent);
@@ -28,6 +32,8 @@ v2f vert(appdata v)
     #else
     TRANSFER_SHADOW_CASTER_NOPOS(o, o.pos);
     #endif
+
+    
 
     return o;
 }

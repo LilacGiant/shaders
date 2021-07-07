@@ -180,19 +180,20 @@ namespace Thry
 
         public bool Execute(MaterialProperty p)
         {
-
-                if ((p.type == MaterialProperty.PropType.Texture && p.floatValue.ToString() == value && (p.textureValue != null))
-                    || (p.floatValue.ToString()==value) 
-                    || (p.colorValue.ToString() == value)
-                    || (p.vectorValue.ToString() == value)
-                    || (p.type == MaterialProperty.PropType.Texture && ((value == "1") == (p.textureValue != null)))
-                )
+            if(
+                (p.type == MaterialProperty.PropType.Float   && p.floatValue.ToString()   ==  value)          ||
+                (p.type == MaterialProperty.PropType.Range   && p.floatValue.ToString()   ==  value)          ||
+                (p.type == MaterialProperty.PropType.Color   && p.colorValue.ToString()   ==  value)          ||
+                (p.type == MaterialProperty.PropType.Vector  && p.vectorValue.ToString()  ==  value)          ||
+                (p.type == MaterialProperty.PropType.Texture && ((p.textureValue == null) == (value == "0"))) ||
+                (p.type == MaterialProperty.PropType.Texture && ((p.textureValue != null) == (value == "1"))) ||
+                (p.type == MaterialProperty.PropType.Texture && (p.textureValue != null && p.textureValue.name == value)) 
+            )
                 {
-                    foreach (DefineableAction a in actions)
-                        a.Perform();
-                    return true;
-                }
-                
+                foreach (DefineableAction a in actions)
+                    a.Perform();
+                return true;
+            }
             return false;
         }
         
@@ -268,16 +269,6 @@ namespace Thry
                             m.shader = shader;
                     }
                     break;
-                case DefineableActionType.SET_KEYWORD:
-                    Debug.Log(data);
-                    string[] keyword = Regex.Split(data, @"=");
-                    bool state;
-                    if (keyword[1] == "true")
-                        state = true;
-                    else
-                        state = false;
-                    MaterialHelper.ToggleKeyword(ShaderEditor.active.materials, keyword[0],state);
-                    break;
             }
         }
 
@@ -331,8 +322,7 @@ namespace Thry
         URL,
         SET_PROPERTY,
         SET_SHADER,
-        SET_TAG,
-        SET_KEYWORD
+        SET_TAG
     }
 
     public class DefineableCondition

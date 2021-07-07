@@ -733,7 +733,7 @@ namespace Thry
 
             if (applyShaderLater)
             {
-                Debug.Log("Apply later: "+applyStructsLater.Count+ ", "+material.name);
+                //Debug.Log("Apply later: "+applyStructsLater.Count+ ", "+material.name);
                 applyStructsLater.Add(material, applyStruct);
                 return true;
             }
@@ -776,10 +776,6 @@ namespace Thry
             // Write the new shader folder name in an override tag so it will be deleted 
             material.SetOverrideTag("OptimizedShaderFolder", smallguid);
 
-            // Remove ALL keywords
-            foreach (string keyword in material.shaderKeywords)
-                material.DisableKeyword(keyword);
-
             // For some reason when shaders are swapped on a material the RenderType override tag gets completely deleted and render queue set back to -1
             // So these are saved as temp values and reassigned after switching shaders
             string renderType = material.GetTag("RenderType", false, "");
@@ -796,6 +792,10 @@ namespace Thry
             ShaderEditor.reload();
             material.SetOverrideTag("RenderType", renderType);
             material.renderQueue = renderQueue;
+
+            // Remove ALL keywords
+            foreach (string keyword in material.shaderKeywords)
+                material.DisableKeyword(keyword);
 
             foreach (var animProp in animatedPropsToRename)
             {
@@ -840,8 +840,6 @@ namespace Thry
                         throw new ArgumentOutOfRangeException(nameof(material), "This property type should not be renamed and can not be set.");
                 }
             }
-            foreach (string keyword in material.shaderKeywords)
-                material.DisableKeyword(keyword);
             return true;
         }
 
@@ -1377,7 +1375,6 @@ namespace Thry
             string renderType = material.GetTag("RenderType", false, "");
             int renderQueue = material.renderQueue;
             material.shader = orignalShader;
-            ShaderEditor.reload();
             material.SetOverrideTag("RenderType", renderType);
             material.renderQueue = renderQueue;
 
@@ -1699,11 +1696,13 @@ namespace Thry
                     bool success = ShaderOptimizer.LockApplyShader(m);
                     if (success)
                     {
-                        if (shaderOptimizer != null) m.SetFloat(shaderOptimizer.name, lockState);
-                        else m.SetFloat(GetOptimizerPropertyName(m.shader), lockState);
+                        if (shaderOptimizer != null) m.SetFloat(shaderOptimizer.name, 1);
+                        else m.SetFloat(GetOptimizerPropertyName(m.shader), 1);
+                        ShaderEditor.active.isLockedMaterial = true;
                     }
                 }
             }
+            //ShaderEditor.reload();
             return true;
         }
 
