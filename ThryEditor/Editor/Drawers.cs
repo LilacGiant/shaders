@@ -490,6 +490,21 @@ namespace Thry
         }
     }
 
+    public class sRGBWarningDrawer : MaterialPropertyDrawer
+    {
+        public override void OnGUI(Rect position, MaterialProperty prop, GUIContent label, MaterialEditor editor)
+        {
+            GuiHelper.drawSmallTextureProperty(position, prop, label, editor, ((TextureProperty)ShaderEditor.active.currentProperty).hasScaleOffset);
+            GuiHelper.sRGBWarning(prop);
+        }
+
+        public override float GetPropertyHeight(MaterialProperty prop, string label, MaterialEditor editor)
+        {
+            DrawingData.lastPropertyUsedCustomDrawer = true;
+            return base.GetPropertyHeight(prop, label, editor);
+        }
+    }
+
     public class ThryHeaderLabelDecorator : MaterialPropertyDrawer
     {
         readonly string text;
@@ -593,6 +608,19 @@ namespace Thry
         }
 
         public override void OnGUI(Rect position, MaterialProperty prop, string label, MaterialEditor editor) { }
+    }
+
+    public class SRGBWarningDecorator : MaterialPropertyDrawer
+    {
+        public override float GetPropertyHeight(MaterialProperty prop, string label, MaterialEditor editor)
+        {
+            return 16f;
+        }
+
+        public override void OnGUI(Rect position, MaterialProperty prop, string label, MaterialEditor editor)
+        {
+            GuiHelper.sRGBWarning(prop);
+        }
     }
 
     public enum ColorMask

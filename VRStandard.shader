@@ -40,12 +40,12 @@ Shader "VRStandard"
         //[NoScaleOffset] _PackedTexture ("Mask Map--{on_value_actions:[{value:0,actions:[{type:SET_PROPERTY,data:_EnablePackedMode=0}]},{value:1,actions:[{type:SET_PROPERTY,data:_EnablePackedMode=1}]}]} ", 2D) = "white" {}
 
         [HideInInspector] [ToggleUI] _EnableRoughnessMap ("Enable Roughness Map ", Float) = 0
-        [NoScaleOffset] _RoughnessMap ("Roughness--{reference_property:_Roughness,on_value_actions:[{value:0,actions:[{type:SET_PROPERTY,data:_EnableRoughnessMap=0}]},{value:1,actions:[{type:SET_PROPERTY,data:_EnableRoughnessMap=1}]}]} ", 2D) = "white" {}
+        [sRGBWarning] [NoScaleOffset] _RoughnessMap ("Roughness--{reference_property:_Roughness,on_value_actions:[{value:0,actions:[{type:SET_PROPERTY,data:_EnableRoughnessMap=0}]},{value:1,actions:[{type:SET_PROPERTY,data:_EnableRoughnessMap=1}]}]} ", 2D) = "white" {}
         [HideInInspector]_Roughness ("Roughness", Range(0,1)) = 0.5
 
         
         [HideInInspector] [ToggleUI] _EnableMetallicMap ("Enable Metallic Map", Float) = 0
-        [NoScaleOffset]_MetallicMap ("Metallic--{reference_property:_Metallic,on_value_actions:[{value:0,actions:[{type:SET_PROPERTY,data:_EnableMetallicMap=0}]},{value:1,actions:[{type:SET_PROPERTY,data:_EnableMetallicMap=1}]}]} ", 2D) = "white" {}
+        [sRGBWarning] [NoScaleOffset]_MetallicMap ("Metallic--{reference_property:_Metallic,on_value_actions:[{value:0,actions:[{type:SET_PROPERTY,data:_EnableMetallicMap=0}]},{value:1,actions:[{type:SET_PROPERTY,data:_EnableMetallicMap=1}]}]} ", 2D) = "white" {}
         [HideInInspector]_Metallic ("Metallic", Range(0,1)) = 0
         
         [HideInInspector] [ToggleUI] _EnableNormalMap ("Enable Normal Map", Float) = 0
@@ -62,7 +62,7 @@ Shader "VRStandard"
         
 
         [HideInInspector] [ToggleUI] _EnableOcclusion("Occlusion", Float) = 0
-        [NoScaleOffset] _OcclusionMap ("Occlusion--{reference_property:_OcclusionStrength,on_value_actions:[{value:0,actions:[{type:SET_PROPERTY,data:_EnableOcclusion=0}]},{value:1,actions:[{type:SET_PROPERTY,data:_EnableOcclusion=1}]}]} ", 2D) = "white" {}
+        [sRGBWarning] [NoScaleOffset] _OcclusionMap ("Occlusion--{reference_property:_OcclusionStrength,on_value_actions:[{value:0,actions:[{type:SET_PROPERTY,data:_EnableOcclusion=0}]},{value:1,actions:[{type:SET_PROPERTY,data:_EnableOcclusion=1}]}]} ", 2D) = "white" {}
         [HideInInspector] _OcclusionStrength ("OcclusionStrength", Range(0, 1)) = 1
 
         
