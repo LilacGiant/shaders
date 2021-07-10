@@ -332,7 +332,7 @@ float h1(float a)
 {
     return 1.0f + w3(a) / (w2(a) + w3(a)) + 0.5f;
 }
-
+//https://ndotl.wordpress.com/2018/08/29/baking-artifact-free-lightmaps
 float3 tex2DFastBicubicLightmap(float2 uv)
 {
     #if defined(SHADER_API_D3D11) && defined(ENABLE_BICUBIC_LIGHTMAP)
@@ -413,7 +413,7 @@ float3 getLightCol(bool lightEnv, float3 lightColor, float3 indirectDominantColo
 
 
 
-#ifdef ENABLE_GSAA
+
 float GSAA_Filament(const float3 worldNormal,float perceptualRoughness) {
     // Kaplanyan 2016, "Stable specular highlights"
     // Tokuyoshi 2017, "Error Reduction and Simplification for Shading Anti-Aliasing"
@@ -437,7 +437,7 @@ float GSAA_Filament(const float3 worldNormal,float perceptualRoughness) {
 
     return sqrt(sqrt(squareRoughness));
 }
-#endif
+
 
 float GSAA_Valve(float3 vGeometricNormalWs,float3 vRoughness)
 {
@@ -451,19 +451,3 @@ float GSAA_Valve(float3 vGeometricNormalWs,float3 vRoughness)
 float computeSpecularAO(float NoV, float ao, float roughness) {
     return clamp(pow(NoV + ao, exp2(-16.0 * roughness - 1.0)) - 1.0 + ao, 0.0, 1.0);
 }
-
-float calcAlpha(float cutoff, float alpha, float mode)
-{
-    if(mode==1)
-    {
-        clip(alpha - cutoff);
-        return alpha;
-    }
-    else return alpha;
-
-}
-
-
-
-
-

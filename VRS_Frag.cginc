@@ -1,8 +1,17 @@
 #ifndef VRS_FRAG
+// Upgrade NOTE: excluded shader from DX11, OpenGL ES 2.0 because it uses unsized arrays
+#pragma exclude_renderers d3d11 gles
+// Upgrade NOTE: excluded shader from DX11 because it uses wrong array syntax (type[size] name)
+#pragma exclude_renderers d3d11
 #define VRS_FRAG
 fixed4 frag(v2f i) : SV_Target
 {
-    float4 mainTex = _MainTex.Sample(sampler_MainTex, i.uv);
+    uvs[0] = i.uv0;
+    uvs[1] = i.uv1;
+    uvs[2] = i.uv2;
+
+    
+    float4 mainTex = _MainTex.Sample(sampler_MainTex, TRANSFORM_TEX(uvs[_MainTexUV], _MainTex));
 
     float intensity = dot(mainTex, grayscaleVec);
     mainTex.rgb = lerp(intensity, mainTex, (_Saturation+1));
@@ -17,31 +26,32 @@ fixed4 frag(v2f i) : SV_Target
     }
     #endif
     
-    #ifdef ENABLE_TRANSPARENCY
-    float alpha = calcAlpha(_Cutoff,albedo.a,_Mode);
-    #else
     float alpha = 1;
+    #ifdef ENABLE_TRANSPARENCY
+    alpha = calcAlpha(_Cutoff,albedo.a,_Mode);
+    if(_Mode!=1)
+    {
+        albedo *= alpha;
+    }
     #endif
     
-    #if defined(UNITY_PASS_SHADOWCASTER)
-        SHADOW_CASTER_FRAGMENT(i);
-    #else
-
+    
     float3 diffuse = albedo;
+    
 
     
     #ifndef ENABLE_PACKED_MODE
     
     #ifdef ENABLE_METALLICMAP
-    float4 metallicMap = _MetallicMap.Sample(sampler_MainTex, i.uv);
+    float4 metallicMap = _MetallicMap.Sample(sampler_MainTex, TRANSFORM_MAINTEX(uvs[_MetallicMapUV], _MetallicMap));
     #endif
     
     #ifdef ENABLE_ROUGHNESSMAP
-    float roughnessMap = _RoughnessMap.Sample(sampler_MainTex, i.uv);
+    float roughnessMap = _RoughnessMap.Sample(sampler_MainTex, TRANSFORM_MAINTEX(uvs[_RoughnessMapUV], _RoughnessMap));
     #endif
     
     #ifdef ENABLE_OCCLUSIONMAP
-    float occlusionMap = _OcclusionMap.Sample(sampler_MainTex, i.uv);
+    float occlusionMap = _OcclusionMap.Sample(sampler_MainTex, TRANSFORM_MAINTEX(uvs[_OcclusionMapUV], _OcclusionMap));
     #endif
 
     
@@ -49,18 +59,20 @@ fixed4 frag(v2f i) : SV_Target
     #define ENABLE_ROUGHNESSMAP
     #define ENABLE_OCCLUSIONMAP
     #define ENABLE_METALLICMAP
-    float4 packedTex = _PackedTexture.Sample(sampler_MainTex, i.uv);
+    float4 packedTex = _PackedTexture.Sample(sampler_MainTex, TRANSFORM_MAINTEX(uvs[_PackedTextureUV], _PackedTexture));
     float metallicMap = packedTex.r;
     float roughnessMap = packedTex.a;
     float occlusionMap = packedTex.g;
     #endif
 
-    
-    #ifdef ENABLE_ROUGHNESSMAP
-    float perceptualRoughness = _Roughness * roughnessMap;
-    #else
     float perceptualRoughness = _Roughness;
+    #ifdef ENABLE_ROUGHNESSMAP
+    perceptualRoughness *= roughnessMap;
     #endif
+    UNITY_BRANCH
+    if(_RoughnessInvert){
+        perceptualRoughness = 1-perceptualRoughness;
+    }
 
     #ifdef ENABLE_METALLICMAP
     float metallic = metallicMap * _Metallic;
@@ -91,9 +103,7 @@ fixed4 frag(v2f i) : SV_Target
 
     
     
-    #ifdef ENABLE_GSAA
-    perceptualRoughness = GSAA_Filament(worldNormal, perceptualRoughness);
-    #endif
+    
 
 
     #ifdef ENABLE_NORMALMAP
@@ -101,10 +111,13 @@ fixed4 frag(v2f i) : SV_Target
     if(_EnableNormalMap==0) _BumpScale = 0;
     #endif
     
-    float4 normalMap = _BumpMap.Sample(sampler_BumpMap, i.uv);
+    float4 normalMap = _BumpMap.Sample(sampler_BumpMap, TRANSFORM_MAINTEX(uvs[_BumpMapUV], _BumpMap));
     initBumpedNormalTangentBitangent(normalMap, bitangent, tangent, worldNormal, _BumpScale); // broken
     #endif
 
+#ifdef ENABLE_GSAA
+perceptualRoughness = GSAA_Filament(worldNormal, perceptualRoughness);
+#endif
     
 
 
@@ -148,12 +161,12 @@ fixed4 frag(v2f i) : SV_Target
 
     #if defined(LIGHTMAP_ON) // apply lightmap /// fuck
 
-    float3 lightMap = getLightmap(i.uv1, worldNormal, i.worldPos);
+    float3 lightMap = getLightmap(i.lightmapUV, worldNormal, i.worldPos);
 
         
         
     #if defined(DYNAMICLIGHTMAP_ON) // apply realtime lightmap // IDK
-        float3 realtimeLightMap = getRealtimeLightmap(i.uv2, worldNormal);
+        float3 realtimeLightMap = getRealtimeLightmap(i.realtimeLightmapUV, worldNormal);
         directDiffuse *= lightMap + realtimeLightMap + light; 
 
     
@@ -179,96 +192,82 @@ float3 col = directDiffuse;
 
 
     
-
-    
-    #if defined(_GLOSSYREFLECTIONS_OFF) || defined(_SPECULARHIGHLIGHTS_OFF)
-    float3 viewDir = normalize(_WorldSpaceCameraPos - i.worldPos);
-    float NoV = abs(dot(worldNormal, viewDir)) + 1e-5;
-
-    float3 halfVector = normalize(lightDir + viewDir);
-    float LoH = saturate(dot(lightDir, halfVector));
-
-    
-    
-    
+float3 viewDir = normalize(_WorldSpaceCameraPos - i.worldPos);
+float NoV = abs(dot(worldNormal, viewDir)) + 1e-5;
 
 
-    float3 f0 = 0.16 * reflectance * reflectance * oneMinusMetallic + diffuse * metallic;
-
-    float3 fresnel = F_Schlick(f0, NoV);
-
-
-   fresnel = lerp(fresnel, f0, metallic); // kill fresnel on metallics, it looks bad.
-
-
-    
-
-    
-
-    
-     #endif
+#if defined(_GLOSSYREFLECTIONS_OFF) || defined(_SPECULARHIGHLIGHTS_OFF)
+float3 halfVector = normalize(lightDir + viewDir);
+float LoH = saturate(dot(lightDir, halfVector));
+float3 f0 = 0.16 * reflectance * reflectance * oneMinusMetallic + diffuse * metallic;
+float3 fresnel = F_Schlick(f0, NoV);
+fresnel = lerp(fresnel, f0, metallic); // kill fresnel on metallics, it looks bad.
+#endif
 
 
-    
         
-    #ifdef _GLOSSYREFLECTIONS_OFF // reflections
-    float3 worldPos = i.worldPos;
- //   float3 reflViewDir = getAnisotropicReflectionVector(viewDir, bitangent, tangent, worldNormal, perceptualRoughness, _Anisotropy);
-    float3 reflViewDir = reflect(-viewDir, worldNormal);
-    float3 indirectSpecular = getIndirectSpecular(metallic, perceptualRoughness, reflViewDir, worldPos, directDiffuse, worldNormal) * lerp(fresnel, f0, perceptualRoughness);
+#ifdef _GLOSSYREFLECTIONS_OFF // reflections
+float3 worldPos = i.worldPos;
+float3 reflViewDir = reflect(-viewDir, worldNormal);
+float3 indirectSpecular = getIndirectSpecular(metallic, perceptualRoughness, reflViewDir, worldPos, directDiffuse, worldNormal) * lerp(fresnel, f0, perceptualRoughness);
 
-
-
-
-    #if defined(LIGHTMAP_ON)
-    UNITY_BRANCH
-    if(_SpecularOcclusion > 0){
-            float specMultiplier = saturate(lerp(1, pow(length(lightMap), _SpecularOcclusion), _SpecularOcclusion));
-            specMultiplier = lerp(specMultiplier,1,metallic);
-            indirectSpecular *= specMultiplier;
-    }
-    #endif
-
+#if defined(LIGHTMAP_ON)
+UNITY_BRANCH
+if(_SpecularOcclusion > 0){
+    float specMultiplier = saturate(lerp(1, pow(length(lightMap), _SpecularOcclusion), _SpecularOcclusion));
+    specMultiplier = lerp(specMultiplier,1,metallic);
+    indirectSpecular *= specMultiplier;
+}
+#endif
 
 col += indirectSpecular;
-    #endif
-
-
-
-
-    
-    #ifdef _SPECULARHIGHLIGHTS_OFF // specular highlights
-    
-    float NoH = saturate(dot(worldNormal, halfVector));
-
-    float3 directSpecular = getDirectSpecular(perceptualRoughness, NoH, NoV, NoL, LoH, f0) * attenuation * NtL;
-
-    
+#endif
 
 
     
+#ifdef _SPECULARHIGHLIGHTS_OFF // specular highlights
+float NoH = saturate(dot(worldNormal, halfVector));
+float3 directSpecular = getDirectSpecular(perceptualRoughness, NoH, NoV, NoL, LoH, f0) * attenuation * NtL;
 col += directSpecular;
-    #endif
-    
+#endif
 
 
 
-
-    #ifdef ENABLE_OCCLUSIONMAP
+#ifdef ENABLE_OCCLUSIONMAP
 col*= occlusion;
-    #endif
+#endif
+
+
 
 #ifdef ENABLE_EMISSION
 UNITY_BRANCH
 if(_EnableEmission==1)
-    col += _EmissionMap.Sample(sampler_MainTex, i.uv) * _EmissionColor;
+    col += _EmissionMap.Sample(sampler_MainTex, TRANSFORM_MAINTEX(uvs[_EmissionMapUV], _EmissionMap)) * _EmissionColor;
 #endif
 
 
-    return float4(col , alpha);
-    
 
-
-    #endif
+if(_EnableIridescence==1){
+    float3 iridescenceTex = _IridescenceMap.Sample(sampler_MainTex,  NoV);
+    float3 noiseTex = _NoiseMap.Sample(sampler_MainTex, float4(i.uv0.xy,4,4));
+   // float iridescence = 
+col += iridescenceTex*_IridescenceIntensity*noiseTex.r;
 }
+
+
+
+return float4(col , alpha);
+}
+
+fixed4 ShadowCasterfrag(v2f i) : SV_Target
+{
+    half alpha = _MainTex.Sample(sampler_MainTex, i.uv0).a * _Color.a;
+
+    #ifdef ENABLE_TRANSPARENCY
+    alpha = calcAlpha(_Cutoff,alpha,_Mode);
+    #endif
+    
+    SHADOW_CASTER_FRAGMENT(i);
+}
+
 #endif

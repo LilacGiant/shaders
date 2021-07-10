@@ -5,11 +5,12 @@ v2f vert(appdata v)
 {
     v2f o;
     o.pos = UnityObjectToClipPos(v.vertex);
-    o.uv = TRANSFORM_TEX(v.uv, _MainTex);
-
-    #if defined(UNITY_PASS_FORWARDBASE)
+    o.uv0 = v.uv0;
     o.uv1 = v.uv1;
     o.uv2 = v.uv2;
+    #if defined(UNITY_PASS_FORWARDBASE)
+    o.lightmapUV = v.lightmapUV;
+    o.realtimeLightmapUV = v.realtimeLightmapUV;
     #endif
 
     #ifdef ENABLE_VERTEXCOLOR
