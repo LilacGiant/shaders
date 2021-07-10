@@ -161,12 +161,12 @@ perceptualRoughness = GSAA_Filament(worldNormal, perceptualRoughness);
 
     #if defined(LIGHTMAP_ON) // apply lightmap /// fuck
 
-    float3 lightMap = getLightmap(i.lightmapUV, worldNormal, i.worldPos);
+    float3 lightMap = getLightmap(uvs[1], worldNormal, i.worldPos);
 
         
         
     #if defined(DYNAMICLIGHTMAP_ON) // apply realtime lightmap // IDK
-        float3 realtimeLightMap = getRealtimeLightmap(i.realtimeLightmapUV, worldNormal);
+        float3 realtimeLightMap = getRealtimeLightmap(uvs[1], worldNormal);
         directDiffuse *= lightMap + realtimeLightMap + light; 
 
     

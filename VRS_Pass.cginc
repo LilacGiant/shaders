@@ -12,10 +12,6 @@ struct appdata
     float2 uv1 : TEXCOORD1;
     float2 uv2 : TEXCOORD2;
 
-    float2 lightmapUV : TEXCOORD3;
-    float2 realtimeLightmapUV : TEXCOORD4;
-
-
     #ifdef ENABLE_VERTEXCOLOR
     fixed4 color : COLOR;
     #endif
@@ -37,8 +33,6 @@ struct v2f
     #ifdef UNITY_PASS_FORWARDBASE
     SHADOW_COORDS(7)
     #endif
-    float2 lightmapUV : TEXCOORD8;
-    float2 realtimeLightmapUV : TEXCOORD9;
 
     #ifdef ENABLE_VERTEXCOLOR
     fixed4 color : COLOR;

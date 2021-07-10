@@ -8,10 +8,6 @@ v2f vert(appdata v)
     o.uv0 = v.uv0;
     o.uv1 = v.uv1;
     o.uv2 = v.uv2;
-    #if defined(UNITY_PASS_FORWARDBASE)
-    o.lightmapUV = v.lightmapUV;
-    o.realtimeLightmapUV = v.realtimeLightmapUV;
-    #endif
 
     #ifdef ENABLE_VERTEXCOLOR
     o.color = v.color;
