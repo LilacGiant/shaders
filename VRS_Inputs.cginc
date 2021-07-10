@@ -4,7 +4,7 @@
 
 uniform float2 uvs[3];
 UNITY_DECLARE_TEX2D(_MainTex);
-uniform uint _MainTexUV;
+uniform float _MainTexUV;
 uniform float4 _MainTex_ST;
 uniform float4 _Color;
 uniform float _Saturation;
@@ -12,29 +12,29 @@ uniform float _EnableVertexColor;
 
 uniform float _EnableNormalMap;
 UNITY_DECLARE_TEX2D(_BumpMap);
-uniform uint _BumpMapUV;
+uniform float _BumpMapUV;
 uniform float4 _BumpMap_ST;
 uniform float _BumpScale;
 
 UNITY_DECLARE_TEX2D_NOSAMPLER(_MetallicMap);
-uniform uint _MetallicMapUV;
+uniform float _MetallicMapUV;
 uniform float4 _MetallicMap_ST;
 uniform float _Metallic;
 
 UNITY_DECLARE_TEX2D_NOSAMPLER(_RoughnessMap);
-uniform uint _RoughnessMapUV;
+uniform float _RoughnessMapUV;
 uniform float4 _RoughnessMap_ST;
 uniform float _Roughness;
 uniform float _RoughnessInvert;
 
 UNITY_DECLARE_TEX2D_NOSAMPLER(_OcclusionMap);
-uniform uint _OcclusionMapUV;
+uniform float _OcclusionMapUV;
 uniform float4 _OcclusionMap_ST;
 uniform float _OcclusionStrength;
 
 
 UNITY_DECLARE_TEX2D_NOSAMPLER(_PackedTexture);
-uniform uint _PackedTextureUV;
+uniform float _PackedTextureUV;
 uniform float4 _PackedTexture_ST;
 
 uniform float _specularAntiAliasingVariance;
@@ -51,7 +51,7 @@ uniform float _SpecularOcclusion;
 
 uniform float _EnableEmission;
 UNITY_DECLARE_TEX2D_NOSAMPLER(_EmissionMap);
-uniform uint _EmissionMapUV;
+uniform float _EmissionMapUV;
 uniform float4 _EmissionMap_ST;
 uniform float3 _EmissionColor;
 
