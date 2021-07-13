@@ -15,6 +15,7 @@ UNITY_DECLARE_TEX2D(_BumpMap);
 uniform float _BumpMapUV;
 uniform float4 _BumpMap_ST;
 uniform float _BumpScale;
+uniform float _NormalMapOrientation;
 
 UNITY_DECLARE_TEX2D_NOSAMPLER(_MetallicMap);
 uniform float _MetallicMapUV;

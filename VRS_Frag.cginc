@@ -29,9 +29,9 @@ fixed4 frag(v2f i) : SV_Target
     float alpha = 1;
     #ifdef ENABLE_TRANSPARENCY
     alpha = calcAlpha(_Cutoff,albedo.a,_Mode);
-    if(_Mode!=1)
+    if(_Mode!=1 && _Mode!=0)
     {
-        albedo *= alpha;
+        albedo.rgb *= _Color.a;
     }
     #endif
     
@@ -112,7 +112,7 @@ fixed4 frag(v2f i) : SV_Target
     #endif
     
     float4 normalMap = _BumpMap.Sample(sampler_BumpMap, TRANSFORM_MAINTEX(uvs[_BumpMapUV], _BumpMap));
-    initBumpedNormalTangentBitangent(normalMap, bitangent, tangent, worldNormal, _BumpScale); // broken
+    initBumpedNormalTangentBitangent(normalMap, bitangent, tangent, worldNormal, _BumpScale, _NormalMapOrientation);
     #endif
 
 #ifdef ENABLE_GSAA
@@ -152,11 +152,8 @@ perceptualRoughness = GSAA_Filament(worldNormal, perceptualRoughness);
     float3 indirectDiffuse = getIndirectDiffuse(worldNormal);
     
 
-    
 
-    float3 NtL = NoL * lightCol;
-
-    float3 light = (NtL * attenuation);
+    float3 light = (NoL * attenuation * lightCol);
     float3 directDiffuse = albedo;
 
     #if defined(LIGHTMAP_ON) // apply lightmap /// fuck
@@ -227,7 +224,7 @@ col += indirectSpecular;
     
 #ifdef _SPECULARHIGHLIGHTS_OFF // specular highlights
 float NoH = saturate(dot(worldNormal, halfVector));
-float3 directSpecular = getDirectSpecular(perceptualRoughness, NoH, NoV, NoL, LoH, f0) * attenuation * NtL;
+float3 directSpecular = getDirectSpecular(perceptualRoughness, NoH, NoV, NoL, LoH, f0) * attenuation * light;
 col += directSpecular;
 #endif
 

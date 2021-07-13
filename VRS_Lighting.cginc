@@ -234,30 +234,6 @@ float3 getDirectSpecular(float perceptualRoughness, float NoH, float NoV, float 
 }
 
 
-#ifdef ENABLE_NORMALMAP
-void initBumpedNormalTangentBitangent(float4 normalMap, inout float3 bitangent, inout float3 tangent, inout float3 normal, float3 nScale)
-{
-    
-    float3 tangentNormal = UnpackScaleNormal(normalMap, nScale);
-
-    float3 calcedNormal = normalize
-    (
-		tangentNormal.x * tangent +
-		tangentNormal.y * bitangent +
-		tangentNormal.z * normal
-    );
-
-
-
-
-
-    normal = calcedNormal;
-    tangent = cross(normal, bitangent);
-    bitangent = cross(normal, tangent);
-    
-}
-#endif
-
 float3 getAnisotropicReflectionVector(float3 viewDir, float3 bitangent, float3 tangent, float3 normal, float roughness, float anisotropy)
 {
     //_Anisotropy = lerp(-0.2, 0.2, sin(_Time.y / 20)); //This is pretty fun
