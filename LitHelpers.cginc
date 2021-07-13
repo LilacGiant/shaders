@@ -1,5 +1,5 @@
-#ifndef VRS_HELPERS
-#define VRS_HELPERS
+#ifndef LitHELPERS
+#define LITHELPERS
 
 float calcAlpha(float cutoff, float alpha, float mode)
 {

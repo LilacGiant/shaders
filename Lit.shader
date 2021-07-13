@@ -1,4 +1,4 @@
-Shader "VRStandard"
+Shader " z3y/lit"
 {
 
     Properties
@@ -167,7 +167,7 @@ Shader "VRStandard"
             #define UNITY_PASS_FORWARDBASE
             #endif
 
-            #include "VRS_Pass.cginc"
+            #include "LitPass.cginc"
             ENDCG
         }
 
@@ -198,7 +198,7 @@ Shader "VRStandard"
             #define UNITY_PASS_FORWARDADD
             #endif
 
-            #include "VRS_Pass.cginc"
+            #include "LitPass.cginc"
             ENDCG
         }
 
@@ -227,7 +227,7 @@ Shader "VRStandard"
             #define UNITY_PASS_SHADOWCASTER
             #endif
 
-            #include "VRS_Pass.cginc"
+            #include "LitPass.cginc"
             ENDCG
         }
 

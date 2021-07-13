@@ -1,3 +1,5 @@
+#ifndef LITLIGHTING
+#define LITLIGHTING
 #define grayscaleVec float3(0.2125, 0.7154, 0.0721)
 
 float pow5(float x) {
@@ -427,3 +429,4 @@ float GSAA_Valve(float3 vGeometricNormalWs,float3 vRoughness)
 float computeSpecularAO(float NoV, float ao, float roughness) {
     return clamp(pow(NoV + ao, exp2(-16.0 * roughness - 1.0)) - 1.0 + ao, 0.0, 1.0);
 }
+#endif

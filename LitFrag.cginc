@@ -1,9 +1,10 @@
-#ifndef VRS_FRAG
+#ifndef LITFRAG
+#define LITFRAG
 // Upgrade NOTE: excluded shader from DX11, OpenGL ES 2.0 because it uses unsized arrays
 #pragma exclude_renderers d3d11 gles
 // Upgrade NOTE: excluded shader from DX11 because it uses wrong array syntax (type[size] name)
 #pragma exclude_renderers d3d11
-#define VRS_FRAG
+
 fixed4 frag(v2f i) : SV_Target
 {
     uvs[0] = i.uv0;

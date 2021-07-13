@@ -1,5 +1,5 @@
-﻿#ifndef VRS_VERT
-#define VRS_VERT
+﻿#ifndef LITVERT
+#define LITVERT
 
 v2f vert(appdata v)
 {

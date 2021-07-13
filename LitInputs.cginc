@@ -1,5 +1,5 @@
-#ifndef VRS_INPUTS
-#define VRS_INPUTS
+#ifndef LITINPUTS
+#define LITINPUTS
 
 
 uniform float2 uvs[3];
@@ -112,8 +112,4 @@ UNITY_DECLARE_TEX2D_NOSAMPLER(_NoiseMap);
 
 
 
-
-#include "UnityCG.cginc"
-#include "Lighting.cginc"
-#include "AutoLight.cginc"
 #endif

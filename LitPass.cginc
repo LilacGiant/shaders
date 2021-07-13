@@ -1,6 +1,12 @@
-﻿#ifndef VRS_PASS
-#define VRS_PASS
-#include "VRS_Inputs.cginc"
+﻿#ifndef LITPASS
+#define LITPASS
+
+#include "LitInputs.cginc"
+#include "UnityCG.cginc"
+#include "AutoLight.cginc"
+#include "Lighting.cginc"
+#include "LitHelpers.cginc"
+#include "LitLighting.cginc"
 
 struct appdata
 {
@@ -39,10 +45,7 @@ struct v2f
     #endif
 };
 
-
-#include "VRS_Helpers.cginc"
-#include "VRS_Lighting.cginc"
-#include "VRS_Vert.cginc"
-#include "VRS_Frag.cginc"
+#include "LitVert.cginc"
+#include "LitFrag.cginc"
 
 #endif
