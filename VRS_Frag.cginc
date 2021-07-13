@@ -224,7 +224,7 @@ col += indirectSpecular;
     
 #ifdef _SPECULARHIGHLIGHTS_OFF // specular highlights
 float NoH = saturate(dot(worldNormal, halfVector));
-float3 directSpecular = getDirectSpecular(perceptualRoughness, NoH, NoV, NoL, LoH, f0) * attenuation * light;
+float3 directSpecular = getDirectSpecular(perceptualRoughness, NoH, NoV, NoL, LoH, f0) * light;
 col += directSpecular;
 #endif
 
