@@ -1,4 +1,4 @@
-#ifndef LitHELPERS
+#ifndef LITHELPERS
 #define LITHELPERS
 
 float calcAlpha(float cutoff, float alpha, float mode)
