@@ -230,8 +230,13 @@ Shader " z3y/lit"
             #include "LitPass.cginc"
             ENDCG
         }
+        
+        //temporary pass before full implementation
+        UsePass "Standard/DEFERRED"
+        UsePass "Standard/META"
 
     }
+
     FallBack "Diffuse"
     CustomEditor "Thry.ShaderEditor"
 }
