@@ -47,16 +47,5 @@ void initBumpedNormalTangentBitangent(float4 normalMap, inout float3 bitangent, 
 
 
 
-<<<<<<< Updated upstream
-#endif
-=======
-
-
-
-
-
-
-
 
 #endif
->>>>>>> Stashed changes
