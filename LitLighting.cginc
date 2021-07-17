@@ -157,7 +157,7 @@ half3 BetterSH9 (half4 normal) {
 
 float3 getIndirectDiffuse(float3 normal)
 {
-    float3 indirectDiffuse = BetterSH9(float4(normal, 1));
+    float3 indirectDiffuse = BetterSH9(half4(normal, 1));
     return indirectDiffuse;
 }
 
@@ -226,13 +226,15 @@ float3 getDirectSpecular(float perceptualRoughness, float NoH, float NoV, float 
    
     float3 directSpecular = max(0, (D * V) * F);
 
+#if !defined(SHADER_API_MOBILE)
 // energy compensation // probably wrong
     float3 energyCompensation = 1.0 + f0 * (1.0 / lerp(1,V, roughness) - 1.0);
     directSpecular *= energyCompensation;
+#endif
 
     
 
-    return directSpecular * 3;
+    return directSpecular * UNITY_PI;
 }
 
 
@@ -251,11 +253,11 @@ float3 getAnisotropicReflectionVector(float3 viewDir, float3 bitangent, float3 t
 float3 getRealtimeLightmap(float2 uv, float3 worldNormal)
 {
     float2 realtimeUV = uv * unity_DynamicLightmapST.xy + unity_DynamicLightmapST.zw;
-    float4 bakedCol = UNITY_SAMPLE_TEX2D(unity_DynamicLightmap, realtimeUV);
+    half4 bakedCol = UNITY_SAMPLE_TEX2D(unity_DynamicLightmap, realtimeUV);
     float3 realtimeLightmap = DecodeRealtimeLightmap(bakedCol);
 
     #ifdef DIRLIGHTMAP_COMBINED
-        float4 realtimeDirTex = UNITY_SAMPLE_TEX2D_SAMPLER(unity_DynamicDirectionality, unity_DynamicLightmap, realtimeUV);
+        half4 realtimeDirTex = UNITY_SAMPLE_TEX2D_SAMPLER(unity_DynamicDirectionality, unity_DynamicLightmap, realtimeUV);
         realtimeLightmap += DecodeDirectionalLightmap (realtimeLightmap, realtimeDirTex, worldNormal);
     #endif
 
@@ -347,31 +349,36 @@ float3 tex2DFastBicubicLightmap(float2 uv)
     #endif
 }
 
-float3 getLightmap(float2 uv, float3 worldNormal, float3 worldPos)
+float3 getLightmap(float2 uv, half3 worldNormal, float3 worldPos)
 {
     float2 lightmapUV = uv * unity_LightmapST.xy + unity_LightmapST.zw;
- //   float4 bakedColorTex = UNITY_SAMPLE_TEX2D(unity_Lightmap, lightmapUV);
+
+#if defined(SHADER_API_MOBILE)
+    half3 lightMap = DecodeLightmap(UNITY_SAMPLE_TEX2D(unity_Lightmap, lightmapUV));
+#else
     half3 lightMap = tex2DFastBicubicLightmap(lightmapUV) * (_LightmapMultiplier);
+#endif
 
 
-    #ifdef DIRLIGHTMAP_COMBINED
-        fixed4 bakedDirTex = UNITY_SAMPLE_TEX2D_SAMPLER (unity_LightmapInd, unity_Lightmap, lightmapUV);
-        lightMap = DecodeDirectionalLightmap(lightMap, bakedDirTex, worldNormal);
-    #endif
-    return lightMap;
+#ifdef DIRLIGHTMAP_COMBINED
+    half4 bakedDirTex = UNITY_SAMPLE_TEX2D_SAMPLER (unity_LightmapInd, unity_Lightmap, lightmapUV);
+    lightMap = DecodeDirectionalLightmap(lightMap, bakedDirTex, worldNormal);
+#endif
+
+return lightMap;
 }
 
 // Get the most intense light Dir from probes OR from a light source. Method developed by Xiexe / Merlin
 float3 getLightDir(bool lightEnv, float3 worldPos)
 {
     //switch between using probes or actual light direction
-    float3 lightDir = lightEnv ? UnityWorldSpaceLightDir(worldPos) : unity_SHAr.xyz + unity_SHAg.xyz + unity_SHAb.xyz;
+    half3 lightDir = lightEnv ? UnityWorldSpaceLightDir(worldPos) : unity_SHAr.xyz + unity_SHAg.xyz + unity_SHAb.xyz;
 
 
     #if !defined(POINT) && !defined(SPOT) && !defined(VERTEXLIGHT_ON) // if the average length of the light probes is null, and we don't have a directional light in the scene, fall back to our fallback lightDir
         if(length(unity_SHAr.xyz*unity_SHAr.w + unity_SHAg.xyz*unity_SHAg.w + unity_SHAb.xyz*unity_SHAb.w) == 0 && length(lightDir) < 0.1)
         {
-            lightDir = float4(1, 1, 1, 0);
+            lightDir = half4(1, 1, 1, 0);
         }
     #endif
 
@@ -383,6 +390,8 @@ float3 getLightCol(bool lightEnv, float3 lightColor, float3 indirectDominantColo
     float3 c = lightEnv ? lightColor : indirectDominantColor;
     return c;
 }
+
+
 
 
 

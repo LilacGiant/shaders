@@ -116,6 +116,8 @@ Shader " z3y/lit"
         [Enum(Off, 0, On, 1)] _ZWrite ("ZWrite", Int) = 1
         [Enum(UnityEngine.Rendering.CompareFunction)] _ZTest ("ZTest", Float) = 4
         [Enum(UnityEngine.Rendering.CullMode)] _Cull ("Cull", Float) = 2
+        [Toggle(FXAA_LOW)] _PreviewQuest ("Preview Quest", Float) = 0
+        
         
 
 //        [Toggle(UNITY_UI_ALPHACLIP)] _EnablePackedMode ("Packed Textures", Float) = 0
@@ -161,6 +163,7 @@ Shader " z3y/lit"
             #pragma shader_feature _GLOSSYREFLECTIONS_OFF
             #pragma shader_feature UNITY_UI_ALPHACLIP
             #pragma shader_feature _DETAIL_MULX2
+            #pragma shader_feature FXAA_LOW
 
 
             #ifndef UNITY_PASS_FORWARDBASE
@@ -193,6 +196,7 @@ Shader " z3y/lit"
             #pragma shader_feature _SPECULARHIGHLIGHTS_OFF
             #pragma shader_feature _GLOSSYREFLECTIONS_OFF
             #pragma shader_feature UNITY_UI_ALPHACLIP
+            #pragma shader_feature FXAA_LOW
 
             #ifndef UNITY_PASS_FORWARDADD
             #define UNITY_PASS_FORWARDADD
@@ -222,6 +226,7 @@ Shader " z3y/lit"
             #pragma multi_compile_shadowcaster
             #pragma fragmentoption ARB_precision_hint_fastest
             #pragma skip_variants FOG_LINEAR FOG_EXP FOG_EXP2
+            #pragma shader_feature FXAA_LOW
 
             #ifndef UNITY_PASS_SHADOWCASTER
             #define UNITY_PASS_SHADOWCASTER
@@ -231,9 +236,6 @@ Shader " z3y/lit"
             ENDCG
         }
         
-        //temporary pass before full implementation
-        UsePass "Standard/DEFERRED"
-        UsePass "Standard/META"
 
     }
 

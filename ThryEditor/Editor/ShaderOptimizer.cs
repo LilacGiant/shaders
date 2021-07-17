@@ -1698,11 +1698,10 @@ namespace Thry
                     {
                         if (shaderOptimizer != null) m.SetFloat(shaderOptimizer.name, 1);
                         else m.SetFloat(GetOptimizerPropertyName(m.shader), 1);
-                        ShaderEditor.active.isLockedMaterial = true;
+                        if(ShaderEditor.active != null) ShaderEditor.active.isLockedMaterial = true;
                     }
                 }
             }
-            //ShaderEditor.reload();
             return true;
         }
 

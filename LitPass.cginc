@@ -11,22 +11,22 @@
 struct appdata
 {
     float4 vertex : POSITION;
-    float3 normal : NORMAL;
-    float4 tangent : TANGENT;
+    half3 normal : NORMAL;
+    half4 tangent : TANGENT;
 
     float2 uv0 : TEXCOORD0;
     float2 uv1 : TEXCOORD1;
     float2 uv2 : TEXCOORD2;
 
     #ifdef ENABLE_VERTEXCOLOR
-    fixed4 color : COLOR;
+    half4 color : COLOR;
     #endif
     UNITY_VERTEX_INPUT_INSTANCE_ID
 };
 
 struct v2f
     {
-    float4 pos : SV_POSITION;
+    UNITY_POSITION(pos);
     float2 uv0 : TEXCOORD0;
     float2 uv1 : TEXCOORD1;
     float2 uv2 : TEXCOORD2;
@@ -41,8 +41,11 @@ struct v2f
     #endif
 
     #ifdef ENABLE_VERTEXCOLOR
-    fixed4 color : COLOR;
+    half4 color : COLOR;
     #endif
+
+    UNITY_VERTEX_INPUT_INSTANCE_ID
+    UNITY_VERTEX_OUTPUT_STEREO
 };
 
 #include "LitVert.cginc"

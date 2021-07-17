@@ -14,9 +14,9 @@ v2f vert(appdata v)
     #endif
 
 
-    float3 worldNormal = UnityObjectToWorldNormal(v.normal);
-    float3 tangent = UnityObjectToWorldDir(v.tangent);
-    float3 bitangent = cross(tangent, worldNormal) * v.tangent.w;
+    half3 worldNormal = UnityObjectToWorldNormal(v.normal);
+    half3 tangent = UnityObjectToWorldDir(v.tangent);
+    half3 bitangent = cross(tangent, worldNormal) * v.tangent.w;
 
     o.bitangent = bitangent;
     o.tangent = tangent;
@@ -31,7 +31,8 @@ v2f vert(appdata v)
     #endif
 
     
-
+    UNITY_SETUP_INSTANCE_ID(v);
+    UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
     return o;
 }
 #endif
