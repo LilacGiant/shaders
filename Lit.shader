@@ -85,14 +85,14 @@ Shader " Lit"
 
 
 
-
+/*
         [HideInInspector] m_start_Iridescence ("Iridescence (Test) --{reference_property:_EnableIridescence}", Float) = 0
         [HideInInspector] [ToggleUI] _EnableIridescence ("Iridescence", Float) = 0
         _IridescenceIntensity ("Intensity", Range(0.0, 1.0)) = 0.5
         [Gradient] _IridescenceMap ("Iridescence Map", 2D) = "white" {}
         _NoiseMap ("Noise Map", 2D) = "white" {}
         [HideInInspector] m_end_Iridescence ("", Float) = 0
-
+*/
         
         [HideInInspector] m_start_Lightmap ("Lightmap", Float) = 0
         [Toggle(_DETAIL_MULX2)] _BicubicLightmap ("Bicubic Lightmap Interpolation", Float) = 0

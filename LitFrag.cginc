@@ -252,7 +252,6 @@ col += iridescenceTex*_IridescenceIntensity*noiseTex.r;
 }
 
 
-
 return half4(col , alpha);
 }
 
