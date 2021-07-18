@@ -40,7 +40,7 @@ half4 frag(v2f i) : SV_Target
     
 
     
-    #ifndef ENABLE_PACKED_MODE
+    #ifndef ENABLE_PACKEDMODE
     
     #ifdef ENABLE_METALLICMAP
     half4 metallicMap = _MetallicMap.Sample(sampler_MainTex, TRANSFORM_MAINTEX(uvs[_MetallicMapUV], _MetallicMap));
@@ -133,6 +133,7 @@ perceptualRoughness = GSAA_Filament(worldNormal, perceptualRoughness);
     half3 indirectDominantColor = half3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w);
     half3 lightDir = getLightDir(lightEnv, i.worldPos);
   //  half3 lightCol = getLightCol(lightEnv, _LightColor0.rgb, indirectDominantColor);
+    
     half3 lightCol = _LightColor0.xyz;
     
     float NoL = saturate(dot(worldNormal, lightDir));

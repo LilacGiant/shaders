@@ -72,9 +72,9 @@ UNITY_DECLARE_TEX2D_NOSAMPLER(_NoiseMap);
 #define half min16float
 #define half2 min16float2
 #define half3 min16float3
-//#define half4 min16float4 // :unity_developement:
-//#define half3x3 min16float3x3
-//#define half3x4 min16float3x4
+#define half4 min16float4 // :unity_developement:
+#define half3x3 min16float3x3
+#define half3x4 min16float3x4
 #endif
 
 #define TRANSFORM_MAINTEX(tex,name) (tex.xy * name##_ST.xy * _MainTex_ST.xy + name##_ST.zw + _MainTex_ST.zw)
@@ -91,9 +91,6 @@ UNITY_DECLARE_TEX2D_NOSAMPLER(_NoiseMap);
 #define ENABLE_NORMALMAP
 #endif
 
-#ifdef UNITY_UI_ALPHACLIP
-#define ENABLE_PACKED_MODE
-#endif
 
 #if (PROP_ENABLEMETALLICMAP==1) || !defined(OPTIMIZER_ENABLED)
 #define ENABLE_METALLICMAP
@@ -123,6 +120,10 @@ UNITY_DECLARE_TEX2D_NOSAMPLER(_NoiseMap);
 #define ENABLE_VERTEXCOLOR
 #endif
 
+
+#if (PROP_ENABLEPACKEDMODE==1) || !defined(OPTIMIZER_ENABLED)
+#define ENABLE_PACKEDMODE
+#endif
 
 
 

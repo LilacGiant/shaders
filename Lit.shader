@@ -1,21 +1,18 @@
-Shader " z3y/lit"
+Shader " Lit"
 {
 
     Properties
     {
         
         [HideInInspector] shader_is_using_thry_editor("", Float)=1
-        [HideInInspector] _ForgotToLockMaterial (";;YOU_FORGOT_TO_LOCK_THIS_MATERIAL;", Int) = 1
         [ThryShaderOptimizerLockButton] _ShaderOptimizerEnabled ("", Float) = 0
         
-
         [HideInInspector] m_Main ("Main", Float) = 1
         
         //rendering preset from poiyomi
-[ThryWideEnum(Opaque, 0, Cutout, 1, Transparent Clipping, 9, Fade, 2, Transparent, 3, Additive, 4, Soft Additive, 5, Multiplicative, 6, 2x Multiplicative, 7)]_Mode("Rendering Mode--{on_value_actions:[ 
+[ThryWideEnum(Opaque, 0, Cutout, 1, Fade, 2, Transparent, 3, Additive, 4, Soft Additive, 5, Multiplicative, 6, 2x Multiplicative, 7)]_Mode("Rendering Mode--{on_value_actions:[ 
             {value:0,actions:[{type:SET_PROPERTY,data:render_queue=2000}, {type:SET_PROPERTY,data:render_type=Opaque},            {type:SET_PROPERTY,data:_BlendOp=0}, {type:SET_PROPERTY,data:_BlendOpAlpha=0}, {type:SET_PROPERTY,data:_Cutoff=0},  {type:SET_PROPERTY,data:_SrcBlend=1}, {type:SET_PROPERTY,data:_DstBlend=0},  {type:SET_PROPERTY,data:_AlphaToMask=0},  {type:SET_PROPERTY,data:_ZWrite=1}, {type:SET_PROPERTY,data:_ZTest=4},   {type:SET_PROPERTY,data:_AlphaPremultiply=0}]},
             {value:1,actions:[{type:SET_PROPERTY,data:render_queue=2450}, {type:SET_PROPERTY,data:render_type=TransparentCutout}, {type:SET_PROPERTY,data:_BlendOp=0}, {type:SET_PROPERTY,data:_BlendOpAlpha=0}, {type:SET_PROPERTY,data:_Cutoff=.5}, {type:SET_PROPERTY,data:_SrcBlend=1}, {type:SET_PROPERTY,data:_DstBlend=0},  {type:SET_PROPERTY,data:_AlphaToMask=1},  {type:SET_PROPERTY,data:_ZWrite=1}, {type:SET_PROPERTY,data:_ZTest=4},   {type:SET_PROPERTY,data:_AlphaPremultiply=0}]},
-            {value:9,actions:[{type:SET_PROPERTY,data:render_queue=2450}, {type:SET_PROPERTY,data:render_type=TransparentCutout}, {type:SET_PROPERTY,data:_BlendOp=0}, {type:SET_PROPERTY,data:_BlendOpAlpha=0}, {type:SET_PROPERTY,data:_Cutoff=0},  {type:SET_PROPERTY,data:_SrcBlend=5}, {type:SET_PROPERTY,data:_DstBlend=10}, {type:SET_PROPERTY,data:_AlphaToMask=0},  {type:SET_PROPERTY,data:_ZWrite=1}, {type:SET_PROPERTY,data:_ZTest=4},   {type:SET_PROPERTY,data:_AlphaPremultiply=0}]},
             {value:2,actions:[{type:SET_PROPERTY,data:render_queue=3000}, {type:SET_PROPERTY,data:render_type=Transparent},       {type:SET_PROPERTY,data:_BlendOp=0}, {type:SET_PROPERTY,data:_BlendOpAlpha=0}, {type:SET_PROPERTY,data:_Cutoff=0},  {type:SET_PROPERTY,data:_SrcBlend=5}, {type:SET_PROPERTY,data:_DstBlend=10}, {type:SET_PROPERTY,data:_AlphaToMask=0},  {type:SET_PROPERTY,data:_ZWrite=0}, {type:SET_PROPERTY,data:_ZTest=4},   {type:SET_PROPERTY,data:_AlphaPremultiply=0}]},
             {value:3,actions:[{type:SET_PROPERTY,data:render_queue=3000}, {type:SET_PROPERTY,data:render_type=Transparent},       {type:SET_PROPERTY,data:_BlendOp=0}, {type:SET_PROPERTY,data:_BlendOpAlpha=0}, {type:SET_PROPERTY,data:_Cutoff=0},  {type:SET_PROPERTY,data:_SrcBlend=1}, {type:SET_PROPERTY,data:_DstBlend=10}, {type:SET_PROPERTY,data:_AlphaToMask=0},  {type:SET_PROPERTY,data:_ZWrite=0}, {type:SET_PROPERTY,data:_ZTest=4},   {type:SET_PROPERTY,data:_AlphaPremultiply=1}]},
             {value:4,actions:[{type:SET_PROPERTY,data:render_queue=3000}, {type:SET_PROPERTY,data:render_type=Transparent},       {type:SET_PROPERTY,data:_BlendOp=0}, {type:SET_PROPERTY,data:_BlendOpAlpha=0}, {type:SET_PROPERTY,data:_Cutoff=0},  {type:SET_PROPERTY,data:_SrcBlend=1}, {type:SET_PROPERTY,data:_DstBlend=1},  {type:SET_PROPERTY,data:_AlphaToMask=0},  {type:SET_PROPERTY,data:_ZWrite=0}, {type:SET_PROPERTY,data:_ZTest=4},   {type:SET_PROPERTY,data:_AlphaPremultiply=0}]},
@@ -37,9 +34,9 @@ Shader " z3y/lit"
                 
         
         
-        
-        //_PackedTexture ("Mask Map--{on_value_actions:[{value:0,actions:[{type:SET_PROPERTY,data:_EnablePackedMode=0}]},{value:1,actions:[{type:SET_PROPERTY,data:_EnablePackedMode=1}]}]} ", 2D) = "white" {}
-
+/*
+        _PackedTexture ("Mask Map--{on_value_actions:[{value:0,actions:[{type:SET_PROPERTY,data:_EnablePackedMode=0}]},{value:1,actions:[{type:SET_PROPERTY,data:_EnablePackedMode=1}]}]} ", 2D) = "white" {}
+*/
         [HideInInspector] [ToggleUI] _EnableRoughnessMap ("Enable Roughness Map ", Float) = 0
         [sRGBWarning] _RoughnessMap ("Roughness--{reference_property:_Roughness,reference_properties:[_RoughnessMapUV,_RoughnessInvert],on_value_actions:[{value:0,actions:[{type:SET_PROPERTY,data:_EnableRoughnessMap=0}]},{value:1,actions:[{type:SET_PROPERTY,data:_EnableRoughnessMap=1}]}]} ", 2D) = "white" {}
         [HideInInspector] _Roughness ("Roughness", Range(0,1)) = 0.5
@@ -88,14 +85,14 @@ Shader " z3y/lit"
 
 
 
-/*
+
         [HideInInspector] m_start_Iridescence ("Iridescence (Test) --{reference_property:_EnableIridescence}", Float) = 0
         [HideInInspector] [ToggleUI] _EnableIridescence ("Iridescence", Float) = 0
         _IridescenceIntensity ("Intensity", Range(0.0, 1.0)) = 0.5
-        _IridescenceMap ("Emission Map", 2D) = "white" {}
+        [Gradient] _IridescenceMap ("Iridescence Map", 2D) = "white" {}
         _NoiseMap ("Noise Map", 2D) = "white" {}
         [HideInInspector] m_end_Iridescence ("", Float) = 0
-*/
+
         
         [HideInInspector] m_start_Lightmap ("Lightmap", Float) = 0
         [Toggle(_DETAIL_MULX2)] _BicubicLightmap ("Bicubic Lightmap Interpolation", Float) = 0
@@ -119,8 +116,9 @@ Shader " z3y/lit"
         [Toggle(FXAA_LOW)] _PreviewQuest ("Preview Quest", Float) = 0
         
         
-
-//        [Toggle(UNITY_UI_ALPHACLIP)] _EnablePackedMode ("Packed Textures", Float) = 0
+/*
+        [ToggleUI] _EnablePackedMode ("Packed Textures", Float) = 0
+*/
         
         
         
