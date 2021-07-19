@@ -17,6 +17,7 @@ float D_GGX(float NoH, float roughness) {
     return k * k * (1.0 / UNITY_PI);
 }
 
+
 float D_GGX_Anisotropic(float NoH, const float3 h, const float3 t, const float3 b, float at, float ab)
 {
     float ToH = dot(t, h);
@@ -62,61 +63,6 @@ float Fd_Burley(float roughness, float NoV, float NoL, float LoH)
     return lightScatter * viewScatter * (1.0 / UNITY_PI);
 }
 
-float shEvaluateDiffuseL1Geomerics(float L0, float3 L1, float3 n)
-{
-    // average energy
-    float R0 = L0;
-
-    // avg direction of incoming light
-    float3 R1 = 0.5f * L1;
-
-    // directional brightness
-    float lenR1 = length(R1);
-
-    // linear angle between normal and direction 0-1
-    //float q = 0.5f * (1.0f + dot(R1 / lenR1, n));
-    //float q = dot(R1 / lenR1, n) * 0.5 + 0.5;
-    float q = dot(normalize(R1), n) * 0.5 + 0.5;
-
-    // power for q
-    // lerps from 1 (linear) to 3 (cubic) based on directionality
-    float p = 1.0f + 2.0f * lenR1 / R0;
-
-    // dynamic range constant
-    // should vary between 4 (highly directional) and 0 (ambient)
-    float a = (1.0f - lenR1 / R0) / (1.0f + lenR1 / R0);
-
-    return R0 * (a + (1.0f - a) * (p + 1.0f) * pow(q, p));
-}
-
-float shEvaluateDiffuseL1Geomerics_local(float L0, float3 L1, float3 n)
-{
-    // average energy
-    // Add max0 to fix an issue caused by probes having a negative ambient component (???)
-    // I'm not sure how normal that is but this can't handle it
-    float R0 = max(L0, 0);
-
-    // avg direction of incoming light
-    float3 R1 = 0.5f * L1;
-
-    // directional brightness
-    float lenR1 = length(R1);
-
-    // linear angle between normal and direction 0-1
-    float q = dot(normalize(R1), n) * 0.5 + 0.5;
-    q = saturate(q); // Thanks to ScruffyRuffles for the bug identity.
-
-    // power for q
-    // lerps from 1 (linear) to 3 (cubic) based on directionality
-    float p = 1.0f + 2.0f * lenR1 / R0;
-
-    // dynamic range constant
-    // should vary between 4 (highly directional) and 0 (ambient)
-    float a = (1.0f - lenR1 / R0) / (1.0f + lenR1 / R0);
-
-    return R0 * (a + (1.0f - a) * (p + 1.0f) * pow(q, p));
-}
-
 // Energy conserving wrap diffuse term, does *not* include the divide by pi
 float Fd_Wrap(float NoL, float w) {
     return saturate((NoL + w) / sq(1.0 + w));
@@ -141,12 +87,41 @@ float Fd_Lambert()
     return 1.0 / UNITY_PI;
 }
 
-half3 BetterSH9 (half4 normal) {
+float shEvaluateDiffuseL1Geomerics_local(float L0, float3 L1, float3 n)
+{
+    // average energy
+    float R0 = max(0, L0);
+    
+    // avg direction of incoming light
+    float3 R1 = 0.5f * L1;
+    
+    // directional brightness
+    float lenR1 = length(R1);
+    
+    // linear angle between normal and direction 0-1
+    //float q = 0.5f * (1.0f + dot(R1 / lenR1, n));
+    //float q = dot(R1 / lenR1, n) * 0.5 + 0.5;
+    float q = dot(normalize(R1), n) * 0.5 + 0.5;
+    q = saturate(q); // Thanks to ScruffyRuffles for the bug identity.
+    
+    // power for q
+    // lerps from 1 (linear) to 3 (cubic) based on directionality
+    float p = 1.0f + 2.0f * lenR1 / R0;
+    
+    // dynamic range constant
+    // should vary between 4 (highly directional) and 0 (ambient)
+    float a = (1.0f - lenR1 / R0) / (1.0f + lenR1 / R0);
+    
+    return R0 * (a + (1.0f - a) * (p + 1.0f) * pow(q, p));
+}
+
+half3 BetterSH9(half4 normal)
+{
     float3 indirect;
     float3 L0 = float3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w) + float3(unity_SHBr.z, unity_SHBg.z, unity_SHBb.z) / 3.0;
-    indirect.r = shEvaluateDiffuseL1Geomerics_local(L0.r, unity_SHAr.xyz, normal);
-    indirect.g = shEvaluateDiffuseL1Geomerics_local(L0.g, unity_SHAg.xyz, normal);
-    indirect.b = shEvaluateDiffuseL1Geomerics_local(L0.b, unity_SHAb.xyz, normal);
+    indirect.r = shEvaluateDiffuseL1Geomerics_local(L0.r, unity_SHAr.xyz, normal.xyz);
+    indirect.g = shEvaluateDiffuseL1Geomerics_local(L0.g, unity_SHAg.xyz, normal.xyz);
+    indirect.b = shEvaluateDiffuseL1Geomerics_local(L0.b, unity_SHAb.xyz, normal.xyz);
     indirect = max(0, indirect);
     indirect += SHEvalLinearL2(normal);
     return indirect;
@@ -158,7 +133,7 @@ half3 BetterSH9 (half4 normal) {
 float3 getIndirectDiffuse(float3 normal)
 {
     float3 indirectDiffuse = BetterSH9(half4(normal, 1));
-    return indirectDiffuse;
+    return indirectDiffuse*0.95; // i have no idea what im doing but this makes it look less bright and same as standard shader
 }
 
 float3 getBoxProjection (float3 direction, float3 position, float4 cubemapPosition, float3 boxMin, float3 boxMax)
@@ -217,11 +192,16 @@ float3 getIndirectSpecular(float metallic, float roughness, float3 reflDir, floa
 
 float3 getDirectSpecular(float perceptualRoughness, float NoH, float NoV, float NoL, float LoH, float3 f0)
 {
-    float roughness = max(perceptualRoughness * perceptualRoughness, 0.0045);
+    //float roughness = max(perceptualRoughness, 0.002);
+    float roughness = max(perceptualRoughness * perceptualRoughness, 0.002);
 
 
     float D = D_GGX(NoH, roughness);
+    #if SHADER_API_MOBILE
+    float V = V_SmithGGXCorrelatedFast(NoV, NoL, roughness);
+    #else
     float V = V_SmithGGXCorrelated(NoV, NoL, roughness);
+    #endif
     float3 F = F_Schlick(f0, LoH);
    
     float3 directSpecular = max(0, (D * V) * F);
@@ -312,6 +292,7 @@ float h1(float a)
 {
     return 1.0f + w3(a) / (w2(a) + w3(a)) + 0.5f;
 }
+
 //https://ndotl.wordpress.com/2018/08/29/baking-artifact-free-lightmaps
 float3 tex2DFastBicubicLightmap(float2 uv)
 {
@@ -438,4 +419,66 @@ float GSAA_Valve(float3 vGeometricNormalWs,float3 vRoughness)
 float computeSpecularAO(float NoV, float ao, float roughness) {
     return clamp(pow(NoV + ao, exp2(-16.0 * roughness - 1.0)) - 1.0 + ao, 0.0, 1.0);
 }
+
+//https://forum.unity.com/threads/fixing-screen-space-directional-shadows-and-anti-aliasing.379902/
+#ifdef SHADOWS_SCREEN
+float SSDirectionalShadowAA(float4 _ShadowCoord, sampler2D_float depthTex, float4 depthTextureTexelSize){
+    half a = 0;
+    float2 screenUV = _ShadowCoord.xy / _ShadowCoord.w;
+    half shadow = tex2D(_ShadowMapTexture, screenUV).r;
+
+    if(frac(_Time.x) > 0.5)
+	    a = shadow;
+
+    float fragDepth = _ShadowCoord.z / _ShadowCoord.w;
+    float depth_raw = tex2D(depthTex, screenUV).r;
+
+    float depthDiff = abs(fragDepth - depth_raw);
+    float diffTest = 1.0 / 100000.0;
+
+    if (depthDiff > diffTest){
+	    float2 texelSize = depthTextureTexelSize.xy;
+    	float4 offsetDepths = 0;
+
+	    float2 uvOffsets[5] = {
+	    float2(1.0, 0.0) * texelSize,
+	    float2(-1.0, 0.0) * texelSize,
+	    float2(0.0, 1.0) * texelSize,
+	    float2(0.0, -1.0) * texelSize,
+	    float2(0.0, 0.0)
+	    };
+
+    	offsetDepths.x = tex2D(depthTex, screenUV + uvOffsets[0]).r;
+    	offsetDepths.y = tex2D(depthTex, screenUV + uvOffsets[1]).r;
+	    offsetDepths.z = tex2D(depthTex, screenUV + uvOffsets[2]).r;
+	    offsetDepths.w = tex2D(depthTex, screenUV + uvOffsets[3]).r;
+
+    	float4 offsetDiffs = abs(fragDepth - offsetDepths);
+
+    	float diffs[4] = {offsetDiffs.x, offsetDiffs.y, offsetDiffs.z, offsetDiffs.w};
+
+    	int lowest = 4;
+    	float tempDiff = depthDiff;
+    	for (int i=0; i<4; i++){
+		    if(diffs[i] < tempDiff){
+    			tempDiff = diffs[i];
+				lowest = i;
+		    }
+	    }
+
+    a = tex2D(_ShadowMapTexture, screenUV + uvOffsets[lowest]).r;
+    }
+    return a;
+}
+#endif
+
+
+
+
+
+
+
+
+
+
 #endif

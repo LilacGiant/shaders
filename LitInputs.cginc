@@ -62,6 +62,9 @@ uniform float _EnableIridescence;
 UNITY_DECLARE_TEX2D_NOSAMPLER(_IridescenceMap);
 UNITY_DECLARE_TEX2D_NOSAMPLER(_NoiseMap);
 
+sampler2D_float _CameraDepthTexture;
+float4 _CameraDepthTexture_TexelSize;
+
 
 
 #if defined(FXAA_LOW) && !defined(OPTIMIZER_ENABLED)

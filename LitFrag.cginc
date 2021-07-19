@@ -82,6 +82,7 @@ half4 frag(v2f i) : SV_Target
     half metallic = _Metallic;
     #endif
     
+    
     #ifdef ENABLE_OCCLUSIONMAP
     half occlusion = lerp(1,occlusionMap , _OcclusionStrength);
     #endif
@@ -134,11 +135,20 @@ perceptualRoughness = GSAA_Filament(worldNormal, perceptualRoughness);
     half3 lightDir = getLightDir(lightEnv, i.worldPos);
   //  half3 lightCol = getLightCol(lightEnv, _LightColor0.rgb, indirectDominantColor);
     half3 lightCol = _LightColor0.xyz;
+
+
+#if defined(SHADOWS_SCREEN) && defined(UNITY_PASS_FORWARDBASE)
+half attenuation = SSDirectionalShadowAA(i._ShadowCoord, _CameraDepthTexture, _CameraDepthTexture_TexelSize);
+#else
+UNITY_LIGHT_ATTENUATION(attenuation, i, i.worldPos.xyz);
+#endif
+
+
     
     float NoL = saturate(dot(worldNormal, lightDir));
 
     
-    UNITY_LIGHT_ATTENUATION(attenuation, i, i.worldPos.xyz);
+    
     
     
     #ifdef UNITY_PASS_FORWARDBASE // fix for rare bug where light atten is 0 when there is no directional light in the scene
@@ -154,6 +164,8 @@ perceptualRoughness = GSAA_Filament(worldNormal, perceptualRoughness);
 
 
     half3 light = (NoL * attenuation * lightCol);
+    #ifdef UNITY_PASS_FORWARDBASE
+    #endif
     half3 directDiffuse = albedo;
 
     #if defined(LIGHTMAP_ON) // apply lightmap /// fuck
@@ -251,6 +263,9 @@ col += iridescenceTex*_IridescenceIntensity*noiseTex.r;
 }
 
 
+
+
+
 return half4(col , alpha);
 }
 
@@ -261,8 +276,8 @@ fixed4 ShadowCasterfrag(v2f i) : SV_Target
     #ifdef ENABLE_TRANSPARENCY
     alpha = calcAlpha(_Cutoff,alpha,_Mode);
     #endif
-    
-    SHADOW_CASTER_FRAGMENT(i);
+    return alpha;
+    //SHADOW_CASTER_FRAGMENT(i);
 }
 
 #endif

@@ -18,6 +18,7 @@ float calcAlpha(float cutoff, float alpha, float mode)
 
 void initBumpedNormalTangentBitangent(float4 normalMap, inout float3 bitangent, inout float3 tangent, inout float3 normal, float3 nScale, float orientation)
 {
+    UNITY_BRANCH
     switch(orientation){
         case 0:
             normalMap.g = 1- normalMap.g;
@@ -43,6 +44,11 @@ void initBumpedNormalTangentBitangent(float4 normalMap, inout float3 bitangent, 
     tangent = cross(normal, bitangent);
     bitangent = cross(normal, tangent);
     
+}
+
+bool isInMirror()
+{
+    return unity_CameraProjection[2][0] != 0.f || unity_CameraProjection[2][1] != 0.f;
 }
 
 

@@ -1,4 +1,4 @@
-Shader " z3y/lit"
+Shader " Lit"
 {
 
     Properties
@@ -174,6 +174,7 @@ Shader " z3y/lit"
             ENDCG
         }
 
+
         Pass
         {
             Name "FWDADD"
@@ -205,7 +206,6 @@ Shader " z3y/lit"
             #include "LitPass.cginc"
             ENDCG
         }
-
 
         Pass
         {
