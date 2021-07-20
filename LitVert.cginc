@@ -15,17 +15,19 @@ v2f vert(appdata v)
 
 
     half3 worldNormal = UnityObjectToWorldNormal(v.normal);
+    #if defined(_GLOSSYREFLECTIONS_OFF) || defined(_SPECULARHIGHLIGHTS_OFF) || defined (ENABLE_NORMALMAP)
     half3 tangent = UnityObjectToWorldDir(v.tangent);
     half3 bitangent = cross(tangent, worldNormal) * v.tangent.w;
 
     o.bitangent = bitangent;
     o.tangent = tangent;
+    #endif
     o.worldNormal = worldNormal;
 
     o.worldPos = mul(unity_ObjectToWorld, v.vertex);
 
     #if !defined(UNITY_PASS_SHADOWCASTER)
-    UNITY_TRANSFER_SHADOW(o, o.uv);
+    UNITY_TRANSFER_SHADOW(o, o.uv0);
     #else
     TRANSFER_SHADOW_CASTER_NOPOS(o, o.pos);
     #endif

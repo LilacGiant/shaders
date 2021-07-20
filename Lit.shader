@@ -178,7 +178,7 @@ Shader " Lit"
             #pragma shader_feature _GLOSSYREFLECTIONS_OFF
             #pragma shader_feature UNITY_UI_ALPHACLIP
             #pragma shader_feature _DETAIL_MULX2
-            #pragma shader_feature FXAA_LOW
+          //  #pragma shader_feature FXAA_LOW
             #pragma shader_feature _SUNDISK_NONE
 
 
@@ -213,7 +213,7 @@ Shader " Lit"
             #pragma shader_feature _SPECULARHIGHLIGHTS_OFF
             #pragma shader_feature _GLOSSYREFLECTIONS_OFF
             #pragma shader_feature UNITY_UI_ALPHACLIP
-            #pragma shader_feature FXAA_LOW
+        //    #pragma shader_feature FXAA_LOW
 
             #ifndef UNITY_PASS_FORWARDADD
             #define UNITY_PASS_FORWARDADD
@@ -242,7 +242,7 @@ Shader " Lit"
             #pragma multi_compile_shadowcaster
             #pragma fragmentoption ARB_precision_hint_fastest
             #pragma skip_variants FOG_LINEAR FOG_EXP FOG_EXP2
-            #pragma shader_feature FXAA_LOW
+        //    #pragma shader_feature FXAA_LOW
 
             #ifndef UNITY_PASS_SHADOWCASTER
             #define UNITY_PASS_SHADOWCASTER

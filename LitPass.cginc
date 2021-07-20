@@ -12,7 +12,9 @@ struct appdata
 {
     float4 vertex : POSITION;
     half3 normal : NORMAL;
+    #if defined(_GLOSSYREFLECTIONS_OFF) || defined(_SPECULARHIGHLIGHTS_OFF) || defined (ENABLE_NORMALMAP)
     half4 tangent : TANGENT;
+    #endif
 
     float2 uv0 : TEXCOORD0;
     float2 uv1 : TEXCOORD1;
@@ -32,12 +34,14 @@ struct v2f
     float2 uv1 : TEXCOORD1;
     float2 uv2 : TEXCOORD2;
 
+    #if defined(_GLOSSYREFLECTIONS_OFF) || defined(_SPECULARHIGHLIGHTS_OFF) || defined (ENABLE_NORMALMAP)
     float3 bitangent : TEXCOORD3;
     float3 tangent : TEXCOORD4;
+    #endif
     float3 worldNormal : TEXCOORD5;
 
     float3 worldPos : TEXCOORD6;
-    #ifdef UNITY_PASS_FORWARDBASE
+    #if !defined(UNITY_PASS_SHADOWCASTER)
     SHADOW_COORDS(7)
     #endif
 
