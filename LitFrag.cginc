@@ -17,18 +17,9 @@ half4 frag(v2f i) : SV_Target
     half intensity = dot(mainTex, grayscaleVec);
     mainTex.rgb = lerp(intensity, mainTex, (_Saturation+1));
 
-    half4 albedo = 0;
-    #if !defined(OPTIMIZER_ENABLED)
-    albedo = mainTex * _Color;
-    #else
-    UNITY_BRANCH
-    if(1){
-        albedo = mainTex;
-    }
-    else{
-        albedo = mainTex * _Color;
-    }
-    #endif
+
+    half4 albedo = mainTex * (_Color+0.000001); // unity please give me my main tex sampler
+
 
     #ifdef ENABLE_VERTEXCOLOR
     UNITY_BRANCH
