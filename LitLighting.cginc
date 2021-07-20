@@ -132,8 +132,8 @@ half3 BetterSH9(half4 normal)
 
 float3 getIndirectDiffuse(float3 normal)
 {
-    float3 indirectDiffuse = BetterSH9(half4(normal, 1));
-    return indirectDiffuse*0.95; // i have no idea what im doing but this makes it look less bright and same as standard shader
+    float3 indirectDiffuse = max(0,ShadeSH9(half4(normal, 1)));
+    return indirectDiffuse * 0.95; // i have no idea what im doing but this makes it look less bright and same as standard shader
 }
 
 float3 getBoxProjection (float3 direction, float3 position, float4 cubemapPosition, float3 boxMin, float3 boxMax)

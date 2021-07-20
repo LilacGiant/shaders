@@ -44,6 +44,7 @@ uniform half _specularAntiAliasingThreshold;
 
 
 uniform half _Reflectance;
+uniform half _ExposureOcclusion;
 
 uniform half _Cutoff;
 uniform float _Mode;

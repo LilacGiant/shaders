@@ -140,9 +140,10 @@ perceptualRoughness = GSAA_Filament(worldNormal, perceptualRoughness);
 
 UNITY_LIGHT_ATTENUATION(attenuation, i, i.worldPos.xyz);
 
-#if defined(SHADOWS_SCREEN) && defined(UNITY_PASS_FORWARDBASE)
+#if defined(SHADOWS_SCREEN) && defined(UNITY_PASS_FORWARDBASE) && !defined(SHADE_API_MOBILE)
 attenuation = SSDirectionalShadowAA(i._ShadowCoord, _CameraDepthTexture, _CameraDepthTexture_TexelSize, _ShadowMapTexture, attenuation);
 #endif
+
 
 
     
@@ -165,8 +166,7 @@ attenuation = SSDirectionalShadowAA(i._ShadowCoord, _CameraDepthTexture, _Camera
 
 
     half3 light = (NoL * attenuation * lightCol);
-    #ifdef UNITY_PASS_FORWARDBASE
-    #endif
+    light *= 0.95;
     half3 directDiffuse = albedo;
 
     #if defined(LIGHTMAP_ON) // apply lightmap /// fuck
@@ -212,6 +212,7 @@ float LoH = saturate(dot(lightDir, halfVector));
 half3 f0 = 0.16 * reflectance * reflectance * oneMinusMetallic + diffuse * metallic;
 half3 fresnel = F_Schlick(f0, NoV);
 fresnel = lerp(fresnel, f0, metallic); // kill fresnel on metallics, it looks bad.
+fresnel *= saturate(length(indirectDiffuse) * 1.0/(_ExposureOcclusion));
 #endif
 
 
@@ -225,11 +226,10 @@ half3 indirectSpecular = getIndirectSpecular(metallic, perceptualRoughness, refl
 UNITY_BRANCH
 if(_SpecularOcclusion > 0){
     half specMultiplier = saturate(lerp(1, pow(length(lightMap), _SpecularOcclusion), _SpecularOcclusion));
-    specMultiplier = lerp(specMultiplier,1,metallic);
+    //specMultiplier = lerp(specMultiplier,1,metallic);
     indirectSpecular *= specMultiplier;
 }
 #endif
-
 col += indirectSpecular;
 #endif
 
@@ -246,6 +246,7 @@ col += directSpecular;
 #ifdef ENABLE_OCCLUSIONMAP
 col*= occlusion;
 #endif
+
 
 
 
@@ -277,8 +278,8 @@ fixed4 ShadowCasterfrag(v2f i) : SV_Target
     #ifdef ENABLE_TRANSPARENCY
     alpha = calcAlpha(_Cutoff,alpha,_Mode);
     #endif
-    return alpha;
-    //SHADOW_CASTER_FRAGMENT(i);
+    //return alpha;
+    SHADOW_CASTER_FRAGMENT(i);
 }
 
 #endif
