@@ -140,7 +140,7 @@ perceptualRoughness = GSAA_Filament(worldNormal, perceptualRoughness);
 
 UNITY_LIGHT_ATTENUATION(attenuation, i, i.worldPos.xyz);
 
-#if defined(SHADOWS_SCREEN) && defined(UNITY_PASS_FORWARDBASE) && !defined(SHADE_API_MOBILE)
+#if defined(SHADOWS_SCREEN) && defined(UNITY_PASS_FORWARDBASE) && !defined(SHADE_API_MOBILE) && defined(_SUNDISK_NONE)
 attenuation = SSDirectionalShadowAA(i._ShadowCoord, _CameraDepthTexture, _CameraDepthTexture_TexelSize, _ShadowMapTexture, attenuation);
 #endif
 
@@ -211,8 +211,17 @@ half3 halfVector = normalize(lightDir + viewDir);
 float LoH = saturate(dot(lightDir, halfVector));
 half3 f0 = 0.16 * reflectance * reflectance * oneMinusMetallic + diffuse * metallic;
 half3 fresnel = F_Schlick(f0, NoV);
+fresnel *= saturate(length(indirectDiffuse) * 1.0/(_ExposureOcclusion)); // indirect diffuse occlusion
+
+#if defined(LIGHTMAP_ON)
+UNITY_BRANCH
+if(_SpecularOcclusion > 0){
+    half specMultiplier = saturate(lerp(1, pow(length(lightMap), _SpecularOcclusion), _SpecularOcclusion)); // lightmap occlusion
+    fresnel *= specMultiplier;
+}
+#endif
+
 fresnel = lerp(fresnel, f0, metallic); // kill fresnel on metallics, it looks bad.
-fresnel *= saturate(length(indirectDiffuse) * 1.0/(_ExposureOcclusion));
 #endif
 
 
@@ -222,14 +231,6 @@ float3 worldPos = i.worldPos;
 half3 reflViewDir = reflect(-viewDir, worldNormal);
 half3 indirectSpecular = getIndirectSpecular(metallic, perceptualRoughness, reflViewDir, worldPos, directDiffuse, worldNormal) * lerp(fresnel, f0, perceptualRoughness);
 
-#if defined(LIGHTMAP_ON)
-UNITY_BRANCH
-if(_SpecularOcclusion > 0){
-    half specMultiplier = saturate(lerp(1, pow(length(lightMap), _SpecularOcclusion), _SpecularOcclusion));
-    //specMultiplier = lerp(specMultiplier,1,metallic);
-    indirectSpecular *= specMultiplier;
-}
-#endif
 col += indirectSpecular;
 #endif
 

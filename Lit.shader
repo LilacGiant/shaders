@@ -84,6 +84,7 @@ Shader " Lit"
         
         
         [HideInInspector] m_ShaderFeatures ("Shader Features", Float) = 0
+        [Toggle(_SUNDISK_NONE)] _EnableSSDSAA ("Directional Shadows AA", Float) = 0
 
 
 
@@ -164,6 +165,7 @@ Shader " Lit"
             #pragma shader_feature UNITY_UI_ALPHACLIP
             #pragma shader_feature _DETAIL_MULX2
             #pragma shader_feature FXAA_LOW
+            #pragma shader_feature _SUNDISK_NONE
 
 
             #ifndef UNITY_PASS_FORWARDBASE
