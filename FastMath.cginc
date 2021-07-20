@@ -230,5 +230,4 @@ float atanFast4(float inX)
 	float  x = inX;
 	return x*(-0.1784f * abs(x) - 0.0663f * x * x + 1.0301f);
 }
-
 #endif
