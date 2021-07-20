@@ -140,6 +140,9 @@ perceptualRoughness = GSAA_Filament(worldNormal, perceptualRoughness);
 
 UNITY_LIGHT_ATTENUATION(attenuation, i, i.worldPos.xyz);
 
+#if defined(SHADOWS_SCREEN) && defined(UNITY_PASS_FORWARDBASE)
+attenuation = SSDirectionalShadowAA(i._ShadowCoord, _CameraDepthTexture, _CameraDepthTexture_TexelSize, _ShadowMapTexture, attenuation);
+#endif
 
 
     
@@ -162,8 +165,7 @@ UNITY_LIGHT_ATTENUATION(attenuation, i, i.worldPos.xyz);
 
 
     half3 light = (NoL * attenuation * lightCol);
-    #if defined(SHADOWS_SCREEN) && defined(UNITY_PASS_FORWARDBASE)
-    light *= SSDirectionalShadowAA(i._ShadowCoord, _CameraDepthTexture, _CameraDepthTexture_TexelSize);
+    #ifdef UNITY_PASS_FORWARDBASE
     #endif
     half3 directDiffuse = albedo;
 

@@ -421,9 +421,9 @@ float computeSpecularAO(float NoV, float ao, float roughness) {
 }
 
 //https://forum.unity.com/threads/fixing-screen-space-directional-shadows-and-anti-aliasing.379902/
-#ifdef SHADOWS_SCREEN
-float SSDirectionalShadowAA(float4 _ShadowCoord, sampler2D_float depthTex, float4 depthTextureTexelSize){
-    half a = 0;
+
+float SSDirectionalShadowAA(float4 _ShadowCoord, sampler2D_float depthTex, float4 depthTextureTexelSize, sampler2D _ShadowMapTexture, half atten){
+    half a = atten;
     float2 screenUV = _ShadowCoord.xy / _ShadowCoord.w;
     half shadow = tex2D(_ShadowMapTexture, screenUV).r;
 
@@ -470,10 +470,6 @@ float SSDirectionalShadowAA(float4 _ShadowCoord, sampler2D_float depthTex, float
     }
     return a;
 }
-#endif
-
-
-
 
 
 
