@@ -23,21 +23,22 @@ uniform float _MetallicMapUV;
 uniform float4 _MetallicMap_ST;
 uniform half _Metallic;
 
-UNITY_DECLARE_TEX2D_NOSAMPLER(_RoughnessMap);
-uniform float _RoughnessMapUV;
-uniform float4 _RoughnessMap_ST;
-uniform half _Roughness;
-uniform float _RoughnessInvert;
+UNITY_DECLARE_TEX2D_NOSAMPLER(_SmoothnessMap);
+uniform float _SmoothnessMapUV;
+uniform float4 _SmoothnessMap_ST;
+uniform half _Glossiness;
+uniform float _GlossinessInvert;
 
 UNITY_DECLARE_TEX2D_NOSAMPLER(_OcclusionMap);
 uniform float _OcclusionMapUV;
 uniform float4 _OcclusionMap_ST;
-uniform half _OcclusionStrength;
+uniform half _Occlusion;
 
 
-UNITY_DECLARE_TEX2D_NOSAMPLER(_PackedTexture);
-uniform float _PackedTextureUV;
-uniform float4 _PackedTexture_ST;
+UNITY_DECLARE_TEX2D_NOSAMPLER(_MetallicGlossMap);
+uniform float _MetallicGlossMapUV;
+uniform float4 _MetallicGlossMap_ST;
+
 
 uniform half _specularAntiAliasingVariance;
 uniform half _specularAntiAliasingThreshold;
@@ -62,6 +63,12 @@ uniform float _IridescenceIntensity;
 uniform float _EnableIridescence;
 UNITY_DECLARE_TEX2D_NOSAMPLER(_IridescenceMap);
 UNITY_DECLARE_TEX2D_NOSAMPLER(_NoiseMap);
+
+UNITY_DECLARE_TEX2D_NOSAMPLER(_ParallaxMap);
+uniform float4 _ParallaxMap_ST;
+uniform float _ParallaxSteps;
+uniform float _ParallaxOffset;
+uniform float _Parallax;
 
 sampler2D_float _CameraDepthTexture;
 float4 _CameraDepthTexture_TexelSize;
@@ -104,7 +111,7 @@ float4 _CameraDepthTexture_TexelSize;
 #endif
 
 #if (PROP_ENABLEROUGHNESSMAP==1) || !defined(OPTIMIZER_ENABLED)
-#define ENABLE_ROUGHNESSMAP
+#define ENABLE_SMOOTHNESSMAP
 #endif
 
 #if (PROP_ENABLEOCCLUSION==1) || !defined(OPTIMIZER_ENABLED)

@@ -18,6 +18,7 @@ struct appdata
     float2 uv1 : TEXCOORD1;
     float2 uv2 : TEXCOORD2;
 
+
     #ifdef ENABLE_VERTEXCOLOR
     half4 color : COLOR;
     #endif

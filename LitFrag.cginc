@@ -11,6 +11,7 @@ half4 frag(v2f i) : SV_Target
     uvs[1] = i.uv1;
     uvs[2] = i.uv2;
 
+
     half4 mainTex = _MainTex.Sample(sampler_MainTex, TRANSFORM_TEX(uvs[_MainTexUV], _MainTex));
 
     half intensity = dot(mainTex, grayscaleVec);
@@ -39,15 +40,15 @@ half4 frag(v2f i) : SV_Target
     half3 diffuse = albedo;
     
 
-    
+    half invertSmoothness = _GlossinessInvert;
     #ifndef ENABLE_PACKED_MODE
     
     #ifdef ENABLE_METALLICMAP
     half4 metallicMap = _MetallicMap.Sample(sampler_MainTex, TRANSFORM_MAINTEX(uvs[_MetallicMapUV], _MetallicMap));
     #endif
     
-    #ifdef ENABLE_ROUGHNESSMAP
-    half roughnessMap = _RoughnessMap.Sample(sampler_MainTex, TRANSFORM_MAINTEX(uvs[_RoughnessMapUV], _RoughnessMap));
+    #ifdef ENABLE_SMOOTHNESSMAP
+    half smoothnessMap = _SmoothnessMap.Sample(sampler_MainTex, TRANSFORM_MAINTEX(uvs[_SmoothnessMapUV], _SmoothnessMap));
     #endif
     
     #ifdef ENABLE_OCCLUSIONMAP
@@ -56,37 +57,40 @@ half4 frag(v2f i) : SV_Target
 
     
     #else
-    #define ENABLE_ROUGHNESSMAP
+    #define ENABLE_SMOOTHNESSMAP
     #define ENABLE_OCCLUSIONMAP
     #define ENABLE_METALLICMAP
-    half4 packedTex = _PackedTexture.Sample(sampler_MainTex, TRANSFORM_MAINTEX(uvs[_PackedTextureUV], _PackedTexture));
+    half4 packedTex = _MetallicGlossMap.Sample(sampler_MainTex, TRANSFORM_MAINTEX(uvs[_MetallicGlossMapUV], _MetallicGlossMap));
     half metallicMap = packedTex.r;
-    half roughnessMap = packedTex.a;
+    half smoothnessMap = packedTex.a;
     half occlusionMap = packedTex.g;
+    invertSmoothness = 0;
     #endif
 
-    half perceptualRoughness = _Roughness;
-    #ifdef ENABLE_ROUGHNESSMAP
-    perceptualRoughness *= roughnessMap;
+    half perceptualRoughness = _Glossiness;
+    #ifdef ENABLE_SMOOTHNESSMAP
+    perceptualRoughness *= smoothnessMap;
     #endif
+
     UNITY_BRANCH
-    if(_RoughnessInvert){
+    if(!invertSmoothness){
         perceptualRoughness = 1-perceptualRoughness;
     }
 
     #ifdef ENABLE_METALLICMAP
     half metallic = metallicMap * _Metallic;
-    half reflectance = metallicMap * _Reflectance;
+    //half reflectance = metallicMap * _Reflectance;
     #else
-    half reflectance = _Reflectance;
+    //half reflectance = _Reflectance;
     half metallic = _Metallic;
     #endif
     
     
     #ifdef ENABLE_OCCLUSIONMAP
-    half occlusion = lerp(1,occlusionMap , _OcclusionStrength);
+    half occlusion = lerp(1,occlusionMap , _Occlusion);
     #endif
 
+    half reflectance = _Reflectance;
     half oneMinusMetallic =  1 - metallic;
     half roughness = perceptualRoughness*perceptualRoughness;
     
@@ -211,7 +215,7 @@ half3 halfVector = normalize(lightDir + viewDir);
 float LoH = saturate(dot(lightDir, halfVector));
 half3 f0 = 0.16 * reflectance * reflectance * oneMinusMetallic + diffuse * metallic;
 half3 fresnel = F_Schlick(f0, NoV);
-fresnel *= saturate(length(indirectDiffuse) * 1.0/(_ExposureOcclusion)); // indirect diffuse occlusion
+fresnel *= saturate(length(indirectDiffuse) * 1.0/(_ExposureOcclusion));
 
 #if defined(LIGHTMAP_ON)
 UNITY_BRANCH
@@ -230,10 +234,11 @@ fresnel = lerp(fresnel, f0, metallic); // kill fresnel on metallics, it looks ba
 float3 worldPos = i.worldPos;
 half3 reflViewDir = reflect(-viewDir, worldNormal);
 half3 indirectSpecular = getIndirectSpecular(metallic, perceptualRoughness, reflViewDir, worldPos, directDiffuse, worldNormal) * lerp(fresnel, f0, perceptualRoughness);
-
+#ifdef ENABLE_OCCLUSIONMAP
+indirectSpecular *= computeSpecularAO(NoV, occlusion, roughness);
+#endif
 col += indirectSpecular;
 #endif
-
 
     
 #ifdef _SPECULARHIGHLIGHTS_OFF // specular highlights
@@ -244,9 +249,6 @@ col += directSpecular;
 
 
 
-#ifdef ENABLE_OCCLUSIONMAP
-col*= occlusion;
-#endif
 
 
 
@@ -264,10 +266,6 @@ if(_EnableIridescence==1){
     half3 noiseTex = _NoiseMap.Sample(sampler_MainTex, float4(i.uv0.xy,4,4));
 col += iridescenceTex*_IridescenceIntensity*noiseTex.r;
 }
-
-
-
-
 
 return half4(col , alpha);
 }

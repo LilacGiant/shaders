@@ -9,7 +9,7 @@ Shader " Lit"
         [ThryShaderOptimizerLockButton] _ShaderOptimizerEnabled ("", Float) = 0
         
 
-        [HideInInspector] m_Main ("Main", Float) = 1
+        [HideInInspector] m_Main ("Surface Inputs", Float) = 1
         
         //rendering preset from poiyomi
 [ThryWideEnum(Opaque, 0, Cutout, 1, Fade, 2, Transparent, 3, Additive, 4, Soft Additive, 5, Multiplicative, 6, 2x Multiplicative, 7)]_Mode("Rendering Mode--{on_value_actions:[ 
@@ -26,7 +26,7 @@ Shader " Lit"
 
         _Cutoff ("Alpha Cuttoff--{condition_show:{type:PROPERTY_BOOL,data:_Mode==1}}", Range(0, 1.001)) = 0.5
 
-        _MainTex ("Albedo --{reference_property:_Color,reference_properties:[_MainTexUV,_Saturation, _EnableVertexColor]}", 2D) = "white" {}
+        _MainTex ("Base Map --{reference_property:_Color,reference_properties:[_MainTexUV,_Saturation, _EnableVertexColor]}", 2D) = "white" {}
         [HideInInspector] _Color ("Color", Color) = (1,1,1,1)
         [HideInInspector] _Saturation ("Saturation", Range(-1,1)) = 0
         [HideInInspector] [Enum(UV0, 0, UV1 (Lightmap), 1, UV2, 2)] _MainTexUV ("UV", Int) = 0
@@ -36,39 +36,42 @@ Shader " Lit"
                 
         
         
-        
-        //_PackedTexture ("Mask Map--{on_value_actions:[{value:0,actions:[{type:SET_PROPERTY,data:_EnablePackedMode=0}]},{value:1,actions:[{type:SET_PROPERTY,data:_EnablePackedMode=1}]}]} ", 2D) = "white" {}
+        _Metallic ("Metallic", Range(0,1)) = 0
+        _Glossiness ("Smoothness", Range(0,1)) = 0.5
+        _Occlusion ("Occlusion", Range(0,1)) = 0
 
-        [HideInInspector] [ToggleUI] _EnableRoughnessMap ("Enable Roughness Map ", Float) = 0
-        [sRGBWarning] _RoughnessMap ("Roughness--{reference_property:_Roughness,reference_properties:[_RoughnessMapUV,_RoughnessInvert],on_value_actions:[{value:0,actions:[{type:SET_PROPERTY,data:_EnableRoughnessMap=0}]},{value:1,actions:[{type:SET_PROPERTY,data:_EnableRoughnessMap=1}]}]} ", 2D) = "white" {}
-        [HideInInspector] _Roughness ("Roughness", Range(0,1)) = 0.5
-        [HideInInspector] [Enum(UV0, 0, UV1 (Lightmap), 1, UV2, 2)] _RoughnessMapUV ("UV", Int) = 0
-        [HideInInspector] [ToggleUI] _RoughnessInvert ("Invert", Float) = 0
+        
+        [HideInInspector] [ToggleUI] _EnablePackedMap ("Enable Roughness Map ", Float) = 0
+        [sRGBWarning] _MetallicGlossMap ("Mask Map--{tooltip:Metallic(R) Occlusion(G) Detail Mask(B) Smoothness(A),reference_properties:[_MetallicGlossMapUV],condition_show:{type:PROPERTY_BOOL,data:_EnablePackedMode==1},on_value_actions:[{value:0,actions:[{type:SET_PROPERTY,data:_EnablePackedMap=0}]},{value:1,actions:[{type:SET_PROPERTY,data:_EnablePackedMap=1}]}]} ", 2D) = "white" {}
+        [HideInInspector] [Enum(UV0, 0, UV1 (Lightmap), 1, UV2, 2)] _MetallicGlossMapUV ("UV", Int) = 0
+
+        [HideInInspector] [ToggleUI] _EnableRoughnessMap ("Enable Roughness Map", Float) = 0
+        [sRGBWarning] _SmoothnessMap ("Smoothness Map--{condition_show:{type:PROPERTY_BOOL,data:_EnablePackedMode==0},reference_properties:[_SmoothnessMapUV,_GlossinessInvert],on_value_actions:[{value:0,actions:[{type:SET_PROPERTY,data:_EnableRoughnessMap=0}]},{value:1,actions:[{type:SET_PROPERTY,data:_EnableRoughnessMap=1}]}]} ", 2D) = "white" {}
+        
+        [HideInInspector] [Enum(UV0, 0, UV1 (Lightmap), 1, UV2, 2)] _SmoothnessMapUV ("UV", Int) = 0
+        [HideInInspector] [ToggleUI] _GlossinessInvert ("Invert", Float) = 0
 
         
         [HideInInspector] [ToggleUI] _EnableMetallicMap ("Enable Metallic Map", Float) = 0
-        [sRGBWarning] _MetallicMap ("Metallic--{reference_property:_Metallic,reference_properties:[_MetallicMapUV],on_value_actions:[{value:0,actions:[{type:SET_PROPERTY,data:_EnableMetallicMap=0}]},{value:1,actions:[{type:SET_PROPERTY,data:_EnableMetallicMap=1}]}]} ", 2D) = "white" {}
-        [HideInInspector] _Metallic ("Metallic", Range(0,1)) = 0
+        [sRGBWarning] _MetallicMap ("Metallic Map--{condition_show:{type:PROPERTY_BOOL,data:_EnablePackedMode==0},reference_properties:[_MetallicMapUV],on_value_actions:[{value:0,actions:[{type:SET_PROPERTY,data:_EnableMetallicMap=0}]},{value:1,actions:[{type:SET_PROPERTY,data:_EnableMetallicMap=1}]}]} ", 2D) = "white" {}
+        
         [HideInInspector] [Enum(UV0, 0, UV1 (Lightmap), 1, UV2, 2)] _MetallicMapUV ("UV", Int) = 0
         
-        [HideInInspector] [ToggleUI] _EnableNormalMap ("Enable Normal Map", Float) = 0
-        [Normal] _BumpMap ("Normal Map--{reference_property:_BumpScale,reference_properties:[_BumpMapUV,_NormalMapOrientation],on_value_actions:[{value:0,actions:[{type:SET_PROPERTY,data:_EnableNormalMap=0}]},{value:1,actions:[{type:SET_PROPERTY,data:_EnableNormalMap=1}]}]} ", 2D) = "bump" {}
-        [HideInInspector] _BumpScale ("Bump Scale", Float) = 1
-        [HideInInspector] [Enum(OpenGL, 0, Direct3D, 1)] _NormalMapOrientation ("Orientation", Int) = 0
-        [HideInInspector] [Enum(UV0, 0, UV1 (Lightmap), 1, UV2, 2)] _BumpMapUV ("UV", Int) = 0
+
         
 
         [HideInInspector] [ToggleUI] _EnableOcclusion("Occlusion", Float) = 0
-        [sRGBWarning] _OcclusionMap ("Occlusion--{reference_property:_OcclusionStrength,reference_properties:[_OcclusionMapUV],on_value_actions:[{value:0,actions:[{type:SET_PROPERTY,data:_EnableOcclusion=0}]},{value:1,actions:[{type:SET_PROPERTY,data:_EnableOcclusion=1}]}]} ", 2D) = "white" {}
-        [HideInInspector] _OcclusionStrength ("OcclusionStrength", Range(0, 1)) = 1
+        [sRGBWarning] _OcclusionMap ("Occlusion Map--{condition_show:{type:PROPERTY_BOOL,data:_EnablePackedMode==0},reference_properties:[_OcclusionMapUV],on_value_actions:[{value:0,actions:[{type:SET_PROPERTY,data:_EnableOcclusion=0}]},{value:1,actions:[{type:SET_PROPERTY,data:_EnableOcclusion=1}]}]} ", 2D) = "white" {}
+        
         [HideInInspector] [Enum(UV0, 0, UV1 (Lightmap), 1, UV2, 2)] _OcclusionMapUV ("UV", Int) = 0
 
-        [HideInInspector] m_start_Emission ("Emission --{reference_property:_EnableEmission}", Float) = 0
-        [HideInInspector] [ToggleUI] _EnableEmission ("Emission", Float) = 0
-        _EmissionMap ("Emission Map--{reference_property:_EmissionColor,reference_properties:[_EmissionMapUV]}", 2D) = "white" {}
-        [HideInInspector] [HDR] _EmissionColor ("Color", Color) = (0,0,0)
-        [HideInInspector] [Enum(UV0, 0, UV1 (Lightmap), 1, UV2, 2)] _EmissionMapUV ("UV", Int) = 0
-        [HideInInspector] m_end_Emission ("", Float) = 0
+        [HideInInspector] [ToggleUI] _EnableNormalMap ("Enable Normal Map", Float) = 0
+        [Normal] _BumpMap ("Normal Map--{reference_property:_BumpScale,reference_properties:[_BumpMapUV,_NormalMapOrientation],on_value_actions:[{value:0,actions:[{type:SET_PROPERTY,data:_EnableNormalMap=0}]},{value:1,actions:[{type:SET_PROPERTY,data:_EnableNormalMap=1}]}]} ", 2D) = "bump" {}
+        [HideInInspector] _BumpScale ("Bump Scale", Range(0,10)) = 1
+        [HideInInspector] [Enum(OpenGL, 0, Direct3D, 1)] _NormalMapOrientation ("Orientation", Int) = 0
+        [HideInInspector] [Enum(UV0, 0, UV1 (Lightmap), 1, UV2, 2)] _BumpMapUV ("UV", Int) = 0
+
+        
 
         
         [HideInInspector] m_Specular ("Reflections And Specular Highlights", Float) = 0
@@ -84,7 +87,15 @@ Shader " Lit"
         
         
         [HideInInspector] m_ShaderFeatures ("Shader Features", Float) = 0
-        [Toggle(_SUNDISK_NONE)] _EnableSSDSAA ("Directional Shadows AA", Float) = 0
+
+
+
+        [HideInInspector] m_start_Emission ("Emission --{reference_property:_EnableEmission}", Float) = 0
+        [HideInInspector] [ToggleUI] _EnableEmission ("Emission", Float) = 0
+        _EmissionMap ("Emission Map--{reference_property:_EmissionColor,reference_properties:[_EmissionMapUV]}", 2D) = "white" {}
+        [HideInInspector] [HDR] _EmissionColor ("Color", Color) = (0,0,0)
+        [HideInInspector] [Enum(UV0, 0, UV1 (Lightmap), 1, UV2, 2)] _EmissionMapUV ("UV", Int) = 0
+        [HideInInspector] m_end_Emission ("", Float) = 0
 
 
 
@@ -114,14 +125,17 @@ Shader " Lit"
         [Enum(UnityEngine.Rendering.BlendMode)] _DstBlend ("Destination Blend", Int) = 0
         [HideInInspector] m_end_blending ("Blending", Float) = 0
 
+        [Toggle(_SUNDISK_NONE)] _EnableSSDSAA ("Directional Shadows AA", Float) = 0
+        [Toggle(UNITY_UI_ALPHACLIP)] _EnablePackedMode ("Packed Mode", Float) = 1
         [Enum(Off, 0, On, 1)] _ZWrite ("ZWrite", Int) = 1
         [Enum(UnityEngine.Rendering.CompareFunction)] _ZTest ("ZTest", Float) = 4
         [Enum(UnityEngine.Rendering.CullMode)] _Cull ("Cull", Float) = 2
-        [Toggle(FXAA_LOW)] _PreviewQuest ("Preview Quest", Float) = 0
+       // [Toggle(FXAA_LOW)] _PreviewQuest ("Preview Quest", Float) = 0
+        
         
         
 
-//        [Toggle(UNITY_UI_ALPHACLIP)] _EnablePackedMode ("Packed Textures", Float) = 0
+//        
         
         
         
