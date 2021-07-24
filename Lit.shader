@@ -78,7 +78,7 @@ Shader " Lit"
         [Toggle(_SPECULARHIGHLIGHTS_OFF)] _SpecularHighlights("Specular Highlights", Float) = 1
         [Toggle(_GLOSSYREFLECTIONS_OFF)] _GlossyReflections("Reflections", Float) = 1
         _Reflectance ("Reflectance", Range(0,1)) = 0.5
-        _AngularGlossiness ("Angular Glossiness", Range(0, 1)) = 1
+        _AngularGlossiness ("Angular Glossiness", Range(0, 1)) = 0
         _ExposureOcclusion ("Exposure Occlusion Sensitivity", Range(0, 1)) = 0
         
         _MetallicFresnel ("Metallic Fresnel", Color) = (0,0,0,1)
