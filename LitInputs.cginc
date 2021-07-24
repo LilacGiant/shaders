@@ -10,6 +10,7 @@ uniform half4 _Color;
 uniform half _Saturation;
 uniform half _EnableVertexColor;
 
+
 uniform float _EnableNormalMap;
 uniform float _NormalMapOrientation;
 UNITY_DECLARE_TEX2D(_BumpMap);
@@ -42,6 +43,8 @@ uniform float4 _MetallicGlossMap_ST;
 
 uniform half _specularAntiAliasingVariance;
 uniform half _specularAntiAliasingThreshold;
+uniform half4 _MetallicFresnel;
+uniform half _AngularGlossiness;
 
 
 uniform half _Reflectance;

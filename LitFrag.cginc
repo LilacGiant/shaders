@@ -141,6 +141,11 @@ perceptualRoughness = GSAA_Filament(worldNormal, perceptualRoughness);
     half3 lightDir = getLightDir(lightEnv, i.worldPos);
   //  half3 lightCol = getLightCol(lightEnv, _LightColor0.rgb, indirectDominantColor);
     half3 lightCol = _LightColor0.xyz;
+    half NoL = saturate(dot(worldNormal, lightDir));
+    half3 viewDir = normalize(_WorldSpaceCameraPos - i.worldPos);
+    float NoV = abs(dot(worldNormal, viewDir)) + 1e-5;
+    half3 halfVector = normalize(lightDir + viewDir);
+    float LoH = saturate(dot(lightDir, halfVector));
 
 
 
@@ -153,7 +158,9 @@ attenuation = SSDirectionalShadowAA(i._ShadowCoord, _CameraDepthTexture, _Camera
 
 
     
-    float NoL = saturate(dot(worldNormal, lightDir));
+    
+
+
 
     
     
@@ -169,11 +176,15 @@ attenuation = SSDirectionalShadowAA(i._ShadowCoord, _CameraDepthTexture, _Camera
     
     half3 indirectDiffuse = getIndirectDiffuse(worldNormal);
     
+    
 
 
     half3 light = (NoL * attenuation * lightCol);
-    light *= 0.95;
+    //light *= 0.95;
     half3 directDiffuse = albedo;
+    half fdburley = Fd_Burley(perceptualRoughness, NoV, NoL, LoH);
+    light *= fdburley;
+    
 
     #if defined(LIGHTMAP_ON) // apply lightmap /// fuck
 
@@ -195,7 +206,7 @@ attenuation = SSDirectionalShadowAA(i._ShadowCoord, _CameraDepthTexture, _Camera
     #else
 
 
-    directDiffuse *= light + indirectDiffuse;
+    directDiffuse *= light  + indirectDiffuse;
     #endif
 
     
@@ -204,18 +215,18 @@ attenuation = SSDirectionalShadowAA(i._ShadowCoord, _CameraDepthTexture, _Camera
 
     
 half3 col = directDiffuse;
+
     
 
 
     
-half3 viewDir = normalize(_WorldSpaceCameraPos - i.worldPos);
-float NoV = abs(dot(worldNormal, viewDir)) + 1e-5;
+
 
 
 #if defined(_GLOSSYREFLECTIONS_OFF) || defined(_SPECULARHIGHLIGHTS_OFF)
-half3 halfVector = normalize(lightDir + viewDir);
-float LoH = saturate(dot(lightDir, halfVector));
+
 half3 f0 = 0.16 * reflectance * reflectance * oneMinusMetallic + diffuse * metallic;
+
 half3 fresnel = F_Schlick(f0, NoV);
 fresnel *= saturate(length(indirectDiffuse) * 1.0/(_ExposureOcclusion));
 
@@ -227,7 +238,11 @@ if(_SpecularOcclusion > 0){
 }
 #endif
 
-fresnel = lerp(fresnel, f0, metallic); // kill fresnel on metallics, it looks bad.
+half fmm = F_Schlick(0.16*reflectance*reflectance,NoV);
+fresnel = lerp(fresnel, fresnel+(_MetallicFresnel.rgb*fmm) , metallic); //metallic fresnel
+fresnel = lerp(fresnel, f0, saturate(metallic-_MetallicFresnel.a)); // kill fresnel on metallics
+
+perceptualRoughness = lerp(saturate(perceptualRoughness * (1-_AngularGlossiness * fmm)), perceptualRoughness,  perceptualRoughness);  // roughness fresnel
 #endif
 
 

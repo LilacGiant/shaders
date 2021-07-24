@@ -78,7 +78,11 @@ Shader " Lit"
         [Toggle(_SPECULARHIGHLIGHTS_OFF)] _SpecularHighlights("Specular Highlights", Float) = 1
         [Toggle(_GLOSSYREFLECTIONS_OFF)] _GlossyReflections("Reflections", Float) = 1
         _Reflectance ("Reflectance", Range(0,1)) = 0.5
-        _ExposureOcclusion ("Exposure Occlusion Sensitivity", Range(0, 1)) = 0.2
+        _AngularGlossiness ("Angular Glossiness", Range(0, 1)) = 1
+        _ExposureOcclusion ("Exposure Occlusion Sensitivity", Range(0, 1)) = 0
+        
+        _MetallicFresnel ("Metallic Fresnel", Color) = (0,0,0,1)
+        
         [HideInInspector] m_start_GSAA ("Geometric Specular Anti-Aliasing --{reference_property:_GSAA}", Float) = 0
         [HideInInspector] [Toggle(UNITY_UI_CLIP_RECT)] _GSAA("GSAA", Float) = 0
         [PowerSlider(3)] _specularAntiAliasingVariance ("Variance", Range(0.0, 1.0)) = 0.01
@@ -125,6 +129,8 @@ Shader " Lit"
         [Enum(UnityEngine.Rendering.BlendMode)] _DstBlend ("Destination Blend", Int) = 0
         [HideInInspector] m_end_blending ("Blending", Float) = 0
 
+
+        
         [Toggle(_SUNDISK_NONE)] _EnableSSDSAA ("Directional Shadows AA", Float) = 0
         [Toggle(UNITY_UI_ALPHACLIP)] _EnablePackedMode ("Packed Mode", Float) = 1
         [Enum(Off, 0, On, 1)] _ZWrite ("ZWrite", Int) = 1

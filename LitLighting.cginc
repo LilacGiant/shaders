@@ -60,7 +60,7 @@ float Fd_Burley(float roughness, float NoV, float NoL, float LoH)
     float f90 = 0.5 + 2.0 * roughness * LoH * LoH;
     float lightScatter = F_Schlick(1.0, f90, NoL);
     float viewScatter  = F_Schlick(1.0, f90, NoV);
-    return lightScatter * viewScatter * (1.0 / UNITY_PI);
+    return lightScatter * viewScatter;
 }
 
 // Energy conserving wrap diffuse term, does *not* include the divide by pi
@@ -133,7 +133,7 @@ half3 BetterSH9(half4 normal)
 float3 getIndirectDiffuse(float3 normal)
 {
     float3 indirectDiffuse = max(0,ShadeSH9(half4(normal, 1)));
-    return indirectDiffuse * 0.95; // i have no idea what im doing but this makes it look less bright and same as standard shader
+    return indirectDiffuse;
 }
 
 float3 getBoxProjection (float3 direction, float3 position, float4 cubemapPosition, float3 boxMin, float3 boxMax)
