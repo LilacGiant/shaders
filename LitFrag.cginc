@@ -39,7 +39,7 @@ half4 frag(v2f i) : SV_Target
     #endif
     
     
-    half4 diffuse = albedo;
+    half3 diffuse = albedo;
     
 
     half invertSmoothness = _GlossinessInvert;
@@ -97,7 +97,6 @@ half4 frag(v2f i) : SV_Target
     half roughness = perceptualRoughness*perceptualRoughness;
     
     albedo.rgb *= oneMinusMetallic;
-
     
 
     
@@ -272,10 +271,9 @@ col += directSpecular;
 
 
 #ifdef ENABLE_EMISSION
-half emission = _EmissionMap.Sample(sampler_MainTex, TRANSFORM_MAINTEX(uvs[_EmissionMapUV], _EmissionMap)) * _EmissionColor;
 UNITY_BRANCH
 if(_EnableEmission==1)
-    col += emission;
+    col += _EmissionMap.Sample(sampler_MainTex, TRANSFORM_MAINTEX(uvs[_EmissionMapUV], _EmissionMap)) * _EmissionColor;
 #endif
 
 
@@ -285,25 +283,6 @@ if(_EnableIridescence==1){
     half3 noiseTex = _NoiseMap.Sample(sampler_MainTex, float4(i.uv0.xy,4,4));
 col += iridescenceTex*_IridescenceIntensity*noiseTex.r;
 }
-
-
-
-
-#if defined(UNITY_PASS_META)
-float4 meta = diffuse;
-
-float3 specular = float3(0,0,0);
-#ifdef _GLOSSYREFLECTIONS_OFF
-specular += indirectSpecular;
-#endif
-
-#ifdef ENABLE_EMISSION
-meta += emission;
-#endif
-meta += float4(specular,0) * roughness * 0.5;
-return meta;
-
-#endif
 
 return half4(col , alpha);
 }

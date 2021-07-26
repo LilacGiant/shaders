@@ -257,45 +257,6 @@ Shader " Lit"
             #include "LitPass.cginc"
             ENDCG
         }
-
-        Pass
-        {
-            Name "META"
-            Tags
-            {
-                "LightMode"="Meta"
-            }
-            
-            ZWrite [_ZWrite]
-            Cull [_Cull]
-            ZTest [_ZTest]
-            
-            BlendOp [_BlendOp], [_BlendOpAlpha]
-            Blend [_SrcBlend] [_DstBlend]
-
-            CGPROGRAM
-            #pragma target 5.0
-            #pragma vertex vert
-            #pragma fragment frag
-            #pragma multi_compile_fwdbase
-            #pragma fragmentoption ARB_precision_hint_fastest
-
-            #pragma shader_feature UNITY_UI_CLIP_RECT // GSAA
-            #pragma shader_feature _SPECULARHIGHLIGHTS_OFF
-            #pragma shader_feature _GLOSSYREFLECTIONS_OFF
-            #pragma shader_feature UNITY_UI_ALPHACLIP
-            #pragma shader_feature _DETAIL_MULX2
-          //  #pragma shader_feature FXAA_LOW
-            #pragma shader_feature _SUNDISK_NONE
-
-
-            #ifndef UNITY_PASS_META
-            #define UNITY_PASS_META
-            #endif
-
-            #include "LitPass.cginc"
-            ENDCG
-        }
         
 
     }
