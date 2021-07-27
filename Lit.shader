@@ -100,7 +100,9 @@ Shader " Lit"
         [HideInInspector] [HDR] _EmissionColor ("Color", Color) = (0,0,0)
         [HideInInspector] [Enum(UV0, 0, UV1 (Lightmap), 1, UV2, 2)] _EmissionMapUV ("UV", Int) = 0
         [HideInInspector] m_end_Emission ("", Float) = 0
+        
 
+        
 
 
 
@@ -118,6 +120,10 @@ Shader " Lit"
         _LightmapMultiplier ("Multiplier", Range(0, 2)) = 1
         _SpecularOcclusion ("Specular Occlusion", Range(0, 1)) = 0
         [HideInInspector] m_end_Lightmap ("", Float) = 0
+        
+        [HideInInspector] m_start_Bakery ("Bakery", Float) = 0
+        [ToggleUI] _LightProbeMethod ("Non-linear Light Probe SH", Float) = 0
+        [HideInInspector] m_end_Bakery ("", Float) = 0
         
 
         [HideInInspector] m_RenderingOptions ("Advanced Options", Float) = 0

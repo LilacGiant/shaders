@@ -76,6 +76,8 @@ uniform float _Parallax;
 sampler2D_float _CameraDepthTexture;
 float4 _CameraDepthTexture_TexelSize;
 
+float _LightProbeMethod;
+
 
 
 #if defined(FXAA_LOW) && !defined(OPTIMIZER_ENABLED)

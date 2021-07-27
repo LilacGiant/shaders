@@ -132,7 +132,19 @@ half3 BetterSH9(half4 normal)
 
 float3 getIndirectDiffuse(float3 normal)
 {
-    float3 indirectDiffuse = max(0,ShadeSH9(half4(normal, 1)));
+    float3 indirectDiffuse;
+    UNITY_BRANCH
+    if(_LightProbeMethod == 0)
+    {
+        indirectDiffuse = max(0, ShadeSH9(half4(normal, 1)));
+    }
+    else
+    {
+        float3 L0 = float3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w);
+        indirectDiffuse.r = shEvaluateDiffuseL1Geomerics_local(L0.r, unity_SHAr.xyz, normal);
+        indirectDiffuse.g = shEvaluateDiffuseL1Geomerics_local(L0.g, unity_SHAg.xyz, normal);
+        indirectDiffuse.b = shEvaluateDiffuseL1Geomerics_local(L0.b, unity_SHAb.xyz, normal);
+    }
     return indirectDiffuse;
 }
 
