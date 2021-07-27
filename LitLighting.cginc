@@ -144,6 +144,7 @@ float3 getIndirectDiffuse(float3 normal)
         indirectDiffuse.r = shEvaluateDiffuseL1Geomerics_local(L0.r, unity_SHAr.xyz, normal);
         indirectDiffuse.g = shEvaluateDiffuseL1Geomerics_local(L0.g, unity_SHAg.xyz, normal);
         indirectDiffuse.b = shEvaluateDiffuseL1Geomerics_local(L0.b, unity_SHAb.xyz, normal);
+	indirectDiffuse = max(0, indirectDiffuse);
     }
     return indirectDiffuse;
 }
