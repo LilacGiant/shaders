@@ -1273,10 +1273,10 @@ namespace Thry
                         switch (constant.type)
                         {
                             case PropertyType.Float:
-                                sb.Append("float(" + constant.value.x.ToString(CultureInfo.InvariantCulture) + ")");
+                                sb.Append("half(" + constant.value.x.ToString(CultureInfo.InvariantCulture) + ")");
                                 break;
                             case PropertyType.Vector:
-                                sb.Append("float4("+constant.value.x.ToString(CultureInfo.InvariantCulture)+","
+                                sb.Append("half4("+constant.value.x.ToString(CultureInfo.InvariantCulture)+","
                                                    +constant.value.y.ToString(CultureInfo.InvariantCulture)+","
                                                    +constant.value.z.ToString(CultureInfo.InvariantCulture)+","
                                                    +constant.value.w.ToString(CultureInfo.InvariantCulture)+")");
