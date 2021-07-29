@@ -175,7 +175,9 @@ attenuation = SSDirectionalShadowAA(i._ShadowCoord, _CameraDepthTexture, _Camera
     
     
     half3 indirectDiffuse = getIndirectDiffuse(worldNormal);
-    
+    #ifdef ENABLE_OCCLUSIONMAP
+    indirectDiffuse *= occlusion;
+    #endif
     
 
 
@@ -263,7 +265,6 @@ float NoH = saturate(dot(worldNormal, halfVector));
 half3 directSpecular = getDirectSpecular(perceptualRoughness, NoH, NoV, NoL, LoH, f0) * light;
 col += directSpecular;
 #endif
-
 
 
 
