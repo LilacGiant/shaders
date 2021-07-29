@@ -53,5 +53,4 @@ bool isInMirror()
 
 
 
-
 #endif
