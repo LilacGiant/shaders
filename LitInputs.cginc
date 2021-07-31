@@ -43,9 +43,9 @@ uniform float4 _MetallicGlossMap_ST;
 
 uniform half _specularAntiAliasingVariance;
 uniform half _specularAntiAliasingThreshold;
-uniform half4 _MetallicFresnel;
+uniform half4 _FresnelColor;
 uniform half _AngularGlossiness;
-
+uniform float _GetDominantLight;
 
 uniform half _Reflectance;
 uniform half _ExposureOcclusion;
@@ -62,10 +62,6 @@ uniform float _EmissionMapUV;
 uniform float4 _EmissionMap_ST;
 uniform half3 _EmissionColor;
 
-uniform float _IridescenceIntensity;
-uniform float _EnableIridescence;
-UNITY_DECLARE_TEX2D_NOSAMPLER(_IridescenceMap);
-UNITY_DECLARE_TEX2D_NOSAMPLER(_NoiseMap);
 
 UNITY_DECLARE_TEX2D_NOSAMPLER(_ParallaxMap);
 uniform float4 _ParallaxMap_ST;

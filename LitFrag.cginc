@@ -22,9 +22,10 @@ half4 frag(v2f i) : SV_Target
 
 
     #ifdef ENABLE_VERTEXCOLOR
+    half3 vertexColor;
     UNITY_BRANCH
     if(_EnableVertexColor){
-        half3 vertexColor = GammaToLinearSpace(i.color);
+        vertexColor = GammaToLinearSpace(i.color);
         albedo.rgb *= vertexColor;
     }
     #endif
@@ -42,22 +43,19 @@ half4 frag(v2f i) : SV_Target
     half3 diffuse = albedo;
     
 
-    half invertSmoothness = _GlossinessInvert;
+    half isRoughness = _GlossinessInvert;
     #ifndef ENABLE_PACKED_MODE
     
     #ifdef ENABLE_METALLICMAP
     half4 metallicMap = _MetallicMap.Sample(sampler_MainTex, TRANSFORM_MAINTEX(uvs[_MetallicMapUV], _MetallicMap));
     #endif
-    
     #ifdef ENABLE_SMOOTHNESSMAP
     half smoothnessMap = _SmoothnessMap.Sample(sampler_MainTex, TRANSFORM_MAINTEX(uvs[_SmoothnessMapUV], _SmoothnessMap));
     #endif
-    
     #ifdef ENABLE_OCCLUSIONMAP
     half occlusionMap = _OcclusionMap.Sample(sampler_MainTex, TRANSFORM_MAINTEX(uvs[_OcclusionMapUV], _OcclusionMap));
     #endif
 
-    
     #else
     #define ENABLE_SMOOTHNESSMAP
     #define ENABLE_OCCLUSIONMAP
@@ -66,7 +64,7 @@ half4 frag(v2f i) : SV_Target
     half metallicMap = packedTex.r;
     half smoothnessMap = packedTex.a;
     half occlusionMap = packedTex.g;
-    invertSmoothness = 0;
+    isRoughness = 0;
     #endif
 
     half perceptualRoughness = _Glossiness;
@@ -75,15 +73,13 @@ half4 frag(v2f i) : SV_Target
     #endif
 
     UNITY_BRANCH
-    if(!invertSmoothness){
+    if(!isRoughness){
         perceptualRoughness = 1-perceptualRoughness;
     }
 
     #ifdef ENABLE_METALLICMAP
     half metallic = metallicMap * _Metallic;
-    //half reflectance = metallicMap * _Reflectance;
     #else
-    //half reflectance = _Reflectance;
     half metallic = _Metallic;
     #endif
     
@@ -100,17 +96,9 @@ half4 frag(v2f i) : SV_Target
     
 
     
-    
     half3 worldNormal = normalize(i.worldNormal);
-    
-    #if defined(_GLOSSYREFLECTIONS_OFF) || defined(_SPECULARHIGHLIGHTS_OFF) || defined (ENABLE_NORMALMAP)
     half3 tangent = i.tangent;
     half3 bitangent = i.bitangent;
-    #endif
-
-    
-    
-    
 
 
     #ifdef ENABLE_NORMALMAP
@@ -134,13 +122,10 @@ perceptualRoughness = GSAA_Filament(worldNormal, perceptualRoughness);
 
     
 
-    
-    
-    bool lightEnv = any(_WorldSpaceLightPos0.xyz);
     half3 indirectDominantColor = half3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w);
-    half3 lightDir = getLightDir(lightEnv, i.worldPos);
-  //  half3 lightCol = getLightCol(lightEnv, _LightColor0.rgb, indirectDominantColor);
-    half3 lightCol = _LightColor0.xyz;
+    half3 lightDir = getLightDir(!_GetDominantLight, i.worldPos);
+    half3 lightCol = getLightCol(!_GetDominantLight, _LightColor0.rgb, indirectDominantColor);
+
     half NoL = saturate(dot(worldNormal, lightDir));
     half3 viewDir = normalize(_WorldSpaceCameraPos - i.worldPos);
     float NoV = abs(dot(worldNormal, viewDir)) + 1e-5;
@@ -151,7 +136,7 @@ perceptualRoughness = GSAA_Filament(worldNormal, perceptualRoughness);
 
 UNITY_LIGHT_ATTENUATION(attenuation, i, i.worldPos.xyz);
 
-#if defined(SHADOWS_SCREEN) && defined(UNITY_PASS_FORWARDBASE) && !defined(SHADE_API_MOBILE) && defined(_SUNDISK_NONE)
+#if defined(SHADOWS_SCREEN) && defined(UNITY_PASS_FORWARDBASE) && !defined(SHADE_API_MOBILE) && defined(_SUNDISK_NONE) // fix screen space shadow arficats from msaa
 attenuation = SSDirectionalShadowAA(i._ShadowCoord, _CameraDepthTexture, _CameraDepthTexture_TexelSize, _ShadowMapTexture, attenuation);
 #endif
 
@@ -180,12 +165,12 @@ attenuation = SSDirectionalShadowAA(i._ShadowCoord, _CameraDepthTexture, _Camera
     #endif
     
 
-
     half3 light = (NoL * attenuation * lightCol);
-    //light *= 0.95;
     half3 directDiffuse = albedo;
-    half fdburley = Fd_Burley(perceptualRoughness, NoV, NoL, LoH);
-    light *= fdburley;
+    
+    #ifndef SHADER_API_MOBILE
+    light *= Fd_Burley(perceptualRoughness, NoV, NoL, LoH);
+    #endif
     
 
     #if defined(LIGHTMAP_ON) // apply lightmap /// fuck
@@ -211,26 +196,21 @@ attenuation = SSDirectionalShadowAA(i._ShadowCoord, _CameraDepthTexture, _Camera
     directDiffuse *= light  + indirectDiffuse;
     #endif
 
-    
-    
-   
-
-    
+ 
 half3 col = directDiffuse;
 
     
 
 
-    
+
 
 
 
 #if defined(_GLOSSYREFLECTIONS_OFF) || defined(_SPECULARHIGHLIGHTS_OFF)
-
 half3 f0 = 0.16 * reflectance * reflectance * oneMinusMetallic + diffuse * metallic;
-
 half3 fresnel = F_Schlick(f0, NoV);
-fresnel *= saturate(length(indirectDiffuse) * 1.0/(_ExposureOcclusion));
+
+//fresnel *= saturate(length(indirectDiffuse) * 1.0/(_ExposureOcclusion)); // indirect diffuse occlusion
 
 #if defined(LIGHTMAP_ON)
 UNITY_BRANCH
@@ -240,13 +220,11 @@ if(_SpecularOcclusion > 0){
 }
 #endif
 
-half fmm = F_Schlick(0.16*reflectance*reflectance,NoV);
-fresnel = lerp(fresnel, fresnel+(_MetallicFresnel.rgb*fmm) , metallic); //metallic fresnel
-fresnel = lerp(fresnel, f0, saturate(metallic-_MetallicFresnel.a)); // kill fresnel on metallics
+fresnel *= _FresnelColor.rgb; //fresnel color
+fresnel = lerp(f0, fresnel , _FresnelColor.a); // kill fresnel
 
-perceptualRoughness = lerp(saturate(perceptualRoughness * (1-_AngularGlossiness * fmm)), perceptualRoughness,  perceptualRoughness);  // roughness fresnel
+perceptualRoughness = lerp(saturate(perceptualRoughness * (1-_AngularGlossiness * fresnel)), perceptualRoughness,  perceptualRoughness);  // roughness fresnel
 #endif
-
 
         
 #ifdef _GLOSSYREFLECTIONS_OFF // reflections
@@ -267,23 +245,12 @@ col += directSpecular;
 #endif
 
 
-
-
-
-
 #ifdef ENABLE_EMISSION
 UNITY_BRANCH
 if(_EnableEmission==1)
     col += _EmissionMap.Sample(sampler_MainTex, TRANSFORM_MAINTEX(uvs[_EmissionMapUV], _EmissionMap)) * _EmissionColor;
 #endif
 
-
-
-if(_EnableIridescence==1){
-    half3 iridescenceTex = _IridescenceMap.Sample(sampler_MainTex,  NoV);
-    half3 noiseTex = _NoiseMap.Sample(sampler_MainTex, float4(i.uv0.xy,4,4));
-col += iridescenceTex*_IridescenceIntensity*noiseTex.r;
-}
 
 return half4(col , alpha);
 }

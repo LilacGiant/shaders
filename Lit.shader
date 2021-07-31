@@ -5,6 +5,7 @@ Shader " Lit"
     {
         
         [HideInInspector] shader_is_using_thry_editor("", Float)=1
+        [HideInInspector] shader_master_label ("Lit v0.0.1", Float) = 0
         [HideInInspector] _ForgotToLockMaterial (";;YOU_FORGOT_TO_LOCK_THIS_MATERIAL;", Int) = 1
         [ThryShaderOptimizerLockButton] _ShaderOptimizerEnabled ("", Float) = 0
         
@@ -76,12 +77,14 @@ Shader " Lit"
         
         [HideInInspector] m_Specular ("Reflections And Specular Highlights", Float) = 0
         [Toggle(_SPECULARHIGHLIGHTS_OFF)] _SpecularHighlights("Specular Highlights", Float) = 1
+        [Enum(Default, 0, Get From Probes, 1)] _GetDominantLight ("Mode", Int) = 0
+        [Space(10)]
         [Toggle(_GLOSSYREFLECTIONS_OFF)] _GlossyReflections("Reflections", Float) = 1
         _Reflectance ("Reflectance", Range(0,1)) = 0.5
         _AngularGlossiness ("Angular Glossiness", Range(0, 1)) = 0
-        _ExposureOcclusion ("Exposure Occlusion Sensitivity", Range(0, 1)) = 0
+        //_ExposureOcclusion ("Exposure Occlusion Sensitivity", Range(0, 1)) = 0
         
-        _MetallicFresnel ("Metallic Fresnel", Color) = (0,0,0,1)
+        _FresnelColor ("Fresnel", Color) = (1,1,1,1)
         
         [HideInInspector] m_start_GSAA ("Geometric Specular Anti-Aliasing --{reference_property:_GSAA}", Float) = 0
         [HideInInspector] [Toggle(UNITY_UI_CLIP_RECT)] _GSAA("GSAA", Float) = 0
@@ -105,15 +108,6 @@ Shader " Lit"
         
 
 
-
-/*
-        [HideInInspector] m_start_Iridescence ("Iridescence (Test) --{reference_property:_EnableIridescence}", Float) = 0
-        [HideInInspector] [ToggleUI] _EnableIridescence ("Iridescence", Float) = 0
-        _IridescenceIntensity ("Intensity", Range(0.0, 1.0)) = 0.5
-        _IridescenceMap ("Emission Map", 2D) = "white" {}
-        _NoiseMap ("Noise Map", 2D) = "white" {}
-        [HideInInspector] m_end_Iridescence ("", Float) = 0
-*/
         
         [HideInInspector] m_start_Lightmap ("Lightmap", Float) = 0
         [Toggle(_DETAIL_MULX2)] _BicubicLightmap ("Bicubic Lightmap Interpolation", Float) = 0
