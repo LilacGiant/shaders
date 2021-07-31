@@ -1,7 +1,8 @@
 {
     "name": "ThryAssemblyDefinition",
-    "references": [],
-    "optionalUnityReferences": [],
+    "references": [
+        "GUID:21332e1f0d937794d916d2402ba1943a"
+    ],
     "includePlatforms": [
         "Editor"
     ],
@@ -10,5 +11,7 @@
     "overrideReferences": false,
     "precompiledReferences": [],
     "autoReferenced": true,
-    "defineConstraints": []
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
 }

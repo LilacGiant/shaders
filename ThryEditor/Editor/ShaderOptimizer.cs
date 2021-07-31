@@ -31,6 +31,9 @@ using System.Text.RegularExpressions;
 using System.Text;
 using System.Globalization;
 using System.Linq;
+#if VRC_SDK_VRCSDK3
+using VRC.SDKBase;
+#endif
 #if VRC_SDK_VRCSDK2 || VRC_SDK_VRCSDK3
 using VRC.SDKBase.Editor.BuildPipeline;
 #endif
@@ -1616,6 +1619,30 @@ namespace Thry
 #endif
                 SetLockedForAllMaterials(materials, 1, showProgressbar: true, showDialog: PersistentData.Get<bool>("ShowLockInDialog", true), allowCancel: false);
                 //returning true all the time, because build process cant be stopped it seems
+                return true;
+            }
+        }
+        public class LockMaterialsOnUploadWorlds : IVRCSDKBuildRequestedCallback
+        {
+            public int callbackOrder => 100;
+
+            bool IVRCSDKBuildRequestedCallback.OnBuildRequested(VRCSDKRequestedBuildType requestedBuildType) // get all materials in scene and lock them
+            {
+                List<Material> materials = new List<Material>();
+                if (requestedBuildType == VRCSDKRequestedBuildType.Scene)
+                {
+                    if (UnityEngine.Object.FindObjectsOfType(typeof(VRC_SceneDescriptor)) is VRC_SceneDescriptor[] descriptors && descriptors.Length > 0){
+                        var _renderers = UnityEngine.Object.FindObjectsOfType<Renderer>();
+                        foreach (var rend in _renderers)
+                        {
+                            foreach (var mat in rend.sharedMaterials){
+                                materials.Add(mat);
+                            }
+                        }
+                    }
+                
+                }
+                SetLockedForAllMaterials(materials, 1, showProgressbar: true, showDialog: PersistentData.Get<bool>("ShowLockInDialog", true), allowCancel: false);
                 return true;
             }
         }

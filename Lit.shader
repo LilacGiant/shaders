@@ -5,7 +5,7 @@ Shader " Lit"
     {
         
         [HideInInspector] shader_is_using_thry_editor("", Float)=1
-        [HideInInspector] shader_master_label ("Lit v0.0.1", Float) = 0
+        [HideInInspector] shader_master_label ("Lit v0.0.2", Float) = 0
         [HideInInspector] _ForgotToLockMaterial (";;YOU_FORGOT_TO_LOCK_THIS_MATERIAL;", Int) = 1
         [ThryShaderOptimizerLockButton] _ShaderOptimizerEnabled ("", Float) = 0
         
