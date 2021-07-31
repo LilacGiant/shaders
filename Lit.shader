@@ -129,10 +129,10 @@ Shader " Lit"
         [Enum(UnityEngine.Rendering.BlendMode)] _DstBlend ("Destination Blend", Int) = 0
         [HideInInspector] m_end_blending ("Blending", Float) = 0
 
-        [Toggle(UNITY_UI_ALPHACLIP)] _EnablePackedMode ("Packed Mode", Float) = 1
-        [Enum(Off, 0, On, 1)] _AlphaToMask ("Alpha To Coverage", Float) = 0
+        [Toggle(UNITY_UI_ALPHACLIP)] _EnablePackedMode ("Packed Mode", Float) = 1       
         [Toggle(_SUNDISK_NONE)] _EnableSSDSAA ("Directional Shadows AA", Float) = 0
 
+        [Enum(Off, 0, On, 1)] _AlphaToMask ("Alpha To Coverage", Float) = 0
         [Enum(Off, 0, On, 1)] _ZWrite ("ZWrite", Int) = 1
         [Enum(UnityEngine.Rendering.CompareFunction)] _ZTest ("ZTest", Float) = 4
         [Enum(UnityEngine.Rendering.CullMode)] _Cull ("Cull", Float) = 2
@@ -152,8 +152,6 @@ Shader " Lit"
 
     SubShader //pc shader
     {
-        LOD 300
-        
 
         Tags
         {
@@ -176,10 +174,10 @@ Shader " Lit"
             Blend [_SrcBlend] [_DstBlend]
 
             CGPROGRAM
-            #pragma exclude_renderers gles3
             #pragma target 5.0
             #pragma vertex vert
             #pragma fragment frag
+            #pragma exclude_renderers gles3
             #pragma multi_compile_fwdbase
             #pragma fragmentoption ARB_precision_hint_fastest
 
@@ -215,10 +213,10 @@ Shader " Lit"
             ZTest [_ZTest]
 
             CGPROGRAM
-            #pragma exclude_renderers gles3
             #pragma target 5.0
             #pragma vertex vert
             #pragma fragment frag
+            #pragma exclude_renderers gles3
             #pragma multi_compile_fwdadd_fullshadows
 
             #pragma shader_feature _SPECULARHIGHLIGHTS_OFF
@@ -247,10 +245,10 @@ Shader " Lit"
             ZTest [_ZTest]
 
             CGPROGRAM
-            #pragma exclude_renderers gles3
             #pragma target 5.0
             #pragma vertex vert
             #pragma fragment ShadowCasterfrag
+            #pragma exclude_renderers gles3
             #pragma multi_compile_shadowcaster
             #pragma fragmentoption ARB_precision_hint_fastest
             
@@ -270,9 +268,6 @@ Shader " Lit"
 
     SubShader // quest shader
     {
-        LOD 150
-        
-        
         Tags
         {
             "RenderType" = "Opaque" "Queue" = "Geometry"
@@ -294,10 +289,10 @@ Shader " Lit"
             Blend [_SrcBlend] [_DstBlend]
 
             CGPROGRAM
-            #pragma only_renderers gles3
             #pragma target 3.0
             #pragma vertex vert
             #pragma fragment frag
+            #pragma only_renderers gles3
             #pragma multi_compile_fwdbase
             #pragma fragmentoption ARB_precision_hint_fastest
 
@@ -313,6 +308,8 @@ Shader " Lit"
             #ifndef UNITY_PASS_FORWARDBASE
             #define UNITY_PASS_FORWARDBASE
             #endif
+
+            #define ANDROID_TEST
 
             #include "LitPass.cginc"
             ENDCG
@@ -333,10 +330,10 @@ Shader " Lit"
             ZTest [_ZTest]
 
             CGPROGRAM
-            #pragma only_renderers gles3
             #pragma target 3.0
             #pragma vertex vert
             #pragma fragment frag
+            #pragma only_renderers gles3
             #pragma multi_compile_fwdadd_fullshadows
 
             #pragma shader_feature _SPECULARHIGHLIGHTS_OFF
@@ -365,10 +362,10 @@ Shader " Lit"
             ZTest [_ZTest]
 
             CGPROGRAM
-            #pragma only_renderers gles3
             #pragma target 3.0
             #pragma vertex vert
             #pragma fragment ShadowCasterfrag
+            #pragma only_renderers gles3
             #pragma multi_compile_shadowcaster
             #pragma fragmentoption ARB_precision_hint_fastest
             #pragma skip_variants FOG_LINEAR FOG_EXP FOG_EXP2

@@ -106,7 +106,7 @@ half4 frag(v2f i) : SV_Target
     initBumpedNormalTangentBitangent(normalMap, bitangent, tangent, worldNormal, _BumpScale, _NormalMapOrientation);
     #endif
 
-#ifdef ENABLE_GSAA
+#if defined(ENABLE_GSAA) && !defined(SHADER_API_MOBILE)
 perceptualRoughness = GSAA_Filament(worldNormal, perceptualRoughness);
 #endif
     
@@ -132,7 +132,7 @@ perceptualRoughness = GSAA_Filament(worldNormal, perceptualRoughness);
 
 UNITY_LIGHT_ATTENUATION(attenuation, i, i.worldPos.xyz);
 
-#if defined(SHADOWS_SCREEN) && defined(UNITY_PASS_FORWARDBASE) && !defined(SHADE_API_MOBILE) && defined(_SUNDISK_NONE) // fix screen space shadow arficats from msaa
+#if defined(SHADOWS_SCREEN) && defined(UNITY_PASS_FORWARDBASE) && !defined(SHADER_API_MOBILE) && defined(_SUNDISK_NONE) // fix screen space shadow arficats from msaa
 attenuation = SSDirectionalShadowAA(i._ShadowCoord, _CameraDepthTexture, _CameraDepthTexture_TexelSize, _ShadowMapTexture, attenuation);
 #endif
 
