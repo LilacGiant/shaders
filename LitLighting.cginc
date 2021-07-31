@@ -210,7 +210,11 @@ float3 getDirectSpecular(float perceptualRoughness, float NoH, float NoV, float 
 
 
     float D = D_GGX(NoH, roughness);
+    #ifdef SHADER_API_MOBILE
+    float V = V_SmithGGXCorrelatedFast(NoV, NoL, roughness);
+    #else
     float V = V_SmithGGXCorrelated(NoV, NoL, roughness);
+    #endif  
     float3 F = F_Schlick(f0, LoH);
    
     float3 directSpecular = max(0, (D * V) * F);

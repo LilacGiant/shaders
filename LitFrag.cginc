@@ -92,7 +92,10 @@ half4 frag(v2f i) : SV_Target
     
 
     
-    half3 worldNormal = normalize(i.worldNormal);
+    half3 worldNormal = i.worldNormal;
+    #ifndef SHADER_API_MOBILE
+    worldNormal = normalize(worldNormal);
+    #endif
     half3 tangent = i.tangent;
     half3 bitangent = i.bitangent;
 
