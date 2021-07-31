@@ -5,7 +5,7 @@ Shader " Lit"
     {
         
         [HideInInspector] shader_is_using_thry_editor("", Float)=1
-        [HideInInspector] shader_master_label ("Lit v0.0.2", Float) = 0
+        [HideInInspector] shader_master_label ("Lit v0.0.3", Float) = 0
         [HideInInspector] _ForgotToLockMaterial (";;YOU_FORGOT_TO_LOCK_THIS_MATERIAL;", Int) = 1
         [ThryShaderOptimizerLockButton] _ShaderOptimizerEnabled ("", Float) = 0
         
@@ -15,7 +15,7 @@ Shader " Lit"
         //rendering preset from poiyomi
 [ThryWideEnum(Opaque, 0, Cutout, 1, Fade, 2, Transparent, 3, Additive, 4, Soft Additive, 5, Multiplicative, 6, 2x Multiplicative, 7)]_Mode("Rendering Mode--{on_value_actions:[ 
             {value:0,actions:[{type:SET_PROPERTY,data:render_queue=2000}, {type:SET_PROPERTY,data:render_type=Opaque},            {type:SET_PROPERTY,data:_BlendOp=0}, {type:SET_PROPERTY,data:_BlendOpAlpha=0}, {type:SET_PROPERTY,data:_Cutoff=0},  {type:SET_PROPERTY,data:_SrcBlend=1}, {type:SET_PROPERTY,data:_DstBlend=0},  {type:SET_PROPERTY,data:_AlphaToMask=0},  {type:SET_PROPERTY,data:_ZWrite=1}, {type:SET_PROPERTY,data:_ZTest=4},   {type:SET_PROPERTY,data:_AlphaPremultiply=0}]},
-            {value:1,actions:[{type:SET_PROPERTY,data:render_queue=2450}, {type:SET_PROPERTY,data:render_type=TransparentCutout}, {type:SET_PROPERTY,data:_BlendOp=0}, {type:SET_PROPERTY,data:_BlendOpAlpha=0}, {type:SET_PROPERTY,data:_Cutoff=.5}, {type:SET_PROPERTY,data:_SrcBlend=1}, {type:SET_PROPERTY,data:_DstBlend=0},  {type:SET_PROPERTY,data:_AlphaToMask=1},  {type:SET_PROPERTY,data:_ZWrite=1}, {type:SET_PROPERTY,data:_ZTest=4},   {type:SET_PROPERTY,data:_AlphaPremultiply=0}]},
+            {value:1,actions:[{type:SET_PROPERTY,data:render_queue=2450}, {type:SET_PROPERTY,data:render_type=TransparentCutout}, {type:SET_PROPERTY,data:_BlendOp=0}, {type:SET_PROPERTY,data:_BlendOpAlpha=0}, {type:SET_PROPERTY,data:_Cutoff=.5}, {type:SET_PROPERTY,data:_SrcBlend=1}, {type:SET_PROPERTY,data:_DstBlend=0},                                            {type:SET_PROPERTY,data:_ZWrite=1}, {type:SET_PROPERTY,data:_ZTest=4},   {type:SET_PROPERTY,data:_AlphaPremultiply=0}]},
             {value:2,actions:[{type:SET_PROPERTY,data:render_queue=3000}, {type:SET_PROPERTY,data:render_type=Transparent},       {type:SET_PROPERTY,data:_BlendOp=0}, {type:SET_PROPERTY,data:_BlendOpAlpha=0}, {type:SET_PROPERTY,data:_Cutoff=0},  {type:SET_PROPERTY,data:_SrcBlend=5}, {type:SET_PROPERTY,data:_DstBlend=10}, {type:SET_PROPERTY,data:_AlphaToMask=0},  {type:SET_PROPERTY,data:_ZWrite=0}, {type:SET_PROPERTY,data:_ZTest=4},   {type:SET_PROPERTY,data:_AlphaPremultiply=0}]},
             {value:3,actions:[{type:SET_PROPERTY,data:render_queue=3000}, {type:SET_PROPERTY,data:render_type=Transparent},       {type:SET_PROPERTY,data:_BlendOp=0}, {type:SET_PROPERTY,data:_BlendOpAlpha=0}, {type:SET_PROPERTY,data:_Cutoff=0},  {type:SET_PROPERTY,data:_SrcBlend=1}, {type:SET_PROPERTY,data:_DstBlend=10}, {type:SET_PROPERTY,data:_AlphaToMask=0},  {type:SET_PROPERTY,data:_ZWrite=0}, {type:SET_PROPERTY,data:_ZTest=4},   {type:SET_PROPERTY,data:_AlphaPremultiply=1}]},
             {value:4,actions:[{type:SET_PROPERTY,data:render_queue=3000}, {type:SET_PROPERTY,data:render_type=Transparent},       {type:SET_PROPERTY,data:_BlendOp=0}, {type:SET_PROPERTY,data:_BlendOpAlpha=0}, {type:SET_PROPERTY,data:_Cutoff=0},  {type:SET_PROPERTY,data:_SrcBlend=1}, {type:SET_PROPERTY,data:_DstBlend=1},  {type:SET_PROPERTY,data:_AlphaToMask=0},  {type:SET_PROPERTY,data:_ZWrite=0}, {type:SET_PROPERTY,data:_ZTest=4},   {type:SET_PROPERTY,data:_AlphaPremultiply=0}]},
@@ -129,10 +129,10 @@ Shader " Lit"
         [Enum(UnityEngine.Rendering.BlendMode)] _DstBlend ("Destination Blend", Int) = 0
         [HideInInspector] m_end_blending ("Blending", Float) = 0
 
-
-        
-        [Toggle(_SUNDISK_NONE)] _EnableSSDSAA ("Directional Shadows AA", Float) = 0
         [Toggle(UNITY_UI_ALPHACLIP)] _EnablePackedMode ("Packed Mode", Float) = 1
+        [Enum(Off, 0, On, 1)] _AlphaToMask ("Alpha To Coverage", Float) = 0
+        [Toggle(_SUNDISK_NONE)] _EnableSSDSAA ("Directional Shadows AA", Float) = 0
+
         [Enum(Off, 0, On, 1)] _ZWrite ("ZWrite", Int) = 1
         [Enum(UnityEngine.Rendering.CompareFunction)] _ZTest ("ZTest", Float) = 4
         [Enum(UnityEngine.Rendering.CullMode)] _Cull ("Cull", Float) = 2
@@ -150,8 +150,11 @@ Shader " Lit"
 
     }
 
-    SubShader
+    SubShader //pc shader
     {
+        LOD 300
+        
+
         Tags
         {
             "RenderType" = "Opaque" "Queue" = "Geometry"
@@ -168,11 +171,12 @@ Shader " Lit"
             ZWrite [_ZWrite]
             Cull [_Cull]
             ZTest [_ZTest]
-            
+            AlphaToMask [_AlphaToMask]
             BlendOp [_BlendOp], [_BlendOpAlpha]
             Blend [_SrcBlend] [_DstBlend]
 
             CGPROGRAM
+            #pragma exclude_renderers gles3
             #pragma target 5.0
             #pragma vertex vert
             #pragma fragment frag
@@ -211,11 +215,12 @@ Shader " Lit"
             ZTest [_ZTest]
 
             CGPROGRAM
+            #pragma exclude_renderers gles3
             #pragma target 5.0
             #pragma vertex vert
             #pragma fragment frag
             #pragma multi_compile_fwdadd_fullshadows
-            #pragma shader_feature UNITY_UI_CLIP_RECT // GSAA
+
             #pragma shader_feature _SPECULARHIGHLIGHTS_OFF
             #pragma shader_feature _GLOSSYREFLECTIONS_OFF
             #pragma shader_feature UNITY_UI_ALPHACLIP
@@ -242,7 +247,126 @@ Shader " Lit"
             ZTest [_ZTest]
 
             CGPROGRAM
+            #pragma exclude_renderers gles3
             #pragma target 5.0
+            #pragma vertex vert
+            #pragma fragment ShadowCasterfrag
+            #pragma multi_compile_shadowcaster
+            #pragma fragmentoption ARB_precision_hint_fastest
+            
+            #pragma skip_variants FOG_LINEAR FOG_EXP FOG_EXP2
+        //    #pragma shader_feature FXAA_LOW
+
+            #ifndef UNITY_PASS_SHADOWCASTER
+            #define UNITY_PASS_SHADOWCASTER
+            #endif
+
+            #include "LitPass.cginc"
+            ENDCG
+        }
+        
+
+    }
+
+    SubShader // quest shader
+    {
+        LOD 150
+        
+        
+        Tags
+        {
+            "RenderType" = "Opaque" "Queue" = "Geometry"
+        }
+
+        Pass
+        {
+            Name "FORWARD"
+            Tags
+            {
+                "LightMode"="ForwardBase"
+            }
+            
+            ZWrite [_ZWrite]
+            Cull [_Cull]
+            ZTest [_ZTest]
+            
+            BlendOp [_BlendOp], [_BlendOpAlpha]
+            Blend [_SrcBlend] [_DstBlend]
+
+            CGPROGRAM
+            #pragma only_renderers gles3
+            #pragma target 3.0
+            #pragma vertex vert
+            #pragma fragment frag
+            #pragma multi_compile_fwdbase
+            #pragma fragmentoption ARB_precision_hint_fastest
+
+          //  #pragma shader_feature UNITY_UI_CLIP_RECT // GSAA
+            #pragma shader_feature _SPECULARHIGHLIGHTS_OFF
+            #pragma shader_feature _GLOSSYREFLECTIONS_OFF
+            #pragma shader_feature UNITY_UI_ALPHACLIP
+          //  #pragma shader_feature _DETAIL_MULX2
+          //  #pragma shader_feature FXAA_LOW
+          //  #pragma shader_feature _SUNDISK_NONE
+
+
+            #ifndef UNITY_PASS_FORWARDBASE
+            #define UNITY_PASS_FORWARDBASE
+            #endif
+
+            #include "LitPass.cginc"
+            ENDCG
+        }
+
+
+        Pass
+        {
+            Name "FWDADD"
+            Tags
+            {
+                "LightMode"="ForwardAdd"
+            }
+            ZWrite Off
+            BlendOp [_BlendOp], [_BlendOpAlpha]
+            Blend One One
+            Cull [_Cull]
+            ZTest [_ZTest]
+
+            CGPROGRAM
+            #pragma only_renderers gles3
+            #pragma target 3.0
+            #pragma vertex vert
+            #pragma fragment frag
+            #pragma multi_compile_fwdadd_fullshadows
+
+            #pragma shader_feature _SPECULARHIGHLIGHTS_OFF
+            #pragma shader_feature _GLOSSYREFLECTIONS_OFF
+            #pragma shader_feature UNITY_UI_ALPHACLIP
+        //    #pragma shader_feature FXAA_LOW
+
+            #ifndef UNITY_PASS_FORWARDADD
+            #define UNITY_PASS_FORWARDADD
+            #endif
+
+            #include "LitPass.cginc"
+            ENDCG
+        }
+
+        Pass
+        {
+            Name "ShadowCaster"
+            Tags
+            {
+                "LightMode"="ShadowCaster"
+            }
+            AlphaToMask Off
+            ZWrite [_ZWrite]
+            Cull [_Cull]
+            ZTest [_ZTest]
+
+            CGPROGRAM
+            #pragma only_renderers gles3
+            #pragma target 3.0
             #pragma vertex vert
             #pragma fragment ShadowCasterfrag
             #pragma multi_compile_shadowcaster

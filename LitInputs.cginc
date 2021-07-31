@@ -90,7 +90,6 @@ float _LightProbeMethod;
 #endif
 
 #define TRANSFORM_MAINTEX(tex,name) (tex.xy * name##_ST.xy * _MainTex_ST.xy + name##_ST.zw + _MainTex_ST.zw)
-#pragma exclude_renderers gles
 #ifdef UNITY_UI_CLIP_RECT
 #define ENABLE_GSAA
 #endif
