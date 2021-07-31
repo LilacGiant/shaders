@@ -364,14 +364,6 @@ float3 getLightDir(bool lightEnv, float3 worldPos)
     //switch between using probes or actual light direction
     half3 lightDir = lightEnv ? UnityWorldSpaceLightDir(worldPos) : unity_SHAr.xyz + unity_SHAg.xyz + unity_SHAb.xyz;
 
-
-    #if !defined(POINT) && !defined(SPOT) && !defined(VERTEXLIGHT_ON) // if the average length of the light probes is null, and we don't have a directional light in the scene, fall back to our fallback lightDir
-        if(length(unity_SHAr.xyz*unity_SHAr.w + unity_SHAg.xyz*unity_SHAg.w + unity_SHAb.xyz*unity_SHAb.w) == 0 && length(lightDir) < 0.1)
-        {
-            lightDir = half4(1, 1, 1, 0);
-        }
-    #endif
-
     return normalize(lightDir);
 }
 
