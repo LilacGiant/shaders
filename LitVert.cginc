@@ -4,6 +4,7 @@
 v2f vert(appdata v)
 {
     v2f o;
+    UNITY_INITIALIZE_OUTPUT(v2f, o);
     o.pos = UnityObjectToClipPos(v.vertex);
     o.uv0 = v.uv0;
     o.uv1 = v.uv1;
