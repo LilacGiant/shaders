@@ -96,8 +96,10 @@ half4 frag(v2f i) : SV_Target
     #ifndef SHADER_API_MOBILE
     worldNormal = normalize(worldNormal);
     #endif
+    #if defined(_GLOSSYREFLECTIONS_OFF) || defined(_SPECULARHIGHLIGHTS_OFF) || defined (ENABLE_NORMALMAP)
     half3 tangent = i.tangent;
     half3 bitangent = i.bitangent;
+    #endif
 
 
     #ifdef ENABLE_NORMALMAP
