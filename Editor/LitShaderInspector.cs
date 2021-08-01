@@ -26,6 +26,8 @@ namespace Lit
         //If they aren't we get warnings, because assigning with reflection seems to make Unity think that the properties never actually get used.
         protected MaterialProperty _MainTex = null;
         protected MaterialProperty _Color = null;
+        protected MaterialProperty _Saturation = null;
+        protected MaterialProperty _MainTexUV = null;
         
 
 
@@ -79,6 +81,8 @@ namespace Lit
                     Foldouts[material].Show_MainTex = LitStyles.TextureFoldout(Foldouts[material].Show_MainTex);
                     if(Foldouts[material].Show_MainTex){
                         m_MaterialEditor.TextureScaleOffsetProperty(_MainTex);
+                        m_MaterialEditor.ShaderProperty(_Saturation, "Saturation");
+                        m_MaterialEditor.ShaderProperty(_MainTexUV, "UV");
                     }
                     
                 }
