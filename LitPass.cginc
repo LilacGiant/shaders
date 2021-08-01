@@ -4,6 +4,7 @@
 #include "LitInputs.cginc"
 #include "UnityCG.cginc"
 #include "AutoLight.cginc"
+//#include "HLSLSupport.cginc"
 #include "Lighting.cginc"
 #include "LitHelpers.cginc"
 #include "LitLighting.cginc"

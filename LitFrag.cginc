@@ -90,7 +90,7 @@ half4 frag(v2f i) : SV_Target
     
     albedo.rgb *= oneMinusMetallic;
     
-
+    
     
     half3 worldNormal = i.worldNormal;
     #ifndef SHADER_API_MOBILE
@@ -251,6 +251,21 @@ UNITY_BRANCH
 if(_EnableEmission==1)
     col += _EmissionMap.Sample(sampler_MainTex, TRANSFORM_MAINTEX(uvs[_EmissionMapUV], _EmissionMap)) * _EmissionColor;
 #endif
+
+
+
+
+
+
+    UNITY_BRANCH
+    switch(_TonemappingMode){
+        case 1:
+            col.rgb = lerp(col.rgb, ACESFilm(col.rgb), _Contribution);
+            break;
+        case 2:
+            col.rgb = lerp(col.rgb, LUTColorGrading(col.rgb), _Contribution);
+            break; 
+    }
 
 
 return half4(col , alpha);

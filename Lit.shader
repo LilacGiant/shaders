@@ -118,6 +118,12 @@ Shader " Lit"
         [HideInInspector] m_start_Bakery ("Bakery", Float) = 0
         [ToggleUI] _LightProbeMethod ("Non-linear Light Probe SH", Float) = 0
         [HideInInspector] m_end_Bakery ("", Float) = 0
+
+        [HideInInspector] m_start_PP ("Post-Processing", Float) = 0
+        [Enum(None, 0, ACES, 1, Custom LUT,2)] _TonemappingMode ("Mode", Int) = 0
+        _Contribution ("Contribution", Range(0, 1)) = 1
+        [NoScaleOffset]_Lut ("LUT", 2D) = "White" {}
+        [HideInInspector] m_end_PP ("", Float) = 0
         
 
         [HideInInspector] m_RenderingOptions ("Advanced Options", Float) = 0

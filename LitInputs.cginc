@@ -72,8 +72,16 @@ uniform float _Parallax;
 sampler2D_float _CameraDepthTexture;
 float4 _CameraDepthTexture_TexelSize;
 
-float _LightProbeMethod;
+uniform float _LightProbeMethod;
 
+
+
+
+uniform float _TonemappingMode;
+
+UNITY_DECLARE_TEX2D(_Lut);
+float4 _Lut_TexelSize;
+uniform half _Contribution;
 
 
 #if defined(FXAA_LOW) && !defined(OPTIMIZER_ENABLED)
