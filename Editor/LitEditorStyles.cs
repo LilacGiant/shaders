@@ -2,6 +2,7 @@
 using UnityEditor;
 using UnityEngine;
 using System.IO;
+using System;
 
 namespace Lit
 {
@@ -11,9 +12,9 @@ namespace Lit
 
         public static bool TextureFoldout(bool display)
         {
-            var rect = GUILayoutUtility.GetRect(16f, 0);
+            var rect = GUILayoutUtility.GetRect(16f, -4);
             var e = Event.current;
-            var toggleRect = new Rect(rect.x, rect.y - 20f, 13f, 13f);
+            var toggleRect = new Rect(rect.x, rect.y - 20f, 12f, 12f);
             if (e.type == EventType.Repaint)
             {
                 EditorStyles.foldout.Draw(toggleRect, false, false, display, false);
@@ -28,9 +29,9 @@ namespace Lit
 
         public static bool ShurikenFoldout(string title, bool display)
         {
-            var rect = DrawShuriken(title, new Vector2(20f, -2f), 22);
+            var rect = DrawShuriken(title, new Vector2(20f, -2f), 20);
             var e = Event.current;
-            var toggleRect = new Rect(rect.x + 4f, rect.y + 2f, 13f, 13f);
+            var toggleRect = new Rect(rect.x + 6f, rect.y + 2f, 13f, 13f);
             if (e.type == EventType.Repaint)
             {
                 EditorStyles.foldout.Draw(toggleRect, false, false, display, false);
@@ -47,15 +48,69 @@ namespace Lit
         {
             var style = new GUIStyle("ShurikenModuleTitle");
             style.font = new GUIStyle(EditorStyles.boldLabel).font;
-            style.fontSize = GUI.skin.font.fontSize;
-            style.border = new RectOffset(15, 7, 4, 4);
+            //style.fontSize = GUI.skin.font.fontSize;
+            //style.border = new RectOffset(15, 7, 4, 4);
             style.fixedHeight = HeaderHeight;
             style.contentOffset = contentOffset;
             var rect = GUILayoutUtility.GetRect(16f, HeaderHeight, style);
+            var rect2 = new Rect(rect.x + -20f, rect.y, rect.width + 30f, rect.height);
 
-            GUI.Box(rect, title, style);
-            return rect;
+
+            GUI.Box(rect2, title, style);
+            return rect2;
         }
+
+        public static void PropertyGroup(Action action){
+            GUILayout.Space(1);
+			EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+			GUILayout.Space(1);
+			action();
+			GUILayout.Space(1);
+			EditorGUILayout.EndVertical();
+			GUILayout.Space(1);
+		}
+
+        		// Mimics the normal map import warning - written by Orels1
+		static bool TextureImportWarningBox(string message){
+			GUILayout.BeginVertical(new GUIStyle(EditorStyles.helpBox));
+			EditorGUILayout.LabelField(message, new GUIStyle(EditorStyles.label) {
+				fontSize = 11, wordWrap = true
+			});
+			EditorGUILayout.BeginHorizontal(new GUIStyle() {
+				alignment = TextAnchor.MiddleRight
+			}, GUILayout.Height(24));
+			EditorGUILayout.Space();
+			bool buttonPress = GUILayout.Button("Fix Now", new GUIStyle("button") {
+				stretchWidth = false,
+				margin = new RectOffset(0, 0, 0, 0),
+				padding = new RectOffset(8, 8, 0, 0)
+			}, GUILayout.Height(22));
+			EditorGUILayout.EndHorizontal();
+			GUILayout.EndVertical();
+			return buttonPress;
+		}
+
+		public static void sRGBWarning(MaterialProperty tex){
+			if (tex.textureValue){
+				string sRGBWarning = "This texture is marked as sRGB, but should not contain color information.";
+				string texPath = AssetDatabase.GetAssetPath(tex.textureValue);
+				TextureImporter texImporter;
+				var importer = TextureImporter.GetAtPath(texPath) as TextureImporter;
+				if (importer != null){
+					texImporter = (TextureImporter)importer;
+					if (texImporter.sRGBTexture){
+						if (TextureImportWarningBox(sRGBWarning)){
+							texImporter.sRGBTexture = false;
+							texImporter.SaveAndReimport();
+						}
+					}
+				}
+			}
+		}
+
+        
+
+        
 
 
     }

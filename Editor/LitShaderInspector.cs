@@ -15,7 +15,11 @@ namespace Lit
         public bool ShowAdvanced = false;
 
         public bool Show_MainTex = false;
+        public bool Show_MetallicGlossMap = false;
+        public bool Show_BumpMap = false;
+        public bool Show_EmissionMap = false;
     }
+
 
     public class ShaderEditor : ShaderGUI
     {
@@ -28,11 +32,32 @@ namespace Lit
         protected MaterialProperty _Color = null;
         protected MaterialProperty _Saturation = null;
         protected MaterialProperty _MainTexUV = null;
+        protected MaterialProperty _Metallic = null;
+        protected MaterialProperty _Glossiness = null;
+        protected MaterialProperty _Occlusion = null;
+        protected MaterialProperty _MetallicGlossMap = null;
+        protected MaterialProperty _MetallicGlossMapUV = null;
+        protected MaterialProperty _BumpMap = null;
+        protected MaterialProperty _BumpScale = null;
+        protected MaterialProperty _BumpMapUV = null;
+        protected MaterialProperty _NormalMapOrientation = null;
+        protected MaterialProperty _EmissionMap = null;
+        protected MaterialProperty _EmissionColor = null;
+        protected MaterialProperty _EmissionMapUV = null;
+        protected MaterialProperty _EnableEmission = null;
+        
         
 
 
         MaterialEditor m_MaterialEditor;
-        bool m_FirstTimeApply = true;
+        public bool m_FirstTimeApply = true;
+
+        protected MaterialProperty _ShaderOptimizerEnabled = null;
+        const string shaderOptimizerPropertyName = "_ShaderOptimizerEnabled";
+        const string AnimatedPropertySuffix = "Animated";
+        bool afterShaderOptimizerButton = false;
+        MaterialProperty shaderOptimizer;
+        bool[] propertyAnimated;
 
         public void FindProperties(MaterialProperty[] props)
         {
@@ -59,9 +84,32 @@ namespace Lit
             // Do this before any GUI code has been issued to prevent layout issues in subsequent GUILayout statements (case 780071)
             if (m_FirstTimeApply)
             {
+
+                // Clear all keywords to begin with, in case there are conflicts with different shaders
+                foreach (Material m in materialEditor.targets)
+                    foreach (string keyword in m.shaderKeywords)
+                        m.DisableKeyword(keyword);
+                
+                // Cache the animated state of each property to exclude them from being disabled when the material is locked
+                if (propertyAnimated == null)
+                    propertyAnimated = new bool[props.Length];
+                string uniquePropertyNamesSuffix = ((Material)materialEditor.target).GetTag("AnimatedParametersSuffix", false, "");
+                for (int i=0;i<props.Length;i++)
+                {
+                    propertyAnimated[i] = false;
+                    string animatedPropertyName = props[i].name + AnimatedPropertySuffix;
+                    MaterialProperty animProp = FindProperty(animatedPropertyName, props, false);
+                    if (animProp == null && uniquePropertyNamesSuffix != "")
+                        animProp = FindProperty(animatedPropertyName.Replace(uniquePropertyNamesSuffix, ""), props, false);
+                    if (animProp != null)
+                        propertyAnimated[i] = (animProp.floatValue == 1);
+                }
+
+
+
                 m_FirstTimeApply = false;
             }
-
+            ShaderOptimizerButton(_ShaderOptimizerEnabled,m_MaterialEditor);
             ShaderPropertiesGUI(material);
         }
 
@@ -70,21 +118,71 @@ namespace Lit
             // Use default labelWidth
             EditorGUIUtility.labelWidth = 0f;
 
+            EditorGUI.BeginDisabledGroup(_ShaderOptimizerEnabled.floatValue == 1);
+
             // Detect any changes to the material
             EditorGUI.BeginChangeCheck();
             {
+
+                EditorGUI.indentLevel++;
                 Foldouts[material].ShowSurfaceInputs = LitStyles.ShurikenFoldout("Surface Inputs", Foldouts[material].ShowSurfaceInputs);
                 if(Foldouts[material].ShowSurfaceInputs)
                 {
-                    EditorGUI.indentLevel++;
+                    EditorGUILayout.Space();
+                    
                     m_MaterialEditor.TexturePropertySingleLine(new GUIContent("Base Map", "RGBA"), _MainTex, _Color);
                     Foldouts[material].Show_MainTex = LitStyles.TextureFoldout(Foldouts[material].Show_MainTex);
                     if(Foldouts[material].Show_MainTex){
+                        LitStyles.PropertyGroup(() => {
                         m_MaterialEditor.TextureScaleOffsetProperty(_MainTex);
-                        m_MaterialEditor.ShaderProperty(_Saturation, "Saturation");
                         m_MaterialEditor.ShaderProperty(_MainTexUV, "UV");
+                        m_MaterialEditor.ShaderProperty(_Saturation, "Saturation");
+                        });
                     }
+
+                    m_MaterialEditor.ShaderProperty(_Metallic, "Metallic");
+                    m_MaterialEditor.ShaderProperty(_Glossiness, "Smoothness");
+                    if (_MetallicGlossMap.textureValue) m_MaterialEditor.ShaderProperty(_Occlusion, "Occlusion");
+
+                    m_MaterialEditor.TexturePropertySingleLine(new GUIContent("Mask Map", "Metallic(R), Occlusion(G), Detail Mask(B), Smoothness(A)"), _MetallicGlossMap);
+                    Foldouts[material].Show_MetallicGlossMap = LitStyles.TextureFoldout(Foldouts[material].Show_MetallicGlossMap);
+                    LitStyles.sRGBWarning(_MetallicGlossMap);
+                    if(Foldouts[material].Show_MetallicGlossMap){
+                        LitStyles.PropertyGroup(() => {
+                        m_MaterialEditor.TextureScaleOffsetProperty(_MetallicGlossMap);
+                        m_MaterialEditor.ShaderProperty(_MetallicGlossMapUV, "UV");
+                        });
+                    }
+
+                    m_MaterialEditor.TexturePropertySingleLine(new GUIContent("Normal Map"), _BumpMap,  _BumpMap.textureValue ? _BumpScale : null);
+                    Foldouts[material].Show_BumpMap = LitStyles.TextureFoldout(Foldouts[material].Show_BumpMap);
+                    if(Foldouts[material].Show_BumpMap){
+                        LitStyles.PropertyGroup(() => {
+                        m_MaterialEditor.TextureScaleOffsetProperty(_BumpMap);
+                        m_MaterialEditor.ShaderProperty(_BumpMapUV, "UV");
+                        m_MaterialEditor.ShaderProperty(_NormalMapOrientation, "Orientation");
+                        });
+                    }
+
+                    m_MaterialEditor.ShaderProperty(_EnableEmission, "Emission");
+                    if(_EnableEmission.floatValue == 1){
+                    m_MaterialEditor.TexturePropertySingleLine(new GUIContent("Color"), _EmissionMap, _EmissionColor);
+                    Foldouts[material].Show_EmissionMap = LitStyles.TextureFoldout(Foldouts[material].Show_EmissionMap);
+                    if(Foldouts[material].Show_EmissionMap){
+                        LitStyles.PropertyGroup(() => {
+                        m_MaterialEditor.TextureScaleOffsetProperty(_EmissionMap);
+                        m_MaterialEditor.ShaderProperty(_EmissionMapUV, "UV");
+                        
+                        });
+                    }
+                    }
+
+                    EditorGUILayout.Space();
                     
+
+
+
+
                 }
                 
             }
@@ -96,6 +194,8 @@ namespace Lit
                     m_MaterialEditor.EnableInstancingField();
                     m_MaterialEditor.DoubleSidedGIField();
                 }
+                
+            EditorGUI.EndDisabledGroup();
         }
 
         private void SetupFoldoutDictionary(Material material)
@@ -106,5 +206,57 @@ namespace Lit
             FoldoutToggles toggles = new FoldoutToggles();
             Foldouts.Add(material, toggles);
         }
+
+        public void ShaderOptimizerButton(MaterialProperty shaderOptimizer, MaterialEditor materialEditor)
+        {
+            // Theoretically this shouldn't ever happen since locked in materials have different shaders.
+                // But in a case where the material property says its locked in but the material really isn't, this
+                // will display and allow users to fix the property/lock in
+                if (shaderOptimizer.hasMixedValue)
+                {
+                    EditorGUI.BeginChangeCheck();
+                    GUILayout.Button("Lock in Optimized Shaders (" + materialEditor.targets.Length + " materials)");
+                    if (EditorGUI.EndChangeCheck())
+                        foreach (Material m in materialEditor.targets)
+                        {
+                            m.SetFloat(shaderOptimizer.name, 1);
+                            MaterialProperty[] props = MaterialEditor.GetMaterialProperties(new UnityEngine.Object[] { m });
+                            if (!ShaderOptimizer.Lock(m, props)) // Error locking shader, revert property
+                                m.SetFloat(shaderOptimizer.name, 0);
+                        }
+                }
+                else
+                {
+                    EditorGUI.BeginChangeCheck();
+                    if (shaderOptimizer.floatValue == 0)
+                    {
+                        if (materialEditor.targets.Length == 1)
+                            GUILayout.Button("Lock In Optimized Shader");
+                        else GUILayout.Button("Lock in Optimized Shaders (" + materialEditor.targets.Length + " materials)");
+                    }
+                    else GUILayout.Button("Unlock Shader");
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        shaderOptimizer.floatValue = shaderOptimizer.floatValue == 1 ? 0 : 1;
+                        if (shaderOptimizer.floatValue == 1)
+                        {
+                            foreach (Material m in materialEditor.targets)
+                            {
+                                MaterialProperty[] props = MaterialEditor.GetMaterialProperties(new UnityEngine.Object[] { m });
+                                if (!ShaderOptimizer.Lock(m, props))
+                                    m.SetFloat(shaderOptimizer.name, 0);
+                            }
+                        }
+                        else
+                        {
+                            foreach (Material m in materialEditor.targets)
+                                if (!ShaderOptimizer.Unlock(m))
+                                    m.SetFloat(shaderOptimizer.name, 1);
+                        }
+                    }
+                }
+        }
+
+        
     }
 }

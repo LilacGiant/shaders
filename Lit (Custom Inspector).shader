@@ -3,6 +3,7 @@ Shader "Lit (Custom Inspector)"
 
     Properties
     {
+        [ShaderOptimizerLockButton] _ShaderOptimizerEnabled ("", Int) = 0
         [Enum(Opaque, 0, Cutout, 1, Fade, 2, Transparent, 3, Additive, 4, Soft Additive, 5, Multiplicative, 6)] _Mode ("Rendering Mode", Int) = 0
         
 
@@ -18,7 +19,7 @@ Shader "Lit (Custom Inspector)"
 
         _Metallic ("Metallic", Range(0,1)) = 0
         _Glossiness ("Smoothness", Range(0,1)) = 0.5
-        _Occlusion ("Occlusion", Range(0,1)) = 0
+        _Occlusion ("Occlusion", Range(0,1)) = 1
 
         
         [ToggleUI] _EnablePackedMap ("Enable Roughness Map", Float) = 0
