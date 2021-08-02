@@ -45,6 +45,10 @@ namespace Lit
         protected MaterialProperty _EmissionColor = null;
         protected MaterialProperty _EmissionMapUV = null;
         protected MaterialProperty _EnableEmission = null;
+        protected MaterialProperty _EnablePackedMap = null;
+        protected MaterialProperty _EnableNormalMap = null;
+        protected MaterialProperty _SpecularHighlights = null;
+        protected MaterialProperty _GlossyReflections = null;
         
         
 
@@ -53,9 +57,8 @@ namespace Lit
         public bool m_FirstTimeApply = true;
 
         protected MaterialProperty _ShaderOptimizerEnabled = null;
-        const string shaderOptimizerPropertyName = "_ShaderOptimizerEnabled";
         const string AnimatedPropertySuffix = "Animated";
-        bool afterShaderOptimizerButton = false;
+        //bool afterShaderOptimizerButton = false;
         MaterialProperty shaderOptimizer;
         bool[] propertyAnimated;
 
@@ -84,6 +87,7 @@ namespace Lit
             // Do this before any GUI code has been issued to prevent layout issues in subsequent GUILayout statements (case 780071)
             if (m_FirstTimeApply)
             {
+                
 
                 // Clear all keywords to begin with, in case there are conflicts with different shaders
                 foreach (Material m in materialEditor.targets)
@@ -106,7 +110,7 @@ namespace Lit
                 }
 
 
-
+                ApplyChanges(material);
                 m_FirstTimeApply = false;
             }
             ShaderOptimizerButton(_ShaderOptimizerEnabled,m_MaterialEditor);
@@ -185,17 +189,53 @@ namespace Lit
 
                 }
                 
+                
+            }
+
+            Foldouts[material].ShowSpecular = LitStyles.ShurikenFoldout("Specular", Foldouts[material].ShowSpecular);
+            if(Foldouts[material].ShowSpecular)
+            {
+                m_MaterialEditor.ShaderProperty(_SpecularHighlights, "Specular Highlights");
+                m_MaterialEditor.ShaderProperty(_GlossyReflections, "Reflections");
             }
 
 
             Foldouts[material].ShowAdvanced = LitStyles.ShurikenFoldout("Advanced Options", Foldouts[material].ShowAdvanced);
             if(Foldouts[material].ShowAdvanced)
-                {
-                    m_MaterialEditor.EnableInstancingField();
-                    m_MaterialEditor.DoubleSidedGIField();
-                }
-                
+            {
+                m_MaterialEditor.EnableInstancingField();
+                m_MaterialEditor.DoubleSidedGIField();
+            }
+
+
+            if (EditorGUI.EndChangeCheck()) ApplyChanges(material);
             EditorGUI.EndDisabledGroup();
+        }
+
+        public void ApplyChanges(Material m){
+           if(_ShaderOptimizerEnabled.floatValue == 0){
+
+           // toggles
+           if(_MetallicGlossMap.textureValue) _EnablePackedMap.floatValue = 1; else _EnablePackedMap.floatValue = 0;
+           if(_BumpMap.textureValue) _EnableNormalMap.floatValue = 1; else _EnableNormalMap.floatValue = 0;
+
+
+           // keywords
+           SetKeyword(m, "_GLOSSYREFLECTIONS_OFF", _GlossyReflections.floatValue);
+           SetKeyword(m, "_SPECULARHIGHLIGHTS_OFF", _SpecularHighlights.floatValue);
+
+           
+            }
+        }
+
+        static void SetKeyword(Material m, string keyword, bool state)
+        {
+            if (state) m.EnableKeyword(keyword); else m.DisableKeyword(keyword);
+        }
+
+        static void SetKeyword(Material m, string keyword, float state) 
+        {
+            if (state == 1) m.EnableKeyword(keyword); else m.DisableKeyword(keyword);
         }
 
         private void SetupFoldoutDictionary(Material material)
@@ -210,53 +250,57 @@ namespace Lit
         public void ShaderOptimizerButton(MaterialProperty shaderOptimizer, MaterialEditor materialEditor)
         {
             // Theoretically this shouldn't ever happen since locked in materials have different shaders.
-                // But in a case where the material property says its locked in but the material really isn't, this
-                // will display and allow users to fix the property/lock in
-                if (shaderOptimizer.hasMixedValue)
+            // But in a case where the material property says its locked in but the material really isn't, this
+            // will display and allow users to fix the property/lock in
+            if (shaderOptimizer.hasMixedValue)
+            {
+                EditorGUI.BeginChangeCheck();
+                GUILayout.Button("Lock in Optimized Shaders (" + materialEditor.targets.Length + " materials)");
+                if (EditorGUI.EndChangeCheck())
+                    foreach (Material m in materialEditor.targets)
+                    {
+                        m.SetFloat(shaderOptimizer.name, 1);
+                        MaterialProperty[] props = MaterialEditor.GetMaterialProperties(new UnityEngine.Object[] { m });
+                        if (!ShaderOptimizer.Lock(m, props)) // Error locking shader, revert property
+                            m.SetFloat(shaderOptimizer.name, 0);
+                    }
+            }
+            else
+            {
+                EditorGUI.BeginChangeCheck();
+                if (shaderOptimizer.floatValue == 0)
                 {
-                    EditorGUI.BeginChangeCheck();
-                    GUILayout.Button("Lock in Optimized Shaders (" + materialEditor.targets.Length + " materials)");
-                    if (EditorGUI.EndChangeCheck())
+                    if (materialEditor.targets.Length == 1)
+                        GUILayout.Button("Lock In Optimized Shader");
+                    else GUILayout.Button("Lock in Optimized Shaders (" + materialEditor.targets.Length + " materials)");
+                }
+                else GUILayout.Button("Unlock Shader");
+                if (EditorGUI.EndChangeCheck())
+                {
+                    shaderOptimizer.floatValue = shaderOptimizer.floatValue == 1 ? 0 : 1;
+                    if (shaderOptimizer.floatValue == 1)
+                    {
                         foreach (Material m in materialEditor.targets)
                         {
-                            m.SetFloat(shaderOptimizer.name, 1);
                             MaterialProperty[] props = MaterialEditor.GetMaterialProperties(new UnityEngine.Object[] { m });
-                            if (!ShaderOptimizer.Lock(m, props)) // Error locking shader, revert property
+                            if (!ShaderOptimizer.Lock(m, props))
                                 m.SetFloat(shaderOptimizer.name, 0);
                         }
-                }
-                else
-                {
-                    EditorGUI.BeginChangeCheck();
-                    if (shaderOptimizer.floatValue == 0)
-                    {
-                        if (materialEditor.targets.Length == 1)
-                            GUILayout.Button("Lock In Optimized Shader");
-                        else GUILayout.Button("Lock in Optimized Shaders (" + materialEditor.targets.Length + " materials)");
                     }
-                    else GUILayout.Button("Unlock Shader");
-                    if (EditorGUI.EndChangeCheck())
+                    else
                     {
-                        shaderOptimizer.floatValue = shaderOptimizer.floatValue == 1 ? 0 : 1;
-                        if (shaderOptimizer.floatValue == 1)
-                        {
-                            foreach (Material m in materialEditor.targets)
-                            {
-                                MaterialProperty[] props = MaterialEditor.GetMaterialProperties(new UnityEngine.Object[] { m });
-                                if (!ShaderOptimizer.Lock(m, props))
-                                    m.SetFloat(shaderOptimizer.name, 0);
-                            }
-                        }
-                        else
-                        {
-                            foreach (Material m in materialEditor.targets)
-                                if (!ShaderOptimizer.Unlock(m))
-                                    m.SetFloat(shaderOptimizer.name, 1);
-                        }
+                        foreach (Material m in materialEditor.targets)
+                            if (!ShaderOptimizer.Unlock(m))
+                                m.SetFloat(shaderOptimizer.name, 1);
                     }
                 }
+            }
         }
 
-        
+
+
+
+
+
     }
 }
