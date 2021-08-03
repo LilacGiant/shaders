@@ -62,6 +62,8 @@ namespace Lit
         MaterialProperty shaderOptimizer;
         bool[] propertyAnimated;
 
+        
+
         public void FindProperties(MaterialProperty[] props)
         {
             //Find all material properties listed in the script using reflection, and set them using a loop only if they're of type MaterialProperty.
@@ -114,6 +116,7 @@ namespace Lit
                 m_FirstTimeApply = false;
             }
             ShaderOptimizerButton(_ShaderOptimizerEnabled,m_MaterialEditor);
+            EditorGUILayout.Space(4);
             ShaderPropertiesGUI(material);
         }
 

@@ -9,6 +9,7 @@ namespace Lit
     [InitializeOnLoad]
     public class LitStyles : MonoBehaviour
     {
+        readonly static Texture2D groupTex = (Texture2D)Resources.Load("lit_group", typeof(Texture2D));
 
         public static bool TextureFoldout(bool display)
         {
@@ -29,9 +30,9 @@ namespace Lit
 
         public static bool ShurikenFoldout(string title, bool display)
         {
-            var rect = DrawShuriken(title, new Vector2(20f, -2f), 20);
+            var rect = DrawShuriken(title, new Vector2(18f, 0f),18);
             var e = Event.current;
-            var toggleRect = new Rect(rect.x + 6f, rect.y + 2f, 13f, 13f);
+            var toggleRect = new Rect(rect.x + 12f, rect.y + 3f, 13f, 13f);
             if (e.type == EventType.Repaint)
             {
                 EditorStyles.foldout.Draw(toggleRect, false, false, display, false);
@@ -46,17 +47,21 @@ namespace Lit
 
         private static Rect DrawShuriken(string title, Vector2 contentOffset, int HeaderHeight)
         {
-            var style = new GUIStyle("ShurikenModuleTitle");
+            var style = new GUIStyle("BoldLabel");
             style.font = new GUIStyle(EditorStyles.boldLabel).font;
+            //style.font = EditorStyles.boldFont;
             //style.fontSize = GUI.skin.font.fontSize;
+            style.fontSize = 11;
             //style.border = new RectOffset(15, 7, 4, 4);
             style.fixedHeight = HeaderHeight;
             style.contentOffset = contentOffset;
             var rect = GUILayoutUtility.GetRect(16f, HeaderHeight, style);
-            var rect2 = new Rect(rect.x + -20f, rect.y, rect.width + 30f, rect.height);
+            var rect2 = new Rect(rect.x + -20f, rect.y, rect.width + 30f, rect.height+2);
+            var rectText = new Rect(rect.x -8f, rect.y+1, rect.width, rect.height);
 
-
-            GUI.Box(rect2, title, style);
+            GUI.DrawTexture(rect2, groupTex);
+            GUI.Label(rectText, title, style);
+            
             return rect2;
         }
 
@@ -107,6 +112,8 @@ namespace Lit
 				}
 			}
 		}
+
+        
 
         
 
