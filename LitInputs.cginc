@@ -69,8 +69,8 @@ uniform float _ParallaxSteps;
 uniform float _ParallaxOffset;
 uniform float _Parallax;
 
-sampler2D_float _CameraDepthTexture;
-float4 _CameraDepthTexture_TexelSize;
+//sampler2D_float _CameraDepthTexture;
+//float4 _CameraDepthTexture_TexelSize;
 
 uniform float _LightProbeMethod;
 
@@ -79,39 +79,21 @@ uniform float _LightProbeMethod;
 
 uniform float _TonemappingMode;
 
-UNITY_DECLARE_TEX2D(_Lut);
-float4 _Lut_TexelSize;
+
 uniform half _Contribution;
 
 
-#if defined(FXAA_LOW) && !defined(OPTIMIZER_ENABLED)
-#ifndef SHADER_API_MOBILE
-#define SHADER_API_MOBILE
-#endif
-
-#define half min16float
-#define half2 min16float2
-#define half3 min16float3
-//#define half4 min16float4 // :unity_developement:
-//#define half3x3 min16float3x3
-//#define half3x4 min16float3x4
-#endif
 
 #define TRANSFORM_MAINTEX(tex,name) (tex.xy * name##_ST.xy * _MainTex_ST.xy + name##_ST.zw + _MainTex_ST.zw)
-#ifdef UNITY_UI_CLIP_RECT
-#define ENABLE_GSAA
+
+#if (PROP_MODE!=0) || !defined(OPTIMIZER_ENABLED)
+#define ENABLE_TRANSPARENCY
 #endif
 
-#ifdef _DETAIL_MULX2
-#define ENABLE_BICUBIC_LIGHTMAP
-#endif
 
+// optimizer toggles
 #if (PROP_ENABLENORMALMAP==1) || !defined(OPTIMIZER_ENABLED)
 #define ENABLE_NORMALMAP
-#endif
-
-#ifdef UNITY_UI_ALPHACLIP
-#define ENABLE_PACKED_MODE
 #endif
 
 #if (PROP_ENABLEMETALLICMAP==1) || !defined(OPTIMIZER_ENABLED)
@@ -126,17 +108,6 @@ uniform half _Contribution;
 #define ENABLE_OCCLUSIONMAP
 #endif
 
-#ifdef UNITY_UI_CLIP_RECT
-#define ENABLE_GSAA
-#endif
-
-#if (PROP_MODE!=0) || !defined(OPTIMIZER_ENABLED)
-#define ENABLE_TRANSPARENCY
-#endif
-
-#if (PROP_ENABLEEMISSION==1) || !defined(OPTIMIZER_ENABLED)
-#define ENABLE_EMISSION
-#endif
 
 #if (PROP_ENABLEVERTEXCOLOR==1) || !defined(OPTIMIZER_ENABLED)
 #define ENABLE_VERTEXCOLOR

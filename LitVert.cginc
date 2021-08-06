@@ -4,7 +4,10 @@
 v2f vert(appdata v)
 {
     v2f o;
+    UNITY_SETUP_INSTANCE_ID(v);
     UNITY_INITIALIZE_OUTPUT(v2f, o);
+    UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
+    
     o.pos = UnityObjectToClipPos(v.vertex);
     o.uv0 = v.uv0;
     o.uv1 = v.uv1;
@@ -14,9 +17,8 @@ v2f vert(appdata v)
     o.color = v.color;
     #endif
 
-
     half3 worldNormal = UnityObjectToWorldNormal(v.normal);
-    #if defined(_GLOSSYREFLECTIONS_OFF) || defined(_SPECULARHIGHLIGHTS_OFF) || defined (ENABLE_NORMALMAP)
+    #if defined(ENABLE_REFLECTIONS) || defined(ENABLE_SPECULAR_HIGHLIGHTS) || defined (ENABLE_NORMALMAP)
     half3 tangent = UnityObjectToWorldDir(v.tangent);
     half3 bitangent = cross(tangent, worldNormal) * v.tangent.w;
 
@@ -34,8 +36,7 @@ v2f vert(appdata v)
     #endif
 
     
-    UNITY_SETUP_INSTANCE_ID(v);
-    UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
+    
     return o;
 }
 #endif

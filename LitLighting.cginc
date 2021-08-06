@@ -387,7 +387,7 @@ float3 getLightCol(bool lightEnv, float3 lightColor, float3 indirectDominantColo
 
 
 
-float GSAA_Filament(const float3 worldNormal,float perceptualRoughness) {
+float GSAA_Filament(float3 worldNormal,float perceptualRoughness) {
     // Kaplanyan 2016, "Stable specular highlights"
     // Tokuyoshi 2017, "Error Reduction and Simplification for Shading Anti-Aliasing"
     // Tokuyoshi and Kaplanyan 2019, "Improved Geometric Specular Antialiasing"
@@ -412,6 +412,7 @@ float GSAA_Filament(const float3 worldNormal,float perceptualRoughness) {
 }
 
 
+
 float GSAA_Valve(float3 vGeometricNormalWs,float3 vRoughness)
 {
     float3 vNormalWsDdx = ddx( vGeometricNormalWs.xyz );
@@ -426,7 +427,7 @@ float computeSpecularAO(float NoV, float ao, float roughness) {
 }
 
 //https://forum.unity.com/threads/fixing-screen-space-directional-shadows-and-anti-aliasing.379902/
-
+/*
 float SSDirectionalShadowAA(float4 _ShadowCoord, sampler2D_float depthTex, float4 depthTextureTexelSize, sampler2D _ShadowMapTexture, half atten){
     half a = atten;
     float2 screenUV = _ShadowCoord.xy / _ShadowCoord.w;
@@ -475,6 +476,7 @@ float SSDirectionalShadowAA(float4 _ShadowCoord, sampler2D_float depthTex, float
     }
     return a;
 }
+*/
 
 
 

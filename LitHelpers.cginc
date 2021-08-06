@@ -61,24 +61,7 @@ float3 ACESFilm(float3 x)
     float e = 0.14f;
     return saturate((x*(a*x+b))/(x*(c*x+d)+e));
 }
-#define COLORS 32.0
-inline half3 LUTColorGrading(half3 baseColor)
-{
-    half3 c = max(1,baseColor)-1;
-    baseColor = saturate(baseColor);
-    half maxColor = COLORS - 1.0;
-    half halfColX = 0.5 / _Lut_TexelSize.z;
-    half halfColY = 0.5 / _Lut_TexelSize.w;
-    half threshold = maxColor / COLORS;
- 
-    half xOffset = halfColX + baseColor.r * threshold / COLORS;
-    half yOffset = halfColY + baseColor.g * threshold;
-    half cell = floor(baseColor.b * maxColor);
- 
-    half2 lutPos = half2(cell / COLORS + xOffset, yOffset);
-    half4 gradedCol = UNITY_SAMPLE_TEX2D(_Lut, lutPos);
-    return gradedCol+c;
-}
+
   
 
 

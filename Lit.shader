@@ -3,11 +3,11 @@ Shader " Lit"
 
     Properties
     {
-        [ShaderOptimizerLockButton] _ShaderOptimizerEnabled ("", Int) = 0
-        [Enum(Opaque, 0, Cutout, 1, Fade, 2, Transparent, 3, Additive, 4, Soft Additive, 5, Multiplicative, 6)] _Mode ("Rendering Mode", Int) = 0
+        _ShaderOptimizerEnabled ("", Int) = 0
+        [Enum(Opaque, 0, Cutout, 1, Fade, 2, Transparent, 3)] _Mode ("Rendering Mode", Int) = 0
         
 
-        _Cutoff ("Alpha Cuttoff", Range(0, 1.001)) = 0.5
+        _Cutoff ("Alpha Cuttoff", Range(0.001, 1)) = 0.5
 
         _MainTex ("Base Map", 2D) = "white" {}
         _Color ("Color", Color) = (1,1,1,1)
@@ -22,7 +22,6 @@ Shader " Lit"
         _Occlusion ("Occlusion", Range(0,1)) = 1
 
         
-        [ToggleUI] _EnablePackedMap ("Enable Roughness Map", Float) = 0
         _MetallicGlossMap ("Mask Map", 2D) = "white" {}
         [Enum(UV0, 0, UV1 (Lightmap), 1, UV2, 2)] _MetallicGlossMapUV ("UV", Int) = 0
 
@@ -56,10 +55,10 @@ Shader " Lit"
 
         
 
-        [Toggle(_SPECULARHIGHLIGHTS_OFF)] _SpecularHighlights("Specular Highlights", Float) = 1
-        [Enum(Default, 0, Get From Probes, 1)] _GetDominantLight ("Mode", Int) = 0
+        [Toggle(ENABLE_SPECULAR_HIGHLIGHTS)] _SpecularHighlights("Specular Highlights", Float) = 1
+        [Enum(Realtime Light, 0,Light Probes, 1)] _GetDominantLight ("Mode", Int) = 0
 
-        [Toggle(_GLOSSYREFLECTIONS_OFF)] _GlossyReflections("Reflections", Float) = 1
+        [Toggle(ENABLE_REFLECTIONS)] _GlossyReflections("Reflections", Float) = 1
         _Reflectance ("Reflectance", Range(0,1)) = 0.5
         _AngularGlossiness ("Angular Glossiness", Range(0, 1)) = 0
         //_ExposureOcclusion ("Exposure Occlusion Sensitivity", Range(0, 1)) = 0
@@ -67,8 +66,8 @@ Shader " Lit"
         _FresnelColor ("Fresnel", Color) = (1,1,1,1)
         
 
-        [Toggle(UNITY_UI_CLIP_RECT)] _GSAA("GSAA", Float) = 0
-        [PowerSlider(3)] _specularAntiAliasingVariance ("Variance", Range(0.0, 1.0)) = 0.01
+        [Toggle(ENABLE_GSAA)] _GSAA("GSAA", Float) = 0
+        [PowerSlider(3)] _specularAntiAliasingVariance ("Variance", Range(0.0, 1.0)) = 0.15
         [PowerSlider(3)] _specularAntiAliasingThreshold ("Threshold", Range(0.0, 1.0)) = 0.1
 
         
@@ -88,7 +87,7 @@ Shader " Lit"
 
         
 
-        [Toggle(_DETAIL_MULX2)] _BicubicLightmap ("Bicubic Lightmap Interpolation", Float) = 0
+        [Toggle(ENABLE_BICUBIC_LIGHTMAP)] _BicubicLightmap ("Bicubic Lightmap Interpolation", Float) = 0
         _LightmapMultiplier ("Multiplier", Range(0, 2)) = 1
         _SpecularOcclusion ("Specular Occlusion", Range(0, 1)) = 0
 
@@ -98,21 +97,18 @@ Shader " Lit"
 
 
 
-        [Enum(None, 0, ACES, 1, Custom LUT,2)] _TonemappingMode ("Mode", Int) = 0
+        [Enum(None, 0, ACES, 1)] _TonemappingMode ("Mode", Int) = 0
         _Contribution ("Contribution", Range(0, 1)) = 1
-        [NoScaleOffset] _Lut ("LUT", 2D) = "White" {}
-
-        
+       
 
 
-        [Enum(Thry.BlendOp)]_BlendOp ("RGB Blend Op", Int) = 0
-        [Enum(Thry.BlendOp)]_BlendOpAlpha ("Alpha Blend Op", Int) = 0
+        [Enum(UnityEngine.Rendering.BlendOp)]_BlendOp ("RGB Blend Op", Int) = 0
+        [Enum(UnityEngine.Rendering.BlendOp)]_BlendOpAlpha ("Alpha Blend Op", Int) = 0
         [Enum(UnityEngine.Rendering.BlendMode)] _SrcBlend ("Source Blend", Int) = 1
         [Enum(UnityEngine.Rendering.BlendMode)] _DstBlend ("Destination Blend", Int) = 0
 
 
-        [Toggle(UNITY_UI_ALPHACLIP)] _EnablePackedMode ("Packed Mode", Float) = 1       
-        [Toggle(_SUNDISK_NONE)] _EnableSSDSAA ("Directional Shadows AA", Float) = 0
+        [Toggle(ENABLE_PACKED_MODE)] _EnablePackedMode ("Packed Mode", Float) = 1       
 
         [Enum(Off, 0, On, 1)] _AlphaToMask ("Alpha To Coverage", Int) = 0
         [Enum(Off, 0, On, 1)] _ZWrite ("ZWrite", Int) = 1
@@ -155,14 +151,13 @@ Shader " Lit"
             #pragma fragment frag
             #pragma exclude_renderers gles3
             #pragma multi_compile_fwdbase
-            #pragma fragmentoption ARB_precision_hint_fastest
+            #pragma multi_compile_instancing
 
-            #pragma shader_feature UNITY_UI_CLIP_RECT // GSAA
-            #pragma shader_feature _SPECULARHIGHLIGHTS_OFF
-            #pragma shader_feature _GLOSSYREFLECTIONS_OFF
-            #pragma shader_feature UNITY_UI_ALPHACLIP
-            #pragma shader_feature _DETAIL_MULX2
-            #pragma shader_feature _SUNDISK_NONE
+            #pragma shader_feature_local ENABLE_GSAA
+            #pragma shader_feature_local ENABLE_SPECULAR_HIGHLIGHTS
+            #pragma shader_feature_local ENABLE_REFLECTIONS
+            #pragma shader_feature_local ENABLE_PACKED_MODE
+            #pragma shader_feature_local ENABLE_BICUBIC_LIGHTMAP
 
 
             #ifndef UNITY_PASS_FORWARDBASE
@@ -193,10 +188,11 @@ Shader " Lit"
             #pragma fragment frag
             #pragma exclude_renderers gles3
             #pragma multi_compile_fwdadd_fullshadows
+            #pragma multi_compile_instancing
 
-            #pragma shader_feature _SPECULARHIGHLIGHTS_OFF
-            #pragma shader_feature _GLOSSYREFLECTIONS_OFF
-            #pragma shader_feature UNITY_UI_ALPHACLIP
+            #pragma shader_feature_local ENABLE_SPECULAR_HIGHLIGHTS
+            #pragma shader_feature_local ENABLE_REFLECTIONS
+            #pragma shader_feature_local ENABLE_PACKED_MODE
 
             #ifndef UNITY_PASS_FORWARDADD
             #define UNITY_PASS_FORWARDADD
@@ -224,7 +220,7 @@ Shader " Lit"
             #pragma fragment ShadowCasterfrag
             #pragma exclude_renderers gles3
             #pragma multi_compile_shadowcaster
-            #pragma fragmentoption ARB_precision_hint_fastest
+            #pragma multi_compile_instancing
             
             #pragma skip_variants FOG_LINEAR FOG_EXP FOG_EXP2
 
@@ -235,6 +231,7 @@ Shader " Lit"
             #include "LitPass.cginc"
             ENDCG
         }
+
         
 
     }
@@ -267,21 +264,15 @@ Shader " Lit"
             #pragma fragment frag
             #pragma only_renderers gles3
             #pragma multi_compile_fwdbase
-            #pragma fragmentoption ARB_precision_hint_fastest
+            #pragma multi_compile_instancing
 
-          //  #pragma shader_feature UNITY_UI_CLIP_RECT // GSAA
-            #pragma shader_feature _SPECULARHIGHLIGHTS_OFF
-            #pragma shader_feature _GLOSSYREFLECTIONS_OFF
-            #pragma shader_feature UNITY_UI_ALPHACLIP
-          //  #pragma shader_feature _DETAIL_MULX2
-          //  #pragma shader_feature _SUNDISK_NONE
-
+            #pragma shader_feature_local ENABLE_SPECULAR_HIGHLIGHTS
+            #pragma shader_feature_local ENABLE_REFLECTIONS
+            #pragma shader_feature_local ENABLE_PACKED_MODE
 
             #ifndef UNITY_PASS_FORWARDBASE
             #define UNITY_PASS_FORWARDBASE
             #endif
-
-            #define ANDROID_TEST
 
             #include "LitPass.cginc"
             ENDCG
@@ -307,10 +298,11 @@ Shader " Lit"
             #pragma fragment frag
             #pragma only_renderers gles3
             #pragma multi_compile_fwdadd_fullshadows
+            #pragma multi_compile_instancing
 
-            #pragma shader_feature _SPECULARHIGHLIGHTS_OFF
-            #pragma shader_feature _GLOSSYREFLECTIONS_OFF
-            #pragma shader_feature UNITY_UI_ALPHACLIP
+            #pragma shader_feature_local ENABLE_SPECULAR_HIGHLIGHTS
+            #pragma shader_feature_local ENABLE_REFLECTIONS
+            #pragma shader_feature_local ENABLE_PACKED_MODE
 
             #ifndef UNITY_PASS_FORWARDADD
             #define UNITY_PASS_FORWARDADD
@@ -338,7 +330,8 @@ Shader " Lit"
             #pragma fragment ShadowCasterfrag
             #pragma only_renderers gles3
             #pragma multi_compile_shadowcaster
-            #pragma fragmentoption ARB_precision_hint_fastest
+            #pragma multi_compile_instancing
+
             #pragma skip_variants FOG_LINEAR FOG_EXP FOG_EXP2
 
             #ifndef UNITY_PASS_SHADOWCASTER

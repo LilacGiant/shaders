@@ -13,7 +13,7 @@ struct appdata
 {
     float4 vertex : POSITION;
     half3 normal : NORMAL;
-    #if defined(_GLOSSYREFLECTIONS_OFF) || defined(_SPECULARHIGHLIGHTS_OFF) || defined (ENABLE_NORMALMAP)
+    #if defined(ENABLE_REFLECTIONS) || defined(ENABLE_SPECULAR_HIGHLIGHTS) || defined (ENABLE_NORMALMAP)
     half4 tangent : TANGENT;
     #endif
 
@@ -35,7 +35,7 @@ struct v2f
     float2 uv1 : TEXCOORD1;
     float2 uv2 : TEXCOORD2;
 
-    #if defined(_GLOSSYREFLECTIONS_OFF) || defined(_SPECULARHIGHLIGHTS_OFF) || defined (ENABLE_NORMALMAP)
+    #if defined(ENABLE_REFLECTIONS) || defined(ENABLE_SPECULAR_HIGHLIGHTS) || defined (ENABLE_NORMALMAP)
     float3 bitangent : TEXCOORD3;
     float3 tangent : TEXCOORD4;
     #endif
@@ -50,7 +50,6 @@ struct v2f
     half4 color : COLOR;
     #endif
 
-    UNITY_VERTEX_INPUT_INSTANCE_ID
     UNITY_VERTEX_OUTPUT_STEREO
 };
 

@@ -8,22 +8,23 @@ using System.Reflection;
 
 namespace Lit
 {
-    public partial class FoldoutToggles
+    public partial class PersistentData
     {
         public bool ShowSurfaceInputs = true;
         public bool ShowSpecular = false;
         public bool ShowAdvanced = false;
+        public bool ShowBakedLight = false;
 
         public bool Show_MainTex = false;
         public bool Show_MetallicGlossMap = false;
         public bool Show_BumpMap = false;
         public bool Show_EmissionMap = false;
+
     }
-
-
+    
     public class ShaderEditor : ShaderGUI
     {
-        protected static Dictionary<Material, FoldoutToggles> Foldouts = new Dictionary<Material, FoldoutToggles>();
+        protected static Dictionary<Material, PersistentData> MaterialData = new Dictionary<Material, PersistentData>();
         protected BindingFlags bindingFlags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static;
 
         //Assign all properties as null at first to stop hundreds of warnings spamming the log when script gets compiled.
@@ -45,10 +46,25 @@ namespace Lit
         protected MaterialProperty _EmissionColor = null;
         protected MaterialProperty _EmissionMapUV = null;
         protected MaterialProperty _EnableEmission = null;
-        protected MaterialProperty _EnablePackedMap = null;
         protected MaterialProperty _EnableNormalMap = null;
         protected MaterialProperty _SpecularHighlights = null;
         protected MaterialProperty _GlossyReflections = null;
+        protected MaterialProperty _Reflectance = null;
+        protected MaterialProperty _GetDominantLight = null;
+        protected MaterialProperty _Mode = null;
+        protected MaterialProperty _AlphaToMask = null;
+        protected MaterialProperty _Cutoff = null;
+        protected MaterialProperty _AngularGlossiness = null;
+        protected MaterialProperty _GSAA = null;
+        protected MaterialProperty _specularAntiAliasingVariance = null;
+        protected MaterialProperty _specularAntiAliasingThreshold = null;
+        protected MaterialProperty _FresnelColor = null;
+        protected MaterialProperty _BicubicLightmap = null;
+        protected MaterialProperty _LightmapMultiplier = null;
+        protected MaterialProperty _SpecularOcclusion = null;
+        protected MaterialProperty _LightProbeMethod = null;
+        protected MaterialProperty _TonemappingMode = null;
+        protected MaterialProperty _Contribution = null;
         
         
 
@@ -92,9 +108,8 @@ namespace Lit
                 
 
                 // Clear all keywords to begin with, in case there are conflicts with different shaders
-                foreach (Material m in materialEditor.targets)
-                    foreach (string keyword in m.shaderKeywords)
-                        m.DisableKeyword(keyword);
+                foreach (string keyword in material.shaderKeywords)
+                    material.DisableKeyword(keyword);
                 
                 // Cache the animated state of each property to exclude them from being disabled when the material is locked
                 if (propertyAnimated == null)
@@ -132,14 +147,24 @@ namespace Lit
             {
 
                 EditorGUI.indentLevel++;
-                Foldouts[material].ShowSurfaceInputs = LitStyles.ShurikenFoldout("Surface Inputs", Foldouts[material].ShowSurfaceInputs);
-                if(Foldouts[material].ShowSurfaceInputs)
+                MaterialData[material].ShowSurfaceInputs = LitStyles.ShurikenFoldout("Surface Inputs", MaterialData[material].ShowSurfaceInputs);
+                if(MaterialData[material].ShowSurfaceInputs)
                 {
                     EditorGUILayout.Space();
+
+                    EditorGUI.BeginChangeCheck();
+                    m_MaterialEditor.ShaderProperty(_Mode, "Rendering Mode");
+                    if (EditorGUI.EndChangeCheck()) SetupMaterialWithBlendMode(material);
+                    if(_Mode.floatValue == 1){
+                        m_MaterialEditor.ShaderProperty(_AlphaToMask, "Alpha To Coverage");
+                        m_MaterialEditor.ShaderProperty(_Cutoff, "Cutoff");
+                    }
+                    EditorGUILayout.Space();
+                    
                     
                     m_MaterialEditor.TexturePropertySingleLine(new GUIContent("Base Map", "RGBA"), _MainTex, _Color);
-                    Foldouts[material].Show_MainTex = LitStyles.TextureFoldout(Foldouts[material].Show_MainTex);
-                    if(Foldouts[material].Show_MainTex){
+                    MaterialData[material].Show_MainTex = LitStyles.TextureFoldout(MaterialData[material].Show_MainTex);
+                    if(MaterialData[material].Show_MainTex){
                         LitStyles.PropertyGroup(() => {
                         m_MaterialEditor.TextureScaleOffsetProperty(_MainTex);
                         m_MaterialEditor.ShaderProperty(_MainTexUV, "UV");
@@ -152,9 +177,9 @@ namespace Lit
                     if (_MetallicGlossMap.textureValue) m_MaterialEditor.ShaderProperty(_Occlusion, "Occlusion");
 
                     m_MaterialEditor.TexturePropertySingleLine(new GUIContent("Mask Map", "Metallic(R), Occlusion(G), Detail Mask(B), Smoothness(A)"), _MetallicGlossMap);
-                    Foldouts[material].Show_MetallicGlossMap = LitStyles.TextureFoldout(Foldouts[material].Show_MetallicGlossMap);
+                    MaterialData[material].Show_MetallicGlossMap = LitStyles.TextureFoldout(MaterialData[material].Show_MetallicGlossMap);
                     LitStyles.sRGBWarning(_MetallicGlossMap);
-                    if(Foldouts[material].Show_MetallicGlossMap){
+                    if(MaterialData[material].Show_MetallicGlossMap){
                         LitStyles.PropertyGroup(() => {
                         m_MaterialEditor.TextureScaleOffsetProperty(_MetallicGlossMap);
                         m_MaterialEditor.ShaderProperty(_MetallicGlossMapUV, "UV");
@@ -162,8 +187,8 @@ namespace Lit
                     }
 
                     m_MaterialEditor.TexturePropertySingleLine(new GUIContent("Normal Map"), _BumpMap,  _BumpMap.textureValue ? _BumpScale : null);
-                    Foldouts[material].Show_BumpMap = LitStyles.TextureFoldout(Foldouts[material].Show_BumpMap);
-                    if(Foldouts[material].Show_BumpMap){
+                    MaterialData[material].Show_BumpMap = LitStyles.TextureFoldout(MaterialData[material].Show_BumpMap);
+                    if(MaterialData[material].Show_BumpMap){
                         LitStyles.PropertyGroup(() => {
                         m_MaterialEditor.TextureScaleOffsetProperty(_BumpMap);
                         m_MaterialEditor.ShaderProperty(_BumpMapUV, "UV");
@@ -174,8 +199,8 @@ namespace Lit
                     m_MaterialEditor.ShaderProperty(_EnableEmission, "Emission");
                     if(_EnableEmission.floatValue == 1){
                     m_MaterialEditor.TexturePropertySingleLine(new GUIContent("Color"), _EmissionMap, _EmissionColor);
-                    Foldouts[material].Show_EmissionMap = LitStyles.TextureFoldout(Foldouts[material].Show_EmissionMap);
-                    if(Foldouts[material].Show_EmissionMap){
+                    MaterialData[material].Show_EmissionMap = LitStyles.TextureFoldout(MaterialData[material].Show_EmissionMap);
+                    if(MaterialData[material].Show_EmissionMap){
                         LitStyles.PropertyGroup(() => {
                         m_MaterialEditor.TextureScaleOffsetProperty(_EmissionMap);
                         m_MaterialEditor.ShaderProperty(_EmissionMapUV, "UV");
@@ -195,19 +220,58 @@ namespace Lit
                 
             }
 
-            Foldouts[material].ShowSpecular = LitStyles.ShurikenFoldout("Specular", Foldouts[material].ShowSpecular);
-            if(Foldouts[material].ShowSpecular)
+            MaterialData[material].ShowSpecular = LitStyles.ShurikenFoldout("Specular", MaterialData[material].ShowSpecular);
+            if(MaterialData[material].ShowSpecular)
             {
-                m_MaterialEditor.ShaderProperty(_SpecularHighlights, "Specular Highlights");
+                EditorGUILayout.Space();
+                m_MaterialEditor.ShaderProperty(_GetDominantLight, "Get From");
+                m_MaterialEditor.ShaderProperty(_FresnelColor, "Fresnel");
+                m_MaterialEditor.ShaderProperty(_Reflectance, "Reflectance");
+                m_MaterialEditor.ShaderProperty(_AngularGlossiness, "Angular Smoothness");
+                m_MaterialEditor.ShaderProperty(_GSAA, "Geometric Specular AA");
+                if(_GSAA.floatValue == 1){
+                    LitStyles.PropertyGroup(() => {
+                    m_MaterialEditor.ShaderProperty(_specularAntiAliasingVariance, "Variance"); 
+                    m_MaterialEditor.ShaderProperty(_specularAntiAliasingThreshold, "Threshold"); 
+                    });
+                };
+                EditorGUILayout.Space();
                 m_MaterialEditor.ShaderProperty(_GlossyReflections, "Reflections");
+                m_MaterialEditor.ShaderProperty(_SpecularHighlights, "Specular Highlights");
+
+                EditorGUILayout.Space();
+
+            }
+
+            MaterialData[material].ShowBakedLight = LitStyles.ShurikenFoldout("Baked Light", MaterialData[material].ShowBakedLight);
+            if(MaterialData[material].ShowBakedLight)
+            {
+                EditorGUILayout.Space();
+                
+                m_MaterialEditor.ShaderProperty(_LightmapMultiplier, "Lightmap Multiplier");
+                m_MaterialEditor.ShaderProperty(_SpecularOcclusion, "Specular Occlusion");
+
+                EditorGUILayout.Space();
+                m_MaterialEditor.ShaderProperty(_BicubicLightmap, "Bicubic Lightmap Interpolation");
+                m_MaterialEditor.ShaderProperty(_LightProbeMethod, "Non-linear Light Probe SH");
+
+
+                EditorGUILayout.Space();
+
             }
 
 
-            Foldouts[material].ShowAdvanced = LitStyles.ShurikenFoldout("Advanced Options", Foldouts[material].ShowAdvanced);
-            if(Foldouts[material].ShowAdvanced)
+            MaterialData[material].ShowAdvanced = LitStyles.ShurikenFoldout("Advanced Options", MaterialData[material].ShowAdvanced);
+            if(MaterialData[material].ShowAdvanced)
             {
+                EditorGUILayout.Space();
+                m_MaterialEditor.ShaderProperty(_TonemappingMode, "Tonemapping");
+                if(_TonemappingMode.floatValue == 1) m_MaterialEditor.ShaderProperty(_Contribution, "Contribution");
+
+                EditorGUILayout.Space();
                 m_MaterialEditor.EnableInstancingField();
                 m_MaterialEditor.DoubleSidedGIField();
+                m_MaterialEditor.RenderQueueField();
             }
 
 
@@ -216,17 +280,23 @@ namespace Lit
         }
 
         public void ApplyChanges(Material m){
-           if(_ShaderOptimizerEnabled.floatValue == 0){
+            if(_ShaderOptimizerEnabled.floatValue == 0){
+            
 
-           // toggles
-           if(_MetallicGlossMap.textureValue) _EnablePackedMap.floatValue = 1; else _EnablePackedMap.floatValue = 0;
-           if(_BumpMap.textureValue) _EnableNormalMap.floatValue = 1; else _EnableNormalMap.floatValue = 0;
+            
 
+            if(_Mode.floatValue != 1) _AlphaToMask.floatValue = 0;
+           
+            // toggles
+            if(_BumpMap.textureValue) _EnableNormalMap.floatValue = 1; else _EnableNormalMap.floatValue = 0;
+           
+            // keywords
+            SetKeyword(m, "ENABLE_REFLECTIONS", _GlossyReflections.floatValue);
+            SetKeyword(m, "ENABLE_GSAA", _GSAA.floatValue);
+            SetKeyword(m, "ENABLE_SPECULAR_HIGHLIGHTS", _SpecularHighlights.floatValue);
+            SetKeyword(m, "ENABLE_BICUBIC_LIGHTMAP", _BicubicLightmap.floatValue);
 
-           // keywords
-           SetKeyword(m, "_GLOSSYREFLECTIONS_OFF", _GlossyReflections.floatValue);
-           SetKeyword(m, "_SPECULARHIGHLIGHTS_OFF", _SpecularHighlights.floatValue);
-
+            SetKeyword(m, "ENABLE_PACKED_MODE", _MetallicGlossMap.textureValue);
            
             }
         }
@@ -243,11 +313,11 @@ namespace Lit
 
         private void SetupFoldoutDictionary(Material material)
         {
-            if (Foldouts.ContainsKey(material))
+            if (MaterialData.ContainsKey(material))
                 return;
 
-            FoldoutToggles toggles = new FoldoutToggles();
-            Foldouts.Add(material, toggles);
+            PersistentData toggles = new PersistentData();
+            MaterialData.Add(material, toggles);
         }
 
         public void ShaderOptimizerButton(MaterialProperty shaderOptimizer, MaterialEditor materialEditor)
@@ -288,6 +358,7 @@ namespace Lit
                             MaterialProperty[] props = MaterialEditor.GetMaterialProperties(new UnityEngine.Object[] { m });
                             if (!ShaderOptimizer.Lock(m, props))
                                 m.SetFloat(shaderOptimizer.name, 0);
+                                m_FirstTimeApply = true;
                         }
                     }
                     else
@@ -295,8 +366,44 @@ namespace Lit
                         foreach (Material m in materialEditor.targets)
                             if (!ShaderOptimizer.Unlock(m))
                                 m.SetFloat(shaderOptimizer.name, 1);
+                                m_FirstTimeApply = true;
                     }
                 }
+            }
+        }
+
+        public void SetupMaterialWithBlendMode(Material material)
+        {
+            switch (_Mode.floatValue)
+            {
+                case 0:
+                    material.SetOverrideTag("RenderType", "");
+                    material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
+                    material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.Zero);
+                    material.SetInt("_ZWrite", 1);
+                    material.renderQueue = -1;
+                    break;
+                case 1:
+                    material.SetOverrideTag("RenderType", "TransparentCutout");
+                    material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
+                    material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.Zero);
+                    material.SetInt("_ZWrite", 1);
+                    material.renderQueue = (int)UnityEngine.Rendering.RenderQueue.AlphaTest;
+                    break;
+                case 2:
+                    material.SetOverrideTag("RenderType", "Transparent");
+                    material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
+                    material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+                    material.SetInt("_ZWrite", 0);
+                    material.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
+                    break;
+                case 3:
+                    material.SetOverrideTag("RenderType", "Transparent");
+                    material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
+                    material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+                    material.SetInt("_ZWrite", 0);
+                    material.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
+                    break;
             }
         }
 

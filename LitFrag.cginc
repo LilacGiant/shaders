@@ -96,7 +96,7 @@ half4 frag(v2f i) : SV_Target
     #ifndef SHADER_API_MOBILE
     worldNormal = normalize(worldNormal);
     #endif
-    #if defined(_GLOSSYREFLECTIONS_OFF) || defined(_SPECULARHIGHLIGHTS_OFF) || defined (ENABLE_NORMALMAP)
+    #if defined(ENABLE_REFLECTIONS) || defined(ENABLE_SPECULAR_HIGHLIGHTS) || defined (ENABLE_NORMALMAP)
     half3 tangent = i.tangent;
     half3 bitangent = i.bitangent;
     #endif
@@ -132,20 +132,7 @@ perceptualRoughness = GSAA_Filament(worldNormal, perceptualRoughness);
     float NoV = abs(dot(worldNormal, viewDir)) + 1e-5;
     half3 halfVector = normalize(lightDir + viewDir);
     float LoH = saturate(dot(lightDir, halfVector));
-
-
-
-UNITY_LIGHT_ATTENUATION(attenuation, i, i.worldPos.xyz);
-
-#if defined(SHADOWS_SCREEN) && defined(UNITY_PASS_FORWARDBASE) && !defined(SHADER_API_MOBILE) && defined(_SUNDISK_NONE) // fix screen space shadow arficats from msaa
-attenuation = SSDirectionalShadowAA(i._ShadowCoord, _CameraDepthTexture, _CameraDepthTexture_TexelSize, _ShadowMapTexture, attenuation);
-#endif
-
-
-
-    
-    
-
+    UNITY_LIGHT_ATTENUATION(attenuation, i, i.worldPos.xyz);
 
 
     
@@ -207,7 +194,7 @@ half3 col = directDiffuse;
 
 
 
-#if defined(_GLOSSYREFLECTIONS_OFF) || defined(_SPECULARHIGHLIGHTS_OFF)
+#if defined(ENABLE_REFLECTIONS) || defined(ENABLE_SPECULAR_HIGHLIGHTS)
 half3 f0 = 0.16 * reflectance * reflectance * oneMinusMetallic + diffuse * metallic;
 half3 fresnel = F_Schlick(f0, NoV);
 
@@ -228,7 +215,7 @@ perceptualRoughness = lerp(saturate(perceptualRoughness * (1-_AngularGlossiness 
 #endif
 
         
-#ifdef _GLOSSYREFLECTIONS_OFF // reflections
+#ifdef ENABLE_REFLECTIONS // reflections
 float3 worldPos = i.worldPos;
 half3 reflViewDir = reflect(-viewDir, worldNormal);
 half3 indirectSpecular = getIndirectSpecular(metallic, perceptualRoughness, reflViewDir, worldPos, directDiffuse, worldNormal) * lerp(fresnel, f0, perceptualRoughness);
@@ -238,34 +225,22 @@ indirectSpecular *= computeSpecularAO(NoV, occlusion, roughness);
 col += indirectSpecular;
 #endif
 
+
     
-#ifdef _SPECULARHIGHLIGHTS_OFF // specular highlights
+#ifdef ENABLE_SPECULAR_HIGHLIGHTS // specular highlights
 float NoH = saturate(dot(worldNormal, halfVector));
 half3 directSpecular = getDirectSpecular(perceptualRoughness, NoH, NoV, NoL, LoH, f0) * light;
 col += directSpecular;
 #endif
 
 
-#ifdef ENABLE_EMISSION
+
 UNITY_BRANCH
-if(_EnableEmission==1)
-    col += _EmissionMap.Sample(sampler_MainTex, TRANSFORM_MAINTEX(uvs[_EmissionMapUV], _EmissionMap)) * _EmissionColor;
-#endif
+if(_EnableEmission==1) col += _EmissionMap.Sample(sampler_MainTex, TRANSFORM_MAINTEX(uvs[_EmissionMapUV], _EmissionMap)) * _EmissionColor.rgb;
 
 
-
-
-
-
-    UNITY_BRANCH
-    switch(_TonemappingMode){
-        case 1:
-            col.rgb = lerp(col.rgb, ACESFilm(col.rgb), _Contribution);
-            break;
-        case 2:
-            col.rgb = lerp(col.rgb, LUTColorGrading(col.rgb), _Contribution);
-            break; 
-    }
+UNITY_BRANCH
+if(_TonemappingMode) col.rgb = lerp(col.rgb, ACESFilm(col.rgb), _Contribution);
 
 
 return half4(col , alpha);
