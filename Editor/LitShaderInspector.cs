@@ -78,6 +78,8 @@ namespace Shaders.Lit
         MaterialProperty shaderOptimizer;
         bool[] propertyAnimated;
 
+        public static Texture2D groupTex;
+
         
 
         public void FindProperties(MaterialProperty[] props)
@@ -105,6 +107,7 @@ namespace Shaders.Lit
             // Do this before any GUI code has been issued to prevent layout issues in subsequent GUILayout statements (case 780071)
             if (m_FirstTimeApply)
             {
+                groupTex = (Texture2D)Resources.Load("lit_group", typeof(Texture2D));
                 
 
                 // Clear all keywords to begin with, in case there are conflicts with different shaders
@@ -126,7 +129,7 @@ namespace Shaders.Lit
                         propertyAnimated[i] = (animProp.floatValue == 1);
                 }
 
-
+                
                 ApplyChanges(material);
                 m_FirstTimeApply = false;
             }
