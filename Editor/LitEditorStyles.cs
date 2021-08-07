@@ -4,10 +4,10 @@ using UnityEngine;
 using System.IO;
 using System;
 
-namespace Lit
+namespace Shaders.Lit
 {
     [InitializeOnLoad]
-    public class LitStyles : MonoBehaviour
+    public class Styles : MonoBehaviour
     {
         readonly static Texture2D groupTex = (Texture2D)Resources.Load("lit_group", typeof(Texture2D));
 
