@@ -9,7 +9,6 @@ namespace Shaders.Lit
     [InitializeOnLoad]
     public class Styles : MonoBehaviour
     {
-        readonly static Texture2D groupTex = (Texture2D)Resources.Load("lit_group", typeof(Texture2D));
 
         public static bool TextureFoldout(bool display)
         {
@@ -59,7 +58,7 @@ namespace Shaders.Lit
             var rect2 = new Rect(rect.x + -20f, rect.y, rect.width + 30f, rect.height+2);
             var rectText = new Rect(rect.x -8f, rect.y+1, rect.width, rect.height);
 
-            GUI.DrawTexture(rect2, groupTex);
+            GUI.DrawTexture(rect2, ShaderEditor.groupTex);
             GUI.Label(rectText, title, style);
             return rect2;
         }

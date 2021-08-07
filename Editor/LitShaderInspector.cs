@@ -77,6 +77,7 @@ namespace Shaders.Lit
         //bool afterShaderOptimizerButton = false;
         MaterialProperty shaderOptimizer;
         bool[] propertyAnimated;
+        public static Texture2D groupTex = (Texture2D)Resources.Load("lit_group", typeof(Texture2D));
 
         
 
