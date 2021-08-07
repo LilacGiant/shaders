@@ -6,7 +6,7 @@ using System.Linq;
 using System;
 using System.Reflection;
 
-namespace Shaders.Lit
+namespace Lit
 {
     public partial class PersistentData
     {
@@ -147,7 +147,7 @@ namespace Shaders.Lit
             {
 
                 EditorGUI.indentLevel++;
-                MaterialData[material].ShowSurfaceInputs = Styles.ShurikenFoldout("Surface Inputs", MaterialData[material].ShowSurfaceInputs);
+                MaterialData[material].ShowSurfaceInputs = LitStyles.ShurikenFoldout("Surface Inputs", MaterialData[material].ShowSurfaceInputs);
                 if(MaterialData[material].ShowSurfaceInputs)
                 {
                     EditorGUILayout.Space();
@@ -163,9 +163,9 @@ namespace Shaders.Lit
                     
                     
                     m_MaterialEditor.TexturePropertySingleLine(new GUIContent("Base Map", "RGBA"), _MainTex, _Color);
-                    MaterialData[material].Show_MainTex = Styles.TextureFoldout(MaterialData[material].Show_MainTex);
+                    MaterialData[material].Show_MainTex = LitStyles.TextureFoldout(MaterialData[material].Show_MainTex);
                     if(MaterialData[material].Show_MainTex){
-                        Styles.PropertyGroup(() => {
+                        LitStyles.PropertyGroup(() => {
                         m_MaterialEditor.TextureScaleOffsetProperty(_MainTex);
                         m_MaterialEditor.ShaderProperty(_MainTexUV, "UV");
                         m_MaterialEditor.ShaderProperty(_Saturation, "Saturation");
@@ -177,19 +177,19 @@ namespace Shaders.Lit
                     if (_MetallicGlossMap.textureValue) m_MaterialEditor.ShaderProperty(_Occlusion, "Occlusion");
 
                     m_MaterialEditor.TexturePropertySingleLine(new GUIContent("Mask Map", "Metallic(R), Occlusion(G), Detail Mask(B), Smoothness(A)"), _MetallicGlossMap);
-                    MaterialData[material].Show_MetallicGlossMap = Styles.TextureFoldout(MaterialData[material].Show_MetallicGlossMap);
-                    Styles.sRGBWarning(_MetallicGlossMap);
+                    MaterialData[material].Show_MetallicGlossMap = LitStyles.TextureFoldout(MaterialData[material].Show_MetallicGlossMap);
+                    LitStyles.sRGBWarning(_MetallicGlossMap);
                     if(MaterialData[material].Show_MetallicGlossMap){
-                        Styles.PropertyGroup(() => {
+                        LitStyles.PropertyGroup(() => {
                         m_MaterialEditor.TextureScaleOffsetProperty(_MetallicGlossMap);
                         m_MaterialEditor.ShaderProperty(_MetallicGlossMapUV, "UV");
                         });
                     }
 
                     m_MaterialEditor.TexturePropertySingleLine(new GUIContent("Normal Map"), _BumpMap,  _BumpMap.textureValue ? _BumpScale : null);
-                    MaterialData[material].Show_BumpMap = Styles.TextureFoldout(MaterialData[material].Show_BumpMap);
+                    MaterialData[material].Show_BumpMap = LitStyles.TextureFoldout(MaterialData[material].Show_BumpMap);
                     if(MaterialData[material].Show_BumpMap){
-                        Styles.PropertyGroup(() => {
+                        LitStyles.PropertyGroup(() => {
                         m_MaterialEditor.TextureScaleOffsetProperty(_BumpMap);
                         m_MaterialEditor.ShaderProperty(_BumpMapUV, "UV");
                         m_MaterialEditor.ShaderProperty(_NormalMapOrientation, "Orientation");
@@ -199,9 +199,9 @@ namespace Shaders.Lit
                     m_MaterialEditor.ShaderProperty(_EnableEmission, "Emission");
                     if(_EnableEmission.floatValue == 1){
                     m_MaterialEditor.TexturePropertySingleLine(new GUIContent("Color"), _EmissionMap, _EmissionColor);
-                    MaterialData[material].Show_EmissionMap = Styles.TextureFoldout(MaterialData[material].Show_EmissionMap);
+                    MaterialData[material].Show_EmissionMap = LitStyles.TextureFoldout(MaterialData[material].Show_EmissionMap);
                     if(MaterialData[material].Show_EmissionMap){
-                        Styles.PropertyGroup(() => {
+                        LitStyles.PropertyGroup(() => {
                         m_MaterialEditor.TextureScaleOffsetProperty(_EmissionMap);
                         m_MaterialEditor.ShaderProperty(_EmissionMapUV, "UV");
                         
@@ -220,7 +220,7 @@ namespace Shaders.Lit
                 
             }
 
-            MaterialData[material].ShowSpecular = Styles.ShurikenFoldout("Specular", MaterialData[material].ShowSpecular);
+            MaterialData[material].ShowSpecular = LitStyles.ShurikenFoldout("Specular", MaterialData[material].ShowSpecular);
             if(MaterialData[material].ShowSpecular)
             {
                 EditorGUILayout.Space();
@@ -230,7 +230,7 @@ namespace Shaders.Lit
                 m_MaterialEditor.ShaderProperty(_AngularGlossiness, "Angular Smoothness");
                 m_MaterialEditor.ShaderProperty(_GSAA, "Geometric Specular AA");
                 if(_GSAA.floatValue == 1){
-                    Styles.PropertyGroup(() => {
+                    LitStyles.PropertyGroup(() => {
                     m_MaterialEditor.ShaderProperty(_specularAntiAliasingVariance, "Variance"); 
                     m_MaterialEditor.ShaderProperty(_specularAntiAliasingThreshold, "Threshold"); 
                     });
@@ -243,7 +243,7 @@ namespace Shaders.Lit
 
             }
 
-            MaterialData[material].ShowBakedLight = Styles.ShurikenFoldout("Baked Light", MaterialData[material].ShowBakedLight);
+            MaterialData[material].ShowBakedLight = LitStyles.ShurikenFoldout("Baked Light", MaterialData[material].ShowBakedLight);
             if(MaterialData[material].ShowBakedLight)
             {
                 EditorGUILayout.Space();
@@ -261,7 +261,7 @@ namespace Shaders.Lit
             }
 
 
-            MaterialData[material].ShowAdvanced = Styles.ShurikenFoldout("Advanced Options", MaterialData[material].ShowAdvanced);
+            MaterialData[material].ShowAdvanced = LitStyles.ShurikenFoldout("Advanced Options", MaterialData[material].ShowAdvanced);
             if(MaterialData[material].ShowAdvanced)
             {
                 EditorGUILayout.Space();
