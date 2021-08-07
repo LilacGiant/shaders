@@ -22,7 +22,7 @@ using System.Reflection;
 
 // v11
 
-namespace Lit
+namespace Shaders.Lit
 {
     
     public enum LightMode
