@@ -3,6 +3,7 @@
 
 half4 frag(v2f i) : SV_Target
 {
+
     uvs[0] = i.uv0;
     uvs[1] = i.uv1;
     uvs[2] = i.uv2;
@@ -10,21 +11,21 @@ half4 frag(v2f i) : SV_Target
 
     half4 mainTex = _MainTex.Sample(sampler_MainTex, TRANSFORM_TEX(uvs[_MainTexUV], _MainTex));
 
-    half intensity = dot(mainTex, grayscaleVec);
+    half intensity = dot(mainTex, grayscaleVec); // saturation
     mainTex.rgb = lerp(intensity, mainTex, (_Saturation+1));
 
 
-    half4 albedo = mainTex * (_Color+0.000001); // unity please give me my main tex sampler
+    half4 albedo = mainTex * _Color; // unity please give me my main tex sampler
 
+    half4 vertexColor = 1;
 
     #ifdef ENABLE_VERTEXCOLOR
-    half3 vertexColor;
+    vertexColor = i.color;
     UNITY_BRANCH
-    if(_EnableVertexColor){
-        vertexColor = GammaToLinearSpace(i.color);
-        albedo.rgb *= vertexColor;
-    }
+    if(_EnableVertexColor) albedo.rgb *= GammaToLinearSpace(vertexColor);
     #endif
+
+    
     
     half alpha = 1;
     #ifdef ENABLE_TRANSPARENCY
@@ -61,6 +62,8 @@ half4 frag(v2f i) : SV_Target
     half smoothnessMap = packedTex.a;
     half occlusionMap = packedTex.g;
     isRoughness = 0;
+
+
     #endif
 
     half perceptualRoughness = _Glossiness;
@@ -82,6 +85,8 @@ half4 frag(v2f i) : SV_Target
     
     #ifdef ENABLE_OCCLUSIONMAP
     half occlusion = lerp(1,occlusionMap , _Occlusion);
+    #else
+    half occlusion = _Occlusion;
     #endif
 
     half reflectance = _Reflectance;
@@ -89,6 +94,12 @@ half4 frag(v2f i) : SV_Target
     half roughness = perceptualRoughness*perceptualRoughness;
     
     albedo.rgb *= oneMinusMetallic;
+
+    if(_EnableVertexColorMask){
+        metallic *= vertexColor.r;
+        perceptualRoughness *= vertexColor.a;
+        occlusion *= vertexColor.g;
+    }
     
     
     
@@ -104,7 +115,7 @@ half4 frag(v2f i) : SV_Target
 
     #ifdef ENABLE_NORMALMAP
     #if !defined(OPTIMIZER_ENABLED)
-    if(_EnableNormalMap==0) _BumpScale = 0;
+    _BumpScale = _EnableNormalMap ? _BumpScale : 0;
     #endif
     
     half4 normalMap = _BumpMap.Sample(sampler_BumpMap, TRANSFORM_MAINTEX(uvs[_BumpMapUV], _BumpMap));
@@ -112,7 +123,9 @@ half4 frag(v2f i) : SV_Target
     #endif
 
 #if defined(ENABLE_GSAA) && !defined(SHADER_API_MOBILE)
+#if defined(ENABLE_SPECULAR_HIGHLIGHTS) || defined(ENABLE_REFLECTIONS)
 perceptualRoughness = GSAA_Filament(worldNormal, perceptualRoughness);
+#endif 
 #endif
     
 
@@ -206,6 +219,7 @@ if(_SpecularOcclusion > 0){
     half specMultiplier = saturate(lerp(1, pow(length(lightMap), _SpecularOcclusion), _SpecularOcclusion)); // lightmap occlusion
     fresnel *= specMultiplier;
 }
+
 #endif
 
 fresnel *= _FresnelColor.rgb; //fresnel color
@@ -235,15 +249,15 @@ col += directSpecular;
 
 
 
-UNITY_BRANCH
-if(_EnableEmission==1) col += _EmissionMap.Sample(sampler_MainTex, TRANSFORM_MAINTEX(uvs[_EmissionMapUV], _EmissionMap)) * _EmissionColor.rgb;
+col.rgb = _EnableEmission ? col.rgb + _EmissionMap.Sample(sampler_MainTex, TRANSFORM_MAINTEX(uvs[_EmissionMapUV], _EmissionMap)) * _EmissionColor.rgb : col.rgb;
 
 
-UNITY_BRANCH
-if(_TonemappingMode) col.rgb = lerp(col.rgb, ACESFilm(col.rgb), _Contribution);
+
+col.rgb = _TonemappingMode ? lerp(col.rgb, ACESFilm(col.rgb), _Contribution) : col.rgb;
 
 
-return half4(col , alpha);
+alpha += mainTex.a * 0.00001; // fix main tex sampler without changing the color at all;
+return half4(col, alpha);
 }
 
 fixed4 ShadowCasterfrag(v2f i) : SV_Target
@@ -252,8 +266,8 @@ fixed4 ShadowCasterfrag(v2f i) : SV_Target
 
     #ifdef ENABLE_TRANSPARENCY
     alpha = calcAlpha(_Cutoff,alpha,_Mode);
+    if(_Mode > 1) clip(alpha-0.5);
     #endif
-    //return alpha;
     SHADOW_CASTER_FRAGMENT(i);
 }
 

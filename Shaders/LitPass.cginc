@@ -50,7 +50,8 @@ struct v2f
     half4 color : COLOR;
     #endif
 
-    UNITY_VERTEX_OUTPUT_STEREO
+    UNITY_VERTEX_INPUT_INSTANCE_ID
+	UNITY_VERTEX_OUTPUT_STEREO
 };
 
 #include "LitVert.cginc"

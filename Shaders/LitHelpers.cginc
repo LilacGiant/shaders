@@ -18,14 +18,8 @@ float calcAlpha(float cutoff, float alpha, float mode)
 
 void initBumpedNormalTangentBitangent(float4 normalMap, inout float3 bitangent, inout float3 tangent, inout float3 normal, float3 nScale, float orientation)
 {
-    UNITY_BRANCH
-    switch(orientation){
-        case 0:
-            normalMap.g = 1- normalMap.g;
-            break;
-        case 1:
-            break; 
-    }
+
+    normalMap.g = orientation ? normalMap.g : 1-normalMap.g;
     
     float3 tangentNormal = UnpackScaleNormal(normalMap, nScale);
 

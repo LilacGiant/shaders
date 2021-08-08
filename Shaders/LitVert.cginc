@@ -9,6 +9,7 @@ v2f vert(appdata v)
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
     
     o.pos = UnityObjectToClipPos(v.vertex);
+
     o.uv0 = v.uv0;
     o.uv1 = v.uv1;
     o.uv2 = v.uv2;

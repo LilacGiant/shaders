@@ -39,6 +39,7 @@ uniform half _Occlusion;
 UNITY_DECLARE_TEX2D_NOSAMPLER(_MetallicGlossMap);
 uniform float _MetallicGlossMapUV;
 uniform float4 _MetallicGlossMap_ST;
+uniform half _EnableVertexColorMask;
 
 
 uniform half _specularAntiAliasingVariance;
@@ -109,10 +110,9 @@ uniform half _Contribution;
 #endif
 
 
-#if (PROP_ENABLEVERTEXCOLOR==1) || !defined(OPTIMIZER_ENABLED)
+#if (PROP_ENABLEVERTEXCOLOR==1) || (PROP_ENABLEVERTEXCOLORMASK==1) || !defined(OPTIMIZER_ENABLED)
 #define ENABLE_VERTEXCOLOR
 #endif
-
 
 
 
