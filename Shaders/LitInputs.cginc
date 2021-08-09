@@ -92,20 +92,19 @@ uniform half _Contribution;
 #endif
 
 
-// optimizer toggles
-#if (PROP_ENABLENORMALMAP==1) || !defined(OPTIMIZER_ENABLED)
+#if defined(PROP_BUMPMAP) || !defined(OPTIMIZER_ENABLED)
 #define ENABLE_NORMALMAP
 #endif
 
-#if (PROP_ENABLEMETALLICMAP==1) || !defined(OPTIMIZER_ENABLED)
+#if defined(PROP_METALLICMAP) || !defined(OPTIMIZER_ENABLED)
 #define ENABLE_METALLICMAP
 #endif
 
-#if (PROP_ENABLEROUGHNESSMAP==1) || !defined(OPTIMIZER_ENABLED)
+#if defined(PROP_SMOOTHNESSMAP) || !defined(OPTIMIZER_ENABLED)
 #define ENABLE_SMOOTHNESSMAP
 #endif
 
-#if (PROP_ENABLEOCCLUSION==1) || !defined(OPTIMIZER_ENABLED)
+#if defined(PROP_OCCLUSIONMAP) || !defined(OPTIMIZER_ENABLED)
 #define ENABLE_OCCLUSIONMAP
 #endif
 

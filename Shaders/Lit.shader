@@ -50,28 +50,17 @@ Shader " Lit"
         [HideInInspector] [ToggleUI] _EnableVertexColorMask ("Vertex Colors Mulitply", Float) = 0
 
 
-        [HideInInspector] [ToggleUI] _EnableRoughnessMap ("Enable Roughness Map", Float) = 0
-        [sRGBWarning] _SmoothnessMap ("Smoothness Map--{condition_show:{type:PROPERTY_BOOL,data:_EnablePackedMode==0},reference_properties:[_SmoothnessMapUV,_GlossinessInvert],on_value_actions:[{value:0,actions:[{type:SET_PROPERTY,data:_EnableRoughnessMap=0}]},{value:1,actions:[{type:SET_PROPERTY,data:_EnableRoughnessMap=1}]}]} ", 2D) = "white" {}
-        
+        [sRGBWarning] _SmoothnessMap ("Smoothness Map--{condition_show:{type:PROPERTY_BOOL,data:_EnablePackedMode==0},reference_properties:[_SmoothnessMapUV,_GlossinessInvert]}", 2D) = "white" {}
         [HideInInspector] [Enum(UV0, 0, UV1 (Lightmap), 1, UV2, 2)] _SmoothnessMapUV ("UV", Int) = 0
         [HideInInspector] [ToggleUI] _GlossinessInvert ("Invert", Float) = 0
 
-        
-        [HideInInspector] [ToggleUI] _EnableMetallicMap ("Enable Metallic Map", Float) = 0
-        [sRGBWarning] _MetallicMap ("Metallic Map--{condition_show:{type:PROPERTY_BOOL,data:_EnablePackedMode==0},reference_properties:[_MetallicMapUV],on_value_actions:[{value:0,actions:[{type:SET_PROPERTY,data:_EnableMetallicMap=0}]},{value:1,actions:[{type:SET_PROPERTY,data:_EnableMetallicMap=1}]}]} ", 2D) = "white" {}
-        
+        [sRGBWarning] _MetallicMap ("Metallic Map--{condition_show:{type:PROPERTY_BOOL,data:_EnablePackedMode==0},reference_properties:[_MetallicMapUV]}", 2D) = "white" {}
         [HideInInspector] [Enum(UV0, 0, UV1 (Lightmap), 1, UV2, 2)] _MetallicMapUV ("UV", Int) = 0
-        
 
-        
-
-        [HideInInspector] [ToggleUI] _EnableOcclusion("Occlusion", Float) = 0
-        [sRGBWarning] _OcclusionMap ("Occlusion Map--{condition_show:{type:PROPERTY_BOOL,data:_EnablePackedMode==0},reference_properties:[_OcclusionMapUV],on_value_actions:[{value:0,actions:[{type:SET_PROPERTY,data:_EnableOcclusion=0}]},{value:1,actions:[{type:SET_PROPERTY,data:_EnableOcclusion=1}]}]} ", 2D) = "white" {}
-        
+        [sRGBWarning] _OcclusionMap ("Occlusion Map--{condition_show:{type:PROPERTY_BOOL,data:_EnablePackedMode==0},reference_properties:[_OcclusionMapUV]}", 2D) = "white" {}
         [HideInInspector] [Enum(UV0, 0, UV1 (Lightmap), 1, UV2, 2)] _OcclusionMapUV ("UV", Int) = 0
 
-        [HideInInspector] [ToggleUI] _EnableNormalMap ("Enable Normal Map", Float) = 0
-        [Normal] _BumpMap ("Normal Map--{reference_property:_BumpScale,reference_properties:[_BumpMapUV,_NormalMapOrientation],on_value_actions:[{value:0,actions:[{type:SET_PROPERTY,data:_EnableNormalMap=0}]},{value:1,actions:[{type:SET_PROPERTY,data:_EnableNormalMap=1}]}]} ", 2D) = "bump" {}
+        [Normal] _BumpMap ("Normal Map--{reference_property:_BumpScale,reference_properties:[_BumpMapUV,_NormalMapOrientation]}", 2D) = "bump" {}
         [HideInInspector] _BumpScale ("Bump Scale", Range(0,10)) = 1
         [HideInInspector] [Enum(OpenGL, 0, Direct3D, 1)] _NormalMapOrientation ("Orientation", Int) = 0
         [HideInInspector] [Enum(UV0, 0, UV1 (Lightmap), 1, UV2, 2)] _BumpMapUV ("UV", Int) = 0
@@ -139,6 +128,9 @@ Shader " Lit"
         _Contribution ("Contribution", Range(0, 1)) = 1
         [HideInInspector] m_end_PP ("", Float) = 0
 
+        [ToggleUI] _commentIfOne_DisableShadowCaster ("Disable ShadowCaster Pass", float) = 0
+        [ToggleUI] _commentIfOne_DisableAddPass ("Disable ForwardAdd Pass", float) = 0
+
         [Toggle(ENABLE_PACKED_MODE)] _EnablePackedMode ("Packed Mode", Float) = 1       
 
         [Enum(Off, 0, On, 1)] _ZWrite ("ZWrite", Int) = 1
@@ -200,7 +192,7 @@ Shader " Lit"
             ENDCG
         }
 
-
+//DisableAddPass
         Pass
         {
             Name "FWDADD"
@@ -233,7 +225,9 @@ Shader " Lit"
             #include "LitPass.cginc"
             ENDCG
         }
+//DisableAddPass
 
+//DisableShadowCaster
         Pass
         {
             Name "ShadowCaster"
@@ -263,8 +257,7 @@ Shader " Lit"
             #include "LitPass.cginc"
             ENDCG
         }
-
-        
+//DisableShadowCaster 
 
     }
 
@@ -310,7 +303,7 @@ Shader " Lit"
             ENDCG
         }
 
-
+//DisableAddPass
         Pass
         {
             Name "FWDADD"
@@ -343,7 +336,9 @@ Shader " Lit"
             #include "LitPass.cginc"
             ENDCG
         }
+//DisableAddPass
 
+//DisableShadowCaster
         Pass
         {
             Name "ShadowCaster"
@@ -373,10 +368,10 @@ Shader " Lit"
             #include "LitPass.cginc"
             ENDCG
         }
-        
+//DisableShadowCaster
 
     }
 
-    FallBack "Diffuse"
+    //FallBack "Diffuse"
     CustomEditor "Thry.ShaderEditor"
 }

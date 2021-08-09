@@ -114,19 +114,11 @@ half4 frag(v2f i) : SV_Target
 
 
     #ifdef ENABLE_NORMALMAP
-    #if !defined(OPTIMIZER_ENABLED)
-    _BumpScale = _EnableNormalMap ? _BumpScale : 0;
-    #endif
-    
     half4 normalMap = _BumpMap.Sample(sampler_BumpMap, TRANSFORM_MAINTEX(uvs[_BumpMapUV], _BumpMap));
     initBumpedNormalTangentBitangent(normalMap, bitangent, tangent, worldNormal, _BumpScale, _NormalMapOrientation);
     #endif
 
-#if defined(ENABLE_GSAA) && !defined(SHADER_API_MOBILE)
-#if defined(ENABLE_SPECULAR_HIGHLIGHTS) || defined(ENABLE_REFLECTIONS)
-perceptualRoughness = GSAA_Filament(worldNormal, perceptualRoughness);
-#endif 
-#endif
+
     
 
 
@@ -226,6 +218,11 @@ fresnel *= _FresnelColor.rgb; //fresnel color
 fresnel = lerp(f0, fresnel , _FresnelColor.a); // kill fresnel
 
 perceptualRoughness = lerp(saturate(perceptualRoughness * (1-_AngularGlossiness * fresnel)), perceptualRoughness,  perceptualRoughness);  // roughness fresnel
+
+#if defined(ENABLE_GSAA) && !defined(SHADER_API_MOBILE)
+perceptualRoughness = GSAA_Filament(worldNormal, perceptualRoughness);
+#endif
+
 #endif
 
         
