@@ -45,8 +45,10 @@ Shader " Lit"
 
         
         [HideInInspector] [ToggleUI] _EnablePackedMap ("Enable Roughness Map ", Float) = 0
-        [sRGBWarning] _MetallicGlossMap ("Mask Map--{tooltip:Metallic(R) Occlusion(G) Detail Mask(B) Smoothness(A),reference_properties:[_MetallicGlossMapUV],condition_show:{type:PROPERTY_BOOL,data:_EnablePackedMode==1},on_value_actions:[{value:0,actions:[{type:SET_PROPERTY,data:_EnablePackedMap=0}]},{value:1,actions:[{type:SET_PROPERTY,data:_EnablePackedMap=1}]}]} ", 2D) = "white" {}
+        [sRGBWarning] _MetallicGlossMap ("Mask Map--{tooltip:Metallic(R) Occlusion(G) Detail Mask(B) Smoothness(A),reference_properties:[_MetallicGlossMapUV,_EnableVertexColorMask],condition_show:{type:PROPERTY_BOOL,data:_EnablePackedMode==1},on_value_actions:[{value:0,actions:[{type:SET_PROPERTY,data:_EnablePackedMap=0}]},{value:1,actions:[{type:SET_PROPERTY,data:_EnablePackedMap=1}]}]} ", 2D) = "white" {}
         [HideInInspector] [Enum(UV0, 0, UV1 (Lightmap), 1, UV2, 2)] _MetallicGlossMapUV ("UV", Int) = 0
+        [HideInInspector] [ToggleUI] _EnableVertexColorMask ("Vertex Colors Mulitply", Float) = 0
+
 
         [HideInInspector] [ToggleUI] _EnableRoughnessMap ("Enable Roughness Map", Float) = 0
         [sRGBWarning] _SmoothnessMap ("Smoothness Map--{condition_show:{type:PROPERTY_BOOL,data:_EnablePackedMode==0},reference_properties:[_SmoothnessMapUV,_GlossinessInvert],on_value_actions:[{value:0,actions:[{type:SET_PROPERTY,data:_EnableRoughnessMap=0}]},{value:1,actions:[{type:SET_PROPERTY,data:_EnableRoughnessMap=1}]}]} ", 2D) = "white" {}
@@ -90,7 +92,7 @@ Shader " Lit"
 
         [Toggle(ENABLE_GSAA)] _GSAA ("Geometric Specular AA", Float) = 0
 
-        [PowerSlider(3)] _specularAntiAliasingVariance ("Variance--{condition_show:{type:PROPERTY_BOOL,data:_GSAA==1}}", Range(0.0, 1.0)) = 0.01
+        [PowerSlider(3)] _specularAntiAliasingVariance ("Variance--{condition_show:{type:PROPERTY_BOOL,data:_GSAA==1}}", Range(0.0, 1.0)) = 0.15
         [PowerSlider(3)] _specularAntiAliasingThreshold ("Threshold--{condition_show:{type:PROPERTY_BOOL,data:_GSAA==1}}", Range(0.0, 1.0)) = 0.1
         
         [Space(10)]
