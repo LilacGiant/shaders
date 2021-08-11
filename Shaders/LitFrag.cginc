@@ -172,9 +172,10 @@ half4 frag(v2f i) : SV_Target
 
 #if defined(ENABLE_REFLECTIONS) || defined(ENABLE_SPECULAR_HIGHLIGHTS)
 
-    half3 f0 = 0.16 * _Reflectance * _Reflectance * 1-metallic + diffuse * metallic;
-    half3 fresnel = F_Schlick(f0, NoV) * _FresnelColor.rgb;
+    half3 f0 = 0.16 * _Reflectance * _Reflectance * (1 - metallic) + diffuse * metallic;
+    half3 fresnel = F_Schlick(f0, NoV);
     fresnel = lerp(f0, fresnel , _FresnelColor.a); // kill fresnel
+    fresnel *= _FresnelColor.rgb;
 
     #if defined(LIGHTMAP_ON)
         fresnel *= _SpecularOcclusion ? saturate(lerp(1, pow(length(lightMap), _SpecularOcclusion), _SpecularOcclusion)) : 1; // lightmap occlusion
