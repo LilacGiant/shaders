@@ -30,6 +30,8 @@ half4 frag(v2f i) : SV_Target
     if(_Mode!=1 && _Mode!=0) albedo.rgb *= _Color.a;
 
     #endif
+
+    half3 diffuse = albedo.rgb;
     
 
     half isRoughness = _GlossinessInvert;
@@ -170,7 +172,7 @@ half4 frag(v2f i) : SV_Target
 
 #if defined(ENABLE_REFLECTIONS) || defined(ENABLE_SPECULAR_HIGHLIGHTS)
 
-    half3 f0 = 0.16 * _Reflectance * _Reflectance * 1-metallic + albedo * metallic;
+    half3 f0 = 0.16 * _Reflectance * _Reflectance * 1-metallic + diffuse * metallic;
     half3 fresnel = F_Schlick(f0, NoV) * _FresnelColor.rgb;
     fresnel = lerp(f0, fresnel , _FresnelColor.a); // kill fresnel
 
