@@ -35,7 +35,7 @@ struct v2f
     float2 uv1 : TEXCOORD1;
     float2 uv2 : TEXCOORD2;
 
-    #if defined(ENABLE_REFLECTIONS) || defined(ENABLE_SPECULAR_HIGHLIGHTS) || defined (ENABLE_NORMALMAP)
+    #if defined(ENABLE_REFLECTIONS) || defined(ENABLE_SPECULAR_HIGHLIGHTS) || defined (PROP_BUMPMAP)
     float3 bitangent : TEXCOORD3;
     float3 tangent : TEXCOORD4;
     #endif

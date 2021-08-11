@@ -3,6 +3,9 @@
 
 
 uniform float2 uvs[3];
+uniform half _Cutoff;
+uniform float _Mode;
+
 UNITY_DECLARE_TEX2D(_MainTex);
 uniform float _MainTexUV;
 uniform float4 _MainTex_ST;
@@ -51,8 +54,6 @@ uniform float _GetDominantLight;
 uniform half _Reflectance;
 uniform half _ExposureOcclusion;
 
-uniform half _Cutoff;
-uniform float _Mode;
 
 uniform half _LightmapMultiplier;
 uniform float _SpecularOcclusion;
@@ -70,20 +71,18 @@ uniform float _ParallaxSteps;
 uniform float _ParallaxOffset;
 uniform float _Parallax;
 
-//sampler2D_float _CameraDepthTexture;
-//float4 _CameraDepthTexture_TexelSize;
+sampler2D_float _CameraDepthTexture;
+float4 _CameraDepthTexture_TexelSize;
 
 uniform float _LightProbeMethod;
 
-
-
-
 uniform float _TonemappingMode;
-
-
 uniform half _Contribution;
 
 
+
+
+// ----------------- defines -----------------
 
 #define TRANSFORM_MAINTEX(tex,name) (tex.xy * name##_ST.xy * _MainTex_ST.xy + name##_ST.zw + _MainTex_ST.zw)
 
@@ -91,29 +90,19 @@ uniform half _Contribution;
 #define ENABLE_TRANSPARENCY
 #endif
 
-
-#if defined(PROP_BUMPMAP) || !defined(OPTIMIZER_ENABLED)
-#define ENABLE_NORMALMAP
-#endif
-
-#if defined(PROP_METALLICMAP) || !defined(OPTIMIZER_ENABLED)
-#define ENABLE_METALLICMAP
-#endif
-
-#if defined(PROP_SMOOTHNESSMAP) || !defined(OPTIMIZER_ENABLED)
-#define ENABLE_SMOOTHNESSMAP
-#endif
-
-#if defined(PROP_OCCLUSIONMAP) || !defined(OPTIMIZER_ENABLED)
-#define ENABLE_OCCLUSIONMAP
-#endif
-
-
 #if (PROP_ENABLEVERTEXCOLOR==1) || (PROP_ENABLEVERTEXCOLORMASK==1) || !defined(OPTIMIZER_ENABLED)
 #define ENABLE_VERTEXCOLOR
 #endif
 
+#if !defined(OPTIMIZER_ENABLED) // defined if texture gets used
+    #define PROP_BUMPMAP
+    #define PROP_METALLICMAP
+    #define PROP_SMOOTHNESSMAP
+    #define PROP_OCCLUSIONMAP
+    #define PROP_EMISSIONMAP
+    #define PROP_METALLICGLOSSMAP
+#endif
 
-
+// ----------------- defines -----------------
 
 #endif

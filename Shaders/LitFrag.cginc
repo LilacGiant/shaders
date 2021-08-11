@@ -18,84 +18,62 @@ half4 frag(v2f i) : SV_Target
     half4 albedo = mainTex * _Color; // unity please give me my main tex sampler
 
     half4 vertexColor = 1;
-
     #ifdef ENABLE_VERTEXCOLOR
     vertexColor = i.color;
-    UNITY_BRANCH
-    if(_EnableVertexColor) albedo.rgb *= GammaToLinearSpace(vertexColor);
+    albedo.rgb *= _EnableVertexColor ? GammaToLinearSpace(vertexColor) : 1;
     #endif
-
     
     
     half alpha = 1;
     #ifdef ENABLE_TRANSPARENCY
     alpha = calcAlpha(_Cutoff,albedo.a,_Mode);
-    if(_Mode!=1 && _Mode!=0)
-    {
-        albedo.rgb *= _Color.a;
-    }
+    if(_Mode!=1 && _Mode!=0) albedo.rgb *= _Color.a;
+
     #endif
-    
-    
-    half3 diffuse = albedo;
     
 
     half isRoughness = _GlossinessInvert;
+    half4 maskMap = 1;
+    half metallicMap = 1;
+    half smoothnessMap = 1;
+    half occlusionMap = 1;
+    half detailMap = 1;
+
     #ifndef ENABLE_PACKED_MODE
-    
-    #ifdef ENABLE_METALLICMAP
-    half4 metallicMap = _MetallicMap.Sample(sampler_MainTex, TRANSFORM_MAINTEX(uvs[_MetallicMapUV], _MetallicMap));
+    #ifdef PROP_METALLICMAP
+    metallicMap = _MetallicMap.Sample(sampler_MainTex, TRANSFORM_MAINTEX(uvs[_MetallicMapUV], _MetallicMap));
     #endif
-    #ifdef ENABLE_SMOOTHNESSMAP
-    half smoothnessMap = _SmoothnessMap.Sample(sampler_MainTex, TRANSFORM_MAINTEX(uvs[_SmoothnessMapUV], _SmoothnessMap));
+    #ifdef PROP_SMOOTHNESSMAP
+    smoothnessMap = _SmoothnessMap.Sample(sampler_MainTex, TRANSFORM_MAINTEX(uvs[_SmoothnessMapUV], _SmoothnessMap));
     #endif
-    #ifdef ENABLE_OCCLUSIONMAP
-    half occlusionMap = _OcclusionMap.Sample(sampler_MainTex, TRANSFORM_MAINTEX(uvs[_OcclusionMapUV], _OcclusionMap));
+    #ifdef PROP_OCCLUSIONMAP
+    occlusionMap = _OcclusionMap.Sample(sampler_MainTex, TRANSFORM_MAINTEX(uvs[_OcclusionMapUV], _OcclusionMap));
     #endif
 
     #else
-    #define ENABLE_SMOOTHNESSMAP
-    #define ENABLE_OCCLUSIONMAP
-    #define ENABLE_METALLICMAP
-    half4 packedTex = _MetallicGlossMap.Sample(sampler_MainTex, TRANSFORM_MAINTEX(uvs[_MetallicGlossMapUV], _MetallicGlossMap));
-    half metallicMap = packedTex.r;
-    half smoothnessMap = packedTex.a;
-    half occlusionMap = packedTex.g;
+
+    #ifdef PROP_METALLICGLOSSMAP
+    #define PROP_SMOOTHNESSMAP
+    #define PROP_OCCLUSIONMAP
+    #define PROP_METALLICMAP
+    maskMap = _MetallicGlossMap.Sample(sampler_MainTex, TRANSFORM_MAINTEX(uvs[_MetallicGlossMapUV], _MetallicGlossMap));
+    #endif
+    metallicMap = maskMap.r;
+    smoothnessMap = maskMap.a;
+    occlusionMap = maskMap.g;
     isRoughness = 0;
-
-
     #endif
 
-    half perceptualRoughness = _Glossiness;
-    #ifdef ENABLE_SMOOTHNESSMAP
-    perceptualRoughness *= smoothnessMap;
-    #endif
 
-    UNITY_BRANCH
-    if(!isRoughness){
-        perceptualRoughness = 1-perceptualRoughness;
-    }
-
-    #ifdef ENABLE_METALLICMAP
+    half smoothness = _Glossiness * smoothnessMap;
+    half perceptualRoughness = isRoughness ? smoothness : 1-smoothness;
     half metallic = metallicMap * _Metallic;
-    #else
-    half metallic = _Metallic;
-    #endif
-    
-    
-    #ifdef ENABLE_OCCLUSIONMAP
     half occlusion = lerp(1,occlusionMap , _Occlusion);
-    #else
-    half occlusion = _Occlusion;
-    #endif
 
-    half reflectance = _Reflectance;
-    half oneMinusMetallic =  1 - metallic;
-    half roughness = perceptualRoughness*perceptualRoughness;
     
-    albedo.rgb *= oneMinusMetallic;
+    albedo.rgb *= 1 - metallic;
 
-    if(_EnableVertexColorMask){
+    if(_EnableVertexColorMask) {
         metallic *= vertexColor.r;
         perceptualRoughness *= vertexColor.a;
         occlusion *= vertexColor.g;
@@ -107,13 +85,13 @@ half4 frag(v2f i) : SV_Target
     #ifndef SHADER_API_MOBILE
     worldNormal = normalize(worldNormal);
     #endif
-    #if defined(ENABLE_REFLECTIONS) || defined(ENABLE_SPECULAR_HIGHLIGHTS) || defined (ENABLE_NORMALMAP)
+    #if defined(ENABLE_REFLECTIONS) || defined(ENABLE_SPECULAR_HIGHLIGHTS) || defined (PROP_BUMPMAP)
     half3 tangent = i.tangent;
     half3 bitangent = i.bitangent;
     #endif
 
 
-    #ifdef ENABLE_NORMALMAP
+    #ifdef PROP_BUMPMAP
     half4 normalMap = _BumpMap.Sample(sampler_BumpMap, TRANSFORM_MAINTEX(uvs[_BumpMapUV], _BumpMap));
     initBumpedNormalTangentBitangent(normalMap, bitangent, tangent, worldNormal, _BumpScale, _NormalMapOrientation);
     #endif
@@ -152,114 +130,114 @@ half4 frag(v2f i) : SV_Target
     #endif
     
     
-    half3 indirectDiffuse = getIndirectDiffuse(worldNormal);
-    #ifdef ENABLE_OCCLUSIONMAP
-    indirectDiffuse *= occlusion;
-    #endif
+    
     
 
     half3 light = (NoL * attenuation * lightCol);
     half3 directDiffuse = albedo;
+
+    
     
     #ifndef SHADER_API_MOBILE
     light *= Fd_Burley(perceptualRoughness, NoV, NoL, LoH);
     #endif
     
-
-    #if defined(LIGHTMAP_ON) // apply lightmap /// fuck
-
+    half3 indirectDiffuse = 0;
+    #if defined(LIGHTMAP_ON)
     half3 lightMap = getLightmap(uvs[1], worldNormal, i.worldPos);
-
-        
-        
-    #if defined(DYNAMICLIGHTMAP_ON) // apply realtime lightmap // IDK
-        half3 realtimeLightMap = getRealtimeLightmap(uvs[1], worldNormal);
-        directDiffuse *= lightMap + realtimeLightMap + light; 
-
     
-    #else
-    directDiffuse *= lightMap + light;
+    #if defined(DYNAMICLIGHTMAP_ON)
+    half3 realtimeLightMap = getRealtimeLightmap(uvs[1], worldNormal);
+    lightMap +=realtimeLightMap; 
     #endif
-
     
+    indirectDiffuse = lightMap;
     
     #else
 
+    indirectDiffuse = getIndirectDiffuse(worldNormal);
 
-    directDiffuse *= light  + indirectDiffuse;
     #endif
 
  
-half3 col = directDiffuse;
+
 
     
-
 
 
 
 
 
 #if defined(ENABLE_REFLECTIONS) || defined(ENABLE_SPECULAR_HIGHLIGHTS)
-half3 f0 = 0.16 * reflectance * reflectance * oneMinusMetallic + diffuse * metallic;
-half3 fresnel = F_Schlick(f0, NoV);
 
-//fresnel *= saturate(length(indirectDiffuse) * 1.0/(_ExposureOcclusion)); // indirect diffuse occlusion
+    half3 f0 = 0.16 * _Reflectance * _Reflectance * 1-metallic + albedo * metallic;
+    half3 fresnel = F_Schlick(f0, NoV) * _FresnelColor.rgb;
+    fresnel = lerp(f0, fresnel , _FresnelColor.a); // kill fresnel
 
-#if defined(LIGHTMAP_ON)
-UNITY_BRANCH
-if(_SpecularOcclusion > 0){
-    half specMultiplier = saturate(lerp(1, pow(length(lightMap), _SpecularOcclusion), _SpecularOcclusion)); // lightmap occlusion
-    fresnel *= specMultiplier;
-}
+    #if defined(LIGHTMAP_ON)
+        fresnel *= _SpecularOcclusion ? saturate(lerp(1, pow(length(lightMap), _SpecularOcclusion), _SpecularOcclusion)) : 1; // lightmap occlusion
+    #endif
 
-#endif
-
-fresnel *= _FresnelColor.rgb; //fresnel color
-fresnel = lerp(f0, fresnel , _FresnelColor.a); // kill fresnel
-
-perceptualRoughness = lerp(saturate(perceptualRoughness * (1-_AngularGlossiness * fresnel)), perceptualRoughness,  perceptualRoughness);  // roughness fresnel
-
-#if defined(ENABLE_GSAA) && !defined(SHADER_API_MOBILE)
-perceptualRoughness = GSAA_Filament(worldNormal, perceptualRoughness);
-#endif
+    #if !defined(SHADER_API_MOBILE)
+        perceptualRoughness = _AngularGlossiness ? lerp(saturate(perceptualRoughness * (1-_AngularGlossiness * fresnel)), perceptualRoughness,  perceptualRoughness) : perceptualRoughness;  // roughness fresnel
+        #if defined(ENABLE_GSAA)
+            perceptualRoughness = GSAA_Filament(worldNormal, perceptualRoughness);
+        #endif
+    #endif
 
 #endif
 
-        
-#ifdef ENABLE_REFLECTIONS // reflections
+
+// reflections
+half3 indirectSpecular = 0;
+#ifdef ENABLE_REFLECTIONS 
 float3 worldPos = i.worldPos;
 half3 reflViewDir = reflect(-viewDir, worldNormal);
-half3 indirectSpecular = getIndirectSpecular(metallic, perceptualRoughness, reflViewDir, worldPos, directDiffuse, worldNormal) * lerp(fresnel, f0, perceptualRoughness);
-#ifdef ENABLE_OCCLUSIONMAP
-indirectSpecular *= computeSpecularAO(NoV, occlusion, roughness);
+indirectSpecular = getIndirectSpecular(metallic, perceptualRoughness, reflViewDir, worldPos, directDiffuse, worldNormal) * lerp(fresnel, f0, perceptualRoughness);
+#ifdef PROP_OCCLUSIONMAP
+indirectSpecular *= computeSpecularAO(NoV, occlusion, perceptualRoughness * perceptualRoughness);
 #endif
-col += indirectSpecular;
 #endif
+// reflections
 
 
-    
-#ifdef ENABLE_SPECULAR_HIGHLIGHTS // specular highlights
+// specular highlights
+half3 directSpecular = 0;
+#ifdef ENABLE_SPECULAR_HIGHLIGHTS
 float NoH = saturate(dot(worldNormal, halfVector));
-half3 directSpecular = getDirectSpecular(perceptualRoughness, NoH, NoV, NoL, LoH, f0) * light;
-col += directSpecular;
+directSpecular = getDirectSpecular(perceptualRoughness, NoH, NoV, NoL, LoH, f0) * light;
 #endif
+// specular highlights
 
 
+// emission
+half3 emissionMap = 1;
+#if defined(PROP_EMISSIONMAP)
+emissionMap = _EmissionMap.Sample(sampler_MainTex, TRANSFORM_MAINTEX(uvs[_EmissionMapUV], _EmissionMap)).rgb;
+#endif
+half3 emission = _EnableEmission ? emissionMap * _EmissionColor.rgb * attenuation : 0;
+// emission
 
-col.rgb = _EnableEmission ? col.rgb + _EmissionMap.Sample(sampler_MainTex, TRANSFORM_MAINTEX(uvs[_EmissionMapUV], _EmissionMap)) * _EmissionColor.rgb : col.rgb;
 
+// final color
+half3 finalColor = directDiffuse * ((indirectDiffuse * occlusion) + light) + directSpecular + indirectSpecular + emission;
 
+finalColor.rgb = _TonemappingMode ? lerp(finalColor.rgb, ACESFilm(finalColor.rgb), _Contribution) : finalColor.rgb; // aces
 
-col.rgb = _TonemappingMode ? lerp(col.rgb, ACESFilm(col.rgb), _Contribution) : col.rgb;
+alpha += mainTex.a * 0.00001; // fix main tex sampler without changing the color;
 
+    return half4(finalColor, alpha);
 
-alpha += mainTex.a * 0.00001; // fix main tex sampler without changing the color at all;
-return half4(col, alpha);
 }
 
 fixed4 ShadowCasterfrag(v2f i) : SV_Target
 {
-    half alpha = _MainTex.Sample(sampler_MainTex, i.uv0).a * _Color.a;
+    uvs[0] = i.uv0;
+    uvs[1] = i.uv1;
+    uvs[2] = i.uv2;
+    half4 mainTex = _MainTex.Sample(sampler_MainTex, TRANSFORM_TEX(uvs[_MainTexUV], _MainTex));
+
+    half alpha = mainTex.a * _Color.a;
 
     #ifdef ENABLE_TRANSPARENCY
     alpha = calcAlpha(_Cutoff,alpha,_Mode);
