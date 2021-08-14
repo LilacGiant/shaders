@@ -13,7 +13,7 @@ struct appdata
 {
     float4 vertex : POSITION;
     half3 normal : NORMAL;
-    #if defined(ENABLE_REFLECTIONS) || defined(ENABLE_SPECULAR_HIGHLIGHTS) || defined (ENABLE_NORMALMAP)
+    #if defined(ENABLE_REFLECTIONS) || defined(ENABLE_SPECULAR_HIGHLIGHTS) || defined (PROP_BUMPMAP) || defined(ENABLE_MATCAP)
     half4 tangent : TANGENT;
     #endif
 
@@ -35,11 +35,12 @@ struct v2f
     float2 uv1 : TEXCOORD1;
     float2 uv2 : TEXCOORD2;
 
-    #if defined(ENABLE_REFLECTIONS) || defined(ENABLE_SPECULAR_HIGHLIGHTS) || defined (PROP_BUMPMAP)
+    #if defined(ENABLE_REFLECTIONS) || defined(ENABLE_SPECULAR_HIGHLIGHTS) || defined (PROP_BUMPMAP) || defined(ENABLE_MATCAP)
     float3 bitangent : TEXCOORD3;
     float3 tangent : TEXCOORD4;
     #endif
     float3 worldNormal : TEXCOORD5;
+
 
     float3 worldPos : TEXCOORD6;
     #if !defined(UNITY_PASS_SHADOWCASTER)

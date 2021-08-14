@@ -15,7 +15,7 @@ half4 frag(v2f i) : SV_Target
     mainTex.rgb = lerp(intensity, mainTex, (_Saturation+1));
 
 
-    half4 albedo = mainTex * _Color; // unity please give me my main tex sampler
+    half4 albedo = mainTex * _Color;
 
     half4 vertexColor = 1;
     #ifdef ENABLE_VERTEXCOLOR
@@ -120,6 +120,8 @@ half4 frag(v2f i) : SV_Target
     UNITY_LIGHT_ATTENUATION(attenuation, i, i.worldPos.xyz);
 
 
+
+
     
     
     
@@ -193,13 +195,22 @@ half4 frag(v2f i) : SV_Target
 
 // reflections
 half3 indirectSpecular = 0;
-#ifdef ENABLE_REFLECTIONS 
-float3 worldPos = i.worldPos;
-half3 reflViewDir = reflect(-viewDir, worldNormal);
-indirectSpecular = getIndirectSpecular(metallic, perceptualRoughness, reflViewDir, worldPos, directDiffuse, worldNormal) * lerp(fresnel, f0, perceptualRoughness);
-#ifdef PROP_OCCLUSIONMAP
-indirectSpecular *= computeSpecularAO(NoV, occlusion, perceptualRoughness * perceptualRoughness);
-#endif
+#if defined(UNITY_PASS_FORWARDBASE)
+
+    #if defined(ENABLE_REFLECTIONS)
+        float3 worldPos = i.worldPos;
+        half3 reflViewDir = reflect(-viewDir, worldNormal);
+        indirectSpecular = getIndirectSpecular(metallic, perceptualRoughness, reflViewDir, worldPos, directDiffuse, worldNormal) * lerp(fresnel, f0, perceptualRoughness);
+    #endif
+
+    #if defined(ENABLE_MATCAP)
+        indirectSpecular = lerp(indirectSpecular, _MatCap.Sample(sampler_MainTex, mul((float3x3)UNITY_MATRIX_V, worldNormal).xy * 0.5 + 0.5).rgb, _MatCapReplace);
+    #endif
+
+    #if defined(PROP_OCCLUSIONMAP)
+        indirectSpecular *= computeSpecularAO(NoV, occlusion, perceptualRoughness * perceptualRoughness);
+    #endif
+
 #endif
 // reflections
 
@@ -215,10 +226,13 @@ directSpecular = getDirectSpecular(perceptualRoughness, NoH, NoV, NoL, LoH, f0) 
 
 // emission
 half3 emissionMap = 1;
+half3 emission = 0;
+#ifdef UNITY_PASS_FORWARDBASE
 #if defined(PROP_EMISSIONMAP)
 emissionMap = _EmissionMap.Sample(sampler_MainTex, TRANSFORM_MAINTEX(uvs[_EmissionMapUV], _EmissionMap)).rgb;
 #endif
-half3 emission = _EnableEmission ? emissionMap * _EmissionColor.rgb * attenuation : 0;
+emission = _EnableEmission ? emissionMap * _EmissionColor.rgb : 0;
+#endif
 // emission
 
 

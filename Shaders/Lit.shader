@@ -78,19 +78,28 @@ Shader " Lit"
         _Reflectance ("Reflectance", Range(0,1)) = 0.45
         _AngularGlossiness ("Angular Glossiness", Range(0, 1)) = 0
 
-        [Toggle(ENABLE_GSAA)] _GSAA ("Geometric Specular AA", Float) = 0
 
-        [PowerSlider(3)] _specularAntiAliasingVariance ("Variance--{condition_show:{type:PROPERTY_BOOL,data:_GSAA==1}}", Range(0.0, 1.0)) = 0.15
-        [PowerSlider(3)] _specularAntiAliasingThreshold ("Threshold--{condition_show:{type:PROPERTY_BOOL,data:_GSAA==1}}", Range(0.0, 1.0)) = 0.1
+
+
         
         [Space(10)]
         [Toggle(ENABLE_SPECULAR_HIGHLIGHTS)] _SpecularHighlights("Specular Highlights", Float) = 1
         [Toggle(ENABLE_REFLECTIONS)] _GlossyReflections("Reflections", Float) = 1
 
 
+        [HideInInspector] m_start_GSAA("Geometric Specular AA--{reference_property:_GSAA}", Float) = 0
+        [HideInInspector] [Toggle(ENABLE_GSAA)] _GSAA ("Geometric Specular AA", Float) = 0
+        [PowerSlider(3)] _specularAntiAliasingVariance ("Variance--{condition_show:{type:PROPERTY_BOOL,data:_GSAA==1}}", Range(0.0, 1.0)) = 0.15
+        [PowerSlider(3)] _specularAntiAliasingThreshold ("Threshold--{condition_show:{type:PROPERTY_BOOL,data:_GSAA==1}}", Range(0.0, 1.0)) = 0.1
+        [HideInInspector] m_end_GSAA("Matcap--{reference_property:_EnableMatcap}", Float) = 0
         
-        
-        
+        [HideInInspector] m_start_MatcapToggle("Matcap--{reference_property:_EnableMatcap}", Float) = 0
+        [HideInInspector] [Toggle(ENABLE_MATCAP)] _EnableMatcap ("Matcap", Float) = 0
+        [NoScaleOffset] _MatCap ("Matcap", 2D) = "white" {}
+        _MatCapReplace ("Intensity", Range(0.0, 1.0)) = 1
+        [HideInInspector] m_end_MatcapToggle("", Float) = 0
+
+
         
 
 
@@ -127,8 +136,12 @@ Shader " Lit"
         _Contribution ("Contribution", Range(0, 1)) = 1
         [HideInInspector] m_end_PP ("", Float) = 0
 
+        [HideInInspector] m_start_LockInToggles("Shader optimizer toggles", Float) = 0
+
         [ToggleUI] _commentIfOne_DisableShadowCaster ("Disable ShadowCaster Pass", float) = 0
         [ToggleUI] _commentIfOne_DisableAddPass ("Disable ForwardAdd Pass", float) = 0
+        [HideInInspector] m_end_LockInToggles("", Float) = 0
+
 
         [Toggle(ENABLE_PACKED_MODE)] _EnablePackedMode ("Packed Mode", Float) = 1       
 
@@ -181,6 +194,7 @@ Shader " Lit"
             #pragma shader_feature_local ENABLE_REFLECTIONS
             #pragma shader_feature_local ENABLE_PACKED_MODE
             #pragma shader_feature_local ENABLE_BICUBIC_LIGHTMAP
+            #pragma shader_feature_local ENABLE_MATCAP
 
 
             #ifndef UNITY_PASS_FORWARDBASE
@@ -214,8 +228,8 @@ Shader " Lit"
             #pragma multi_compile_instancing
 
             #pragma shader_feature_local ENABLE_SPECULAR_HIGHLIGHTS
-            #pragma shader_feature_local ENABLE_REFLECTIONS
             #pragma shader_feature_local ENABLE_PACKED_MODE
+
 
             #ifndef UNITY_PASS_FORWARDADD
             #define UNITY_PASS_FORWARDADD
@@ -294,6 +308,8 @@ Shader " Lit"
             #pragma shader_feature_local ENABLE_SPECULAR_HIGHLIGHTS
             #pragma shader_feature_local ENABLE_REFLECTIONS
             #pragma shader_feature_local ENABLE_PACKED_MODE
+            #pragma shader_feature_local ENABLE_MATCAP
+
 
             #ifndef UNITY_PASS_FORWARDBASE
             #define UNITY_PASS_FORWARDBASE
@@ -328,8 +344,8 @@ Shader " Lit"
             #pragma multi_compile_instancing
 
             #pragma shader_feature_local ENABLE_SPECULAR_HIGHLIGHTS
-            #pragma shader_feature_local ENABLE_REFLECTIONS
             #pragma shader_feature_local ENABLE_PACKED_MODE
+
 
             #ifndef UNITY_PASS_FORWARDADD
             #define UNITY_PASS_FORWARDADD

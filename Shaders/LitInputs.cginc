@@ -81,6 +81,10 @@ uniform float _TonemappingMode;
 uniform half _Contribution;
 
 
+UNITY_DECLARE_TEX2D_NOSAMPLER(_MatCap);
+uniform half _MatCapReplace;
+
+
 
 
 // ----------------- defines -----------------
