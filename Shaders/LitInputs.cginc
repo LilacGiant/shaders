@@ -4,7 +4,8 @@
 
 uniform float2 uvs[3];
 uniform half _Cutoff;
-uniform float _Mode;
+uniform half _Mode;
+uniform half _AlphaToMask;
 
 UNITY_DECLARE_TEX2D(_MainTex);
 uniform float _MainTexUV;

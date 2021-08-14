@@ -24,9 +24,8 @@ Shader " Lit"
             {value:7,actions:[{type:SET_PROPERTY,data:render_queue=3000}, {type:SET_PROPERTY,data:render_type=Transparent},       {type:SET_PROPERTY,data:_BlendOp=0}, {type:SET_PROPERTY,data:_BlendOpAlpha=0}, {type:SET_PROPERTY,data:_Cutoff=0},  {type:SET_PROPERTY,data:_SrcBlend=2}, {type:SET_PROPERTY,data:_DstBlend=3},  {type:SET_PROPERTY,data:_AlphaToMask=0},  {type:SET_PROPERTY,data:_ZWrite=0}, {type:SET_PROPERTY,data:_ZTest=4},   {type:SET_PROPERTY,data:_AlphaPremultiply=0}]}
         }]}]}", Int) = 0
         
-
+        [Enum(Off, 0, On, 1, Sharpened, 2)] _AlphaToMask ("Alpha To Coverage--{condition_show:{type:PROPERTY_BOOL,data:_Mode==1}}", Float) = 0
         _Cutoff ("Alpha Cuttoff--{condition_show:{type:PROPERTY_BOOL,data:_Mode==1}}", Range(0, 1.001)) = 0.5
-        [Enum(Off, 0, On, 1)] _AlphaToMask ("Alpha To Coverage--{condition_show:{type:PROPERTY_BOOL,data:_Mode==1}}", Float) = 0
 
 
         _MainTex ("Base Map --{reference_property:_Color,reference_properties:[_MainTexUV,_Saturation, _EnableVertexColor]}", 2D) = "white" {}
@@ -282,6 +281,7 @@ Shader " Lit"
             
             BlendOp [_BlendOp], [_BlendOpAlpha]
             Blend [_SrcBlend] [_DstBlend]
+            AlphaToMask [_AlphaToMask]
 
             CGPROGRAM
             #pragma target 3.0
@@ -316,6 +316,8 @@ Shader " Lit"
             Blend One One
             Cull [_Cull]
             ZTest [_ZTest]
+            AlphaToMask Off
+
 
             CGPROGRAM
             #pragma target 3.0
@@ -350,6 +352,8 @@ Shader " Lit"
             ZWrite On
             Cull [_Cull]
             ZTest LEqual
+            AlphaToMask Off
+
 
             CGPROGRAM
             #pragma target 3.0

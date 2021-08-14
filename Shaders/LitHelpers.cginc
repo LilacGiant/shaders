@@ -1,22 +1,18 @@
 #ifndef LITHELPERS
 #define LITHELPERS
 
-float calcAlpha(float cutoff, float alpha, float mode)
+float calcAlpha(half cutoff, half alpha, half mode)
 {
     UNITY_BRANCH
-    if(mode==1)
+    if(mode == 1)
     {
-        clip(alpha - cutoff);
-        return alpha;
-        break;
+        if (_AlphaToMask == 2) alpha = (alpha - cutoff) / max(fwidth(alpha), 0.0001) + 0.5;
+        if (_AlphaToMask == 0) clip(alpha - cutoff);
     }
-    else return alpha;
-
-    
-
+    return alpha;
 }
 
-void initBumpedNormalTangentBitangent(float4 normalMap, inout float3 bitangent, inout float3 tangent, inout float3 normal, float3 nScale, float orientation)
+void initBumpedNormalTangentBitangent(half4 normalMap, inout half3 bitangent, inout half3 tangent, inout half3 normal, half nScale, half orientation)
 {
 
     normalMap.g = orientation ? normalMap.g : 1-normalMap.g;
