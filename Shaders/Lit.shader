@@ -78,6 +78,9 @@ Shader " Lit"
         _Reflectance ("Reflectance", Range(0,1)) = 0.45
         _AngularGlossiness ("Angular Glossiness", Range(0, 1)) = 0
 
+        _Anisotropy ("Anisotropy", Range(-1,1)) = 0
+
+
 
 
 
@@ -89,8 +92,8 @@ Shader " Lit"
 
         [HideInInspector] m_start_GSAA("Geometric Specular AA--{reference_property:_GSAA}", Float) = 0
         [HideInInspector] [Toggle(ENABLE_GSAA)] _GSAA ("Geometric Specular AA", Float) = 0
-        [PowerSlider(3)] _specularAntiAliasingVariance ("Variance--{condition_show:{type:PROPERTY_BOOL,data:_GSAA==1}}", Range(0.0, 1.0)) = 0.15
-        [PowerSlider(3)] _specularAntiAliasingThreshold ("Threshold--{condition_show:{type:PROPERTY_BOOL,data:_GSAA==1}}", Range(0.0, 1.0)) = 0.1
+        [PowerSlider(3)] _specularAntiAliasingVariance ("Variance", Range(0.0, 1.0)) = 0.15
+        [PowerSlider(3)] _specularAntiAliasingThreshold ("Threshold", Range(0.0, 1.0)) = 0.1
         [HideInInspector] m_end_GSAA("Matcap--{reference_property:_EnableMatcap}", Float) = 0
         
         [HideInInspector] m_start_MatcapToggle("Matcap--{reference_property:_EnableMatcap}", Float) = 0

@@ -118,19 +118,8 @@ half4 frag(v2f i) : SV_Target
     half3 halfVector = normalize(lightDir + viewDir);
     float LoH = saturate(dot(lightDir, halfVector));
     UNITY_LIGHT_ATTENUATION(attenuation, i, i.worldPos.xyz);
-
-
-
-
-    
-    
-    
-    
     #ifdef UNITY_PASS_FORWARDBASE // fix for rare bug where light atten is 0 when there is no directional light in the scene
-    if(all(_LightColor0.rgb == 0.0)) 
-    {
-        attenuation = 1;
-    }
+    if(all(_LightColor0.rgb == 0.0)) attenuation = 1;
     #endif
     
     
@@ -200,6 +189,7 @@ half3 indirectSpecular = 0;
     #if defined(ENABLE_REFLECTIONS)
         float3 worldPos = i.worldPos;
         half3 reflViewDir = reflect(-viewDir, worldNormal);
+        if(_Anisotropy != 0) reflViewDir = getAnisotropicReflectionVector(viewDir, bitangent, tangent, worldNormal, perceptualRoughness, _Anisotropy);
         indirectSpecular = getIndirectSpecular(metallic, perceptualRoughness, reflViewDir, worldPos, directDiffuse, worldNormal) * lerp(fresnel, f0, perceptualRoughness);
     #endif
 
@@ -219,7 +209,7 @@ half3 indirectSpecular = 0;
 half3 directSpecular = 0;
 #ifdef ENABLE_SPECULAR_HIGHLIGHTS
 float NoH = saturate(dot(worldNormal, halfVector));
-directSpecular = getDirectSpecular(perceptualRoughness, NoH, NoV, NoL, LoH, f0) * light;
+directSpecular = getDirectSpecular(perceptualRoughness, NoH, NoV, NoL, LoH, f0, _Anisotropy, halfVector, tangent, bitangent) * light;
 #endif
 // specular highlights
 

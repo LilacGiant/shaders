@@ -18,7 +18,7 @@ float D_GGX(float NoH, float roughness) {
 }
 
 
-float D_GGX_Anisotropic(float NoH, const float3 h, const float3 t, const float3 b, float at, float ab)
+float D_GGX_Anisotropic(float NoH, float3 h, float3 t, float3 b, float at, float ab)
 {
     float ToH = dot(t, h);
     float BoH = dot(b, h);
@@ -115,21 +115,6 @@ float shEvaluateDiffuseL1Geomerics_local(float L0, float3 L1, float3 n)
     return R0 * (a + (1.0f - a) * (p + 1.0f) * pow(q, p));
 }
 
-half3 BetterSH9(half4 normal)
-{
-    float3 indirect;
-    float3 L0 = float3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w) + float3(unity_SHBr.z, unity_SHBg.z, unity_SHBb.z) / 3.0;
-    indirect.r = shEvaluateDiffuseL1Geomerics_local(L0.r, unity_SHAr.xyz, normal.xyz);
-    indirect.g = shEvaluateDiffuseL1Geomerics_local(L0.g, unity_SHAg.xyz, normal.xyz);
-    indirect.b = shEvaluateDiffuseL1Geomerics_local(L0.b, unity_SHAb.xyz, normal.xyz);
-    indirect = max(0, indirect);
-    indirect += SHEvalLinearL2(normal);
-    return indirect;
-}
-
-
-
-
 float3 getIndirectDiffuse(float3 normal)
 {
     float3 indirectDiffuse;
@@ -151,15 +136,15 @@ float3 getIndirectDiffuse(float3 normal)
 
 float3 getBoxProjection (float3 direction, float3 position, float4 cubemapPosition, float3 boxMin, float3 boxMax)
 {
-
-     #if defined(UNITY_SPECCUBE_BLENDING) // For some reason this doesn't work?
+#ifndef SHADER_API_MOBILE
+     #if defined(UNITY_SPECCUBE_BOX_PROJECTION)
         if (cubemapPosition.w > 0) {
-            float3 factors =
-                ((direction > 0 ? boxMax : boxMin) - position) / direction;
+            float3 factors = ((direction > 0 ? boxMax : boxMin) - position) / direction;
             float scalar = min(min(factors.x, factors.y), factors.z);
             direction = direction * scalar + (position - cubemapPosition);
         }
-     #endif
+    #endif
+#endif
     return direction;
 }
 
@@ -203,29 +188,32 @@ float3 getIndirectSpecular(float metallic, float roughness, float3 reflDir, floa
     return spec;
 }
 
-float3 getDirectSpecular(float perceptualRoughness, float NoH, float NoV, float NoL, float LoH, float3 f0)
+half3 getDirectSpecular(half perceptualRoughness, half NoH, half NoV, half NoL, half LoH, half3 f0, half anisotropy, half3 halfVector, half3 tangent, half3 bitangent)
 {
-    //float roughness = max(perceptualRoughness, 0.002);
-    float roughness = max(perceptualRoughness * perceptualRoughness, 0.002);
+    half roughness = max(perceptualRoughness * perceptualRoughness, 0.002);
 
 
-    float D = D_GGX(NoH, roughness);
+    half D = D_GGX(NoH, roughness);
+
+    if(_Anisotropy != 0) {
+        anisotropy *= saturate(5.0 * perceptualRoughness);
+        half at = max(roughness * (1.0 + anisotropy), 0.001);
+        half ab = max(roughness * (1.0 - anisotropy), 0.001);
+        D = D_GGX_Anisotropic(NoH, halfVector, tangent, bitangent, at, ab);
+    }
     #ifdef SHADER_API_MOBILE
-    float V = V_SmithGGXCorrelatedFast(NoV, NoL, roughness);
+    half V = V_SmithGGXCorrelatedFast(NoV, NoL, roughness);
     #else
-    float V = V_SmithGGXCorrelated(NoV, NoL, roughness);
+    half V = V_SmithGGXCorrelated(NoV, NoL, roughness);
     #endif  
-    float3 F = F_Schlick(f0, LoH);
+    half3 F = F_Schlick(f0, LoH);
    
-    float3 directSpecular = max(0, (D * V) * F);
+    half3 directSpecular = max(0, (D * V) * F);
 
 #if !defined(SHADER_API_MOBILE)
-// energy compensation // probably wrong
-    float3 energyCompensation = 1.0 + f0 * (1.0 / lerp(1,V, roughness) - 1.0);
+    half3 energyCompensation = 1.0 + f0 * (1.0 / lerp(1,V, roughness) - 1.0);
     directSpecular *= energyCompensation;
 #endif
-
-    
 
     return directSpecular * UNITY_PI;
 }

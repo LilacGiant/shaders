@@ -54,6 +54,7 @@ uniform float _GetDominantLight;
 
 uniform half _Reflectance;
 uniform half _ExposureOcclusion;
+uniform half _Anisotropy;
 
 
 uniform half _LightmapMultiplier;
