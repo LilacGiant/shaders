@@ -70,15 +70,16 @@ namespace Shaders.Lit
         protected MaterialProperty _MatCapReplace = null;
         protected MaterialProperty _MatCap = null;
         protected MaterialProperty _Cull = null;
-        
+
         
 
 
-        MaterialEditor m_MaterialEditor;
+        MaterialEditor me;
         public bool m_FirstTimeApply = true;
 
         protected MaterialProperty _ShaderOptimizerEnabled = null;
         const string AnimatedPropertySuffix = "Animated";
+        const char hoverSplitSeparator = ':';
         //bool afterShaderOptimizerButton = false;
         MaterialProperty shaderOptimizer;
         bool[] propertyAnimated;
@@ -103,7 +104,7 @@ namespace Shaders.Lit
         public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] props)
         {
             FindProperties(props); // MaterialProperties can be animated so we do not cache them but fetch them every event to ensure animated values are updated correctly
-            m_MaterialEditor = materialEditor;
+            me = materialEditor;
             Material material = materialEditor.target as Material;
             SetupFoldoutDictionary(material);
 
@@ -140,7 +141,7 @@ namespace Shaders.Lit
                 ApplyChanges(material);
                 m_FirstTimeApply = false;
             }
-            ShaderOptimizerButton(_ShaderOptimizerEnabled,m_MaterialEditor);
+            ShaderOptimizerButton(_ShaderOptimizerEnabled,me);
             EditorGUILayout.Space(4);
             ShaderPropertiesGUI(material);
         }
@@ -163,57 +164,61 @@ namespace Shaders.Lit
                     EditorGUILayout.Space();
 
                     EditorGUI.BeginChangeCheck();
-                    m_MaterialEditor.ShaderProperty(_Mode, "Rendering Mode");
+                    prop(_Mode);
                     if (EditorGUI.EndChangeCheck()) SetupMaterialWithBlendMode(material);
                     if(_Mode.floatValue == 1){
-                        m_MaterialEditor.ShaderProperty(_AlphaToMask, "Alpha To Coverage");
-                        m_MaterialEditor.ShaderProperty(_Cutoff, "Cutoff");
+                        prop(_AlphaToMask);
+                        prop(_Cutoff);
                     }
                     EditorGUILayout.Space();
                     
                     
-                    m_MaterialEditor.TexturePropertySingleLine(new GUIContent("Base Map", "RGBA"), _MainTex, _Color);
+                    prop(_MainTex, _Color);
                     MaterialData[material].Show_MainTex = Styles.TextureFoldout(MaterialData[material].Show_MainTex);
                     if(MaterialData[material].Show_MainTex){
                         Styles.PropertyGroup(() => {
-                        m_MaterialEditor.TextureScaleOffsetProperty(_MainTex);
-                        m_MaterialEditor.ShaderProperty(_MainTexUV, "UV");
-                        m_MaterialEditor.ShaderProperty(_Saturation, "Saturation");
+                        me.TextureScaleOffsetProperty(_MainTex);
+                        prop(_MainTexUV);
+                        prop(_Saturation);
                         });
                     }
 
-                    m_MaterialEditor.ShaderProperty(_Metallic, "Metallic");
-                    m_MaterialEditor.ShaderProperty(_Glossiness, "Smoothness");
-                    if (_MetallicGlossMap.textureValue) m_MaterialEditor.ShaderProperty(_Occlusion, "Occlusion");
+                    prop(_Metallic);
+                    prop(_Glossiness);
 
-                    m_MaterialEditor.TexturePropertySingleLine(new GUIContent("Mask Map", "Metallic(R), Occlusion(G), Detail Mask(B), Smoothness(A)"), _MetallicGlossMap);
+                    if (_MetallicGlossMap.textureValue) prop(_Occlusion);
+
+                    prop(_MetallicGlossMap);
                     MaterialData[material].Show_MetallicGlossMap = Styles.TextureFoldout(MaterialData[material].Show_MetallicGlossMap);
                     Styles.sRGBWarning(_MetallicGlossMap);
                     if(MaterialData[material].Show_MetallicGlossMap){
                         Styles.PropertyGroup(() => {
-                        m_MaterialEditor.TextureScaleOffsetProperty(_MetallicGlossMap);
-                        m_MaterialEditor.ShaderProperty(_MetallicGlossMapUV, "UV");
+                        prop(_MetallicGlossMap);
+                        prop(_MetallicGlossMapUV);
                         });
                     }
 
-                    m_MaterialEditor.TexturePropertySingleLine(new GUIContent("Normal Map"), _BumpMap,  _BumpMap.textureValue ? _BumpScale : null);
+                    prop(_BumpMap, _BumpMap.textureValue ? _BumpScale : null);
+
                     MaterialData[material].Show_BumpMap = Styles.TextureFoldout(MaterialData[material].Show_BumpMap);
                     if(MaterialData[material].Show_BumpMap){
                         Styles.PropertyGroup(() => {
-                        m_MaterialEditor.TextureScaleOffsetProperty(_BumpMap);
-                        m_MaterialEditor.ShaderProperty(_BumpMapUV, "UV");
-                        m_MaterialEditor.ShaderProperty(_NormalMapOrientation, "Orientation");
+                        me.TextureScaleOffsetProperty(_BumpMap);
+                        prop(_BumpMapUV);
+                        prop(_NormalMapOrientation);
                         });
                     }
 
-                    m_MaterialEditor.ShaderProperty(_EnableEmission, "Emission");
+                    prop(_EnableEmission);
+
                     if(_EnableEmission.floatValue == 1){
-                    m_MaterialEditor.TexturePropertySingleLine(new GUIContent("Color"), _EmissionMap, _EmissionColor);
-                    MaterialData[material].Show_EmissionMap = Styles.TextureFoldout(MaterialData[material].Show_EmissionMap);
-                    if(MaterialData[material].Show_EmissionMap){
-                        Styles.PropertyGroup(() => {
-                        m_MaterialEditor.TextureScaleOffsetProperty(_EmissionMap);
-                        m_MaterialEditor.ShaderProperty(_EmissionMapUV, "UV");
+                        prop(_EmissionMap, _EmissionColor);
+                        MaterialData[material].Show_EmissionMap = Styles.TextureFoldout(MaterialData[material].Show_EmissionMap);
+                        if(MaterialData[material].Show_EmissionMap){
+                            Styles.PropertyGroup(() => {
+                            me.TextureScaleOffsetProperty(_EmissionMap);
+                            prop(_EmissionMapUV);
+
                         
                         });
                     }
@@ -234,29 +239,28 @@ namespace Shaders.Lit
             if(MaterialData[material].ShowSpecular)
             {
                 EditorGUILayout.Space();
-                m_MaterialEditor.ShaderProperty(_GetDominantLight, "Get From");
-                m_MaterialEditor.ShaderProperty(_FresnelColor, "Fresnel");
-                m_MaterialEditor.ShaderProperty(_Reflectance, "Reflectance");
-                m_MaterialEditor.ShaderProperty(_AngularGlossiness, "Angular Smoothness");
-
-                m_MaterialEditor.ShaderProperty(_Anisotropy, "Anisotropy");
-                m_MaterialEditor.ShaderProperty(_GSAA, "Geometric Specular AA");
+                prop(_GetDominantLight);
+                prop(_FresnelColor);
+                prop(_Reflectance);
+                prop(_AngularGlossiness);
+                prop(_Anisotropy);
+                prop(_GSAA);
                 if(_GSAA.floatValue == 1){
                     Styles.PropertyGroup(() => {
-                    m_MaterialEditor.ShaderProperty(_specularAntiAliasingVariance, "Variance"); 
-                    m_MaterialEditor.ShaderProperty(_specularAntiAliasingThreshold, "Threshold"); 
+                        prop(_specularAntiAliasingVariance);
+                        prop(_specularAntiAliasingThreshold);
                     });
                 };
-                m_MaterialEditor.ShaderProperty(_EnableMatcap, "Matcap");
+                me.ShaderProperty(_EnableMatcap, "Matcap");
                 if(_EnableMatcap.floatValue == 1){
                     Styles.PropertyGroup(() => {
-                    m_MaterialEditor.TexturePropertySingleLine(new GUIContent("Matcap"), _MatCap);
-                    m_MaterialEditor.ShaderProperty(_MatCapReplace, "Matcap");
+                    prop(_MatCap);
+                    prop(_MatCapReplace);
                     });
                 };
                 EditorGUILayout.Space();
-                m_MaterialEditor.ShaderProperty(_GlossyReflections, "Reflections");
-                m_MaterialEditor.ShaderProperty(_SpecularHighlights, "Specular Highlights");
+                prop(_GlossyReflections);
+                prop(_SpecularHighlights);
 
                 EditorGUILayout.Space();
 
@@ -265,18 +269,15 @@ namespace Shaders.Lit
             MaterialData[material].ShowBakedLight = Styles.ShurikenFoldout("Baked Light", MaterialData[material].ShowBakedLight);
             if(MaterialData[material].ShowBakedLight)
             {
-                EditorGUILayout.Space();
-                
-                m_MaterialEditor.ShaderProperty(_LightmapMultiplier, "Lightmap Multiplier");
-                m_MaterialEditor.ShaderProperty(_SpecularOcclusion, "Specular Occlusion");
+                EditorGUILayout.Space();                
+                prop(_LightmapMultiplier);
+                prop(_SpecularOcclusion);
 
                 EditorGUILayout.Space();
-                m_MaterialEditor.ShaderProperty(_BicubicLightmap, "Bicubic Lightmap Interpolation");
-                m_MaterialEditor.ShaderProperty(_LightProbeMethod, "Non-linear Light Probe SH");
-
+                prop(_BicubicLightmap);
+                prop(_LightProbeMethod);
 
                 EditorGUILayout.Space();
-
             }
 
 
@@ -284,15 +285,15 @@ namespace Shaders.Lit
             if(MaterialData[material].ShowAdvanced)
             {
                 EditorGUILayout.Space();
-                m_MaterialEditor.ShaderProperty(_TonemappingMode, "Tonemapping");
-                if(_TonemappingMode.floatValue == 1) m_MaterialEditor.ShaderProperty(_Contribution, "Contribution");
+                prop(_TonemappingMode);
+                if(_TonemappingMode.floatValue == 1) prop(_Contribution);
 
                 EditorGUILayout.Space();
-                m_MaterialEditor.ShaderProperty(_Cull, "Cull");
+                prop(_Cull);
 
-                m_MaterialEditor.EnableInstancingField();
-                m_MaterialEditor.DoubleSidedGIField();
-                m_MaterialEditor.RenderQueueField();
+                me.EnableInstancingField();
+                me.DoubleSidedGIField();
+                me.RenderQueueField();
             }
 
 
@@ -302,24 +303,47 @@ namespace Shaders.Lit
 
         public void ApplyChanges(Material m){
             if(_ShaderOptimizerEnabled.floatValue == 0){
-            
-
-            
-
-            if(_Mode.floatValue != 1) _AlphaToMask.floatValue = 0;
-           
-            // toggles
-           
-            // keywords
-            SetKeyword(m, "ENABLE_REFLECTIONS", _GlossyReflections.floatValue);
-            SetKeyword(m, "ENABLE_GSAA", _GSAA.floatValue);
-            SetKeyword(m, "ENABLE_SPECULAR_HIGHLIGHTS", _SpecularHighlights.floatValue);
-            SetKeyword(m, "ENABLE_BICUBIC_LIGHTMAP", _BicubicLightmap.floatValue);
-
-            SetKeyword(m, "ENABLE_PACKED_MODE", _MetallicGlossMap.textureValue);
+                
            
             }
         }
+
+        public void prop(MaterialProperty property)
+        {
+            if(property.type == MaterialProperty.PropType.Range ||
+               property.type == MaterialProperty.PropType.Float ||
+               property.type == MaterialProperty.PropType.Vector ||
+               property.type == MaterialProperty.PropType.Color) me.ShaderProperty(property, property.displayName);
+
+            if(property.type == MaterialProperty.PropType.Texture) textureProperty(property);
+        }
+
+        public void prop(MaterialProperty property, MaterialProperty extraProperty)
+        {
+            if(property.type == MaterialProperty.PropType.Texture) textureProperty(property, extraProperty);
+        }
+
+        public void textureProperty(MaterialProperty property)
+        {
+            if(property.type == MaterialProperty.PropType.Texture) {
+                string[] p = property.displayName.Split(hoverSplitSeparator);
+                if(p.Length == 1) me.TexturePropertySingleLine(new GUIContent(p[0]), property);
+                if(p.Length == 2) me.TexturePropertySingleLine(new GUIContent(p[0], p[1]), property);
+            }
+        }
+
+        public void textureProperty(MaterialProperty property, MaterialProperty extraProperty)
+        {
+            if(property.type == MaterialProperty.PropType.Texture) {
+                string[] p = property.displayName.Split(hoverSplitSeparator);
+                if(p.Length == 1) me.TexturePropertySingleLine(new GUIContent(p[0]), property, extraProperty);
+                if(p.Length == 2) me.TexturePropertySingleLine(new GUIContent(p[0], p[1]), property, extraProperty);
+            }
+        }
+
+        
+
+
 
         static void SetKeyword(Material m, string keyword, bool state)
         {
