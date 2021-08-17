@@ -31,15 +31,15 @@ half4 frag(v2f i) : SV_Target
 
     #endif
 
-    half3 diffuse = albedo.rgb;
+    
     
 
     half isRoughness = _GlossinessInvert;
     half4 maskMap = 1;
+    half4 detailMap = 1;
     half metallicMap = 1;
     half smoothnessMap = 1;
     half occlusionMap = 1;
-    half detailMap = 1;
 
     #ifndef ENABLE_PACKED_MODE
     #ifdef PROP_METALLICMAP
@@ -66,7 +66,15 @@ half4 frag(v2f i) : SV_Target
     isRoughness = 0;
     #endif
 
-
+/*
+    #if defined(PROP_DETAILMAP) && defined(PROP_METALLICGLOSSMAP)
+    detailMap = _DetailMap.Sample(sampler_MainTex, TRANSFORM_MAINTEX(uvs[_DetailMapUV], _DetailMap));
+    detailMap *= 1 - maskMap.b;
+    albedo.rgb = ( albedo.rgb * maskMap.bbb ) + BlendMode_Overlay(albedo.rgb, detailMap.rrr);
+    
+    #endif
+*/
+    half3 diffuse = albedo.rgb;
     half smoothness = _Glossiness * smoothnessMap;
     half perceptualRoughness = isRoughness ? smoothness : 1-smoothness;
     half metallic = metallicMap * _Metallic;
@@ -80,6 +88,8 @@ half4 frag(v2f i) : SV_Target
         perceptualRoughness *= vertexColor.a;
         occlusion *= vertexColor.g;
     }
+
+
     
     
     
@@ -95,6 +105,9 @@ half4 frag(v2f i) : SV_Target
 
     #ifdef PROP_BUMPMAP
     half4 normalMap = _BumpMap.Sample(sampler_BumpMap, TRANSFORM_MAINTEX(uvs[_BumpMapUV], _BumpMap));
+    #if defined(PROP_DETAILMAP) && defined(PROP_METALLICGLOSSMAP)
+      
+    #endif
     initBumpedNormalTangentBitangent(normalMap, bitangent, tangent, worldNormal, _BumpScale, _NormalMapOrientation);
     #endif
 
@@ -190,7 +203,9 @@ half3 indirectSpecular = 0;
         float3 worldPos = i.worldPos;
         half3 reflViewDir = reflect(-viewDir, worldNormal);
         if(_Anisotropy != 0) reflViewDir = getAnisotropicReflectionVector(viewDir, bitangent, tangent, worldNormal, perceptualRoughness, _Anisotropy);
-        indirectSpecular = getIndirectSpecular(metallic, perceptualRoughness, reflViewDir, worldPos, directDiffuse, worldNormal) * lerp(fresnel, f0, perceptualRoughness);
+        indirectSpecular = getIndirectSpecular(metallic, perceptualRoughness, reflViewDir, worldPos, directDiffuse, worldNormal);
+        indirectSpecular *= lerp(fresnel, f0, perceptualRoughness);
+        //indirectSpecular *= f0;
     #endif
 
     #if defined(ENABLE_MATCAP)
@@ -209,7 +224,7 @@ half3 indirectSpecular = 0;
 half3 directSpecular = 0;
 #ifdef ENABLE_SPECULAR_HIGHLIGHTS
 float NoH = saturate(dot(worldNormal, halfVector));
-directSpecular = getDirectSpecular(perceptualRoughness, NoH, NoV, NoL, LoH, f0, _Anisotropy, halfVector, tangent, bitangent) * light;
+directSpecular = getDirectSpecular(perceptualRoughness, NoH, NoV, NoL, fresnel, _Anisotropy, halfVector, tangent, bitangent) * light;
 #endif
 // specular highlights
 

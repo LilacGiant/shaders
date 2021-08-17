@@ -48,12 +48,6 @@ float F_Schlick(float f0, float f90, float VoH) {
     return f0 + (f90 - f0) * pow5(1.0 - VoH);
 }
 
-float3 F_FresnelLerp (float3 F0, float3 F90, float cosA)
-{
-    float t = pow5(1 - cosA);   // ala Schlick interpoliation
-    return lerp (F0, F90, t);
-}
-
 float Fd_Burley(float roughness, float NoV, float NoL, float LoH)
 {
     // Burley 2012, "Physically-Based Shading at Disney"
@@ -188,7 +182,7 @@ float3 getIndirectSpecular(float metallic, float roughness, float3 reflDir, floa
     return spec;
 }
 
-half3 getDirectSpecular(half perceptualRoughness, half NoH, half NoV, half NoL, half LoH, half3 f0, half anisotropy, half3 halfVector, half3 tangent, half3 bitangent)
+half3 getDirectSpecular(half perceptualRoughness, half NoH, half NoV, half NoL, half3 fresnel, half anisotropy, half3 halfVector, half3 tangent, half3 bitangent)
 {
     half roughness = max(perceptualRoughness * perceptualRoughness, 0.002);
 
@@ -206,14 +200,9 @@ half3 getDirectSpecular(half perceptualRoughness, half NoH, half NoV, half NoL, 
     #else
     half V = V_SmithGGXCorrelated(NoV, NoL, roughness);
     #endif  
-    half3 F = F_Schlick(f0, LoH);
+    half3 F = fresnel;
    
     half3 directSpecular = max(0, (D * V) * F);
-
-#if !defined(SHADER_API_MOBILE)
-    half3 energyCompensation = 1.0 + f0 * (1.0 / lerp(1,V, roughness) - 1.0);
-    directSpecular *= energyCompensation;
-#endif
 
     return directSpecular * UNITY_PI;
 }

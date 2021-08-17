@@ -86,6 +86,12 @@ UNITY_DECLARE_TEX2D_NOSAMPLER(_MatCap);
 uniform half _MatCapReplace;
 
 
+UNITY_DECLARE_TEX2D_NOSAMPLER(_DetailMap);
+uniform float4 _DetailMap_ST;
+uniform half _DetailMapUV;
+
+
+
 
 
 // ----------------- defines -----------------
@@ -107,6 +113,7 @@ uniform half _MatCapReplace;
     #define PROP_OCCLUSIONMAP
     #define PROP_EMISSIONMAP
     #define PROP_METALLICGLOSSMAP
+    #define PROP_DETAILMAP
 #endif
 
 // ----------------- defines -----------------

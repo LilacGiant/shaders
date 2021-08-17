@@ -3,32 +3,15 @@ Shader " Lit"
 
     Properties
     {
-        
-        [HideInInspector] shader_is_using_thry_editor("", Float)=1
-        [HideInInspector] shader_master_label ("Lit v0.0.4", Float) = 0
-        [HideInInspector] _ForgotToLockMaterial (";;YOU_FORGOT_TO_LOCK_THIS_MATERIAL;", Int) = 1
-        [ThryShaderOptimizerLockButton] _ShaderOptimizerEnabled ("", Float) = 0
-        
+        _ShaderOptimizerEnabled ("", Float) = 0
 
-        [HideInInspector] m_Main ("Surface Inputs", Float) = 1
+        [Enum(Opaque, 0, Cutout, 1, Fade, 2, Transparent, 3)]_Mode("Rendering Mode", Int) = 0
         
-        //rendering preset from poiyomi
-        [ThryWideEnum(Opaque, 0, Cutout, 1, Fade, 2, Transparent, 3, Additive, 4, SoftAdditive, 5, Multiplicative, 6, 2x Multiplicative, 7)]_Mode("Rendering Mode--{on_value_actions:[ 
-            {value:0,actions:[{type:SET_PROPERTY,data:render_queue=2000}, {type:SET_PROPERTY,data:render_type=Opaque},            {type:SET_PROPERTY,data:_BlendOp=0}, {type:SET_PROPERTY,data:_BlendOpAlpha=0}, {type:SET_PROPERTY,data:_Cutoff=0},  {type:SET_PROPERTY,data:_SrcBlend=1}, {type:SET_PROPERTY,data:_DstBlend=0},  {type:SET_PROPERTY,data:_AlphaToMask=0},  {type:SET_PROPERTY,data:_ZWrite=1}, {type:SET_PROPERTY,data:_ZTest=4},   {type:SET_PROPERTY,data:_AlphaPremultiply=0}]},
-            {value:1,actions:[{type:SET_PROPERTY,data:render_queue=2450}, {type:SET_PROPERTY,data:render_type=TransparentCutout}, {type:SET_PROPERTY,data:_BlendOp=0}, {type:SET_PROPERTY,data:_BlendOpAlpha=0}, {type:SET_PROPERTY,data:_Cutoff=.5}, {type:SET_PROPERTY,data:_SrcBlend=1}, {type:SET_PROPERTY,data:_DstBlend=0},                                            {type:SET_PROPERTY,data:_ZWrite=1}, {type:SET_PROPERTY,data:_ZTest=4},   {type:SET_PROPERTY,data:_AlphaPremultiply=0}]},
-            {value:2,actions:[{type:SET_PROPERTY,data:render_queue=3000}, {type:SET_PROPERTY,data:render_type=Transparent},       {type:SET_PROPERTY,data:_BlendOp=0}, {type:SET_PROPERTY,data:_BlendOpAlpha=0}, {type:SET_PROPERTY,data:_Cutoff=0},  {type:SET_PROPERTY,data:_SrcBlend=5}, {type:SET_PROPERTY,data:_DstBlend=10}, {type:SET_PROPERTY,data:_AlphaToMask=0},  {type:SET_PROPERTY,data:_ZWrite=0}, {type:SET_PROPERTY,data:_ZTest=4},   {type:SET_PROPERTY,data:_AlphaPremultiply=0}]},
-            {value:3,actions:[{type:SET_PROPERTY,data:render_queue=3000}, {type:SET_PROPERTY,data:render_type=Transparent},       {type:SET_PROPERTY,data:_BlendOp=0}, {type:SET_PROPERTY,data:_BlendOpAlpha=0}, {type:SET_PROPERTY,data:_Cutoff=0},  {type:SET_PROPERTY,data:_SrcBlend=1}, {type:SET_PROPERTY,data:_DstBlend=10}, {type:SET_PROPERTY,data:_AlphaToMask=0},  {type:SET_PROPERTY,data:_ZWrite=0}, {type:SET_PROPERTY,data:_ZTest=4},   {type:SET_PROPERTY,data:_AlphaPremultiply=1}]},
-            {value:4,actions:[{type:SET_PROPERTY,data:render_queue=3000}, {type:SET_PROPERTY,data:render_type=Transparent},       {type:SET_PROPERTY,data:_BlendOp=0}, {type:SET_PROPERTY,data:_BlendOpAlpha=0}, {type:SET_PROPERTY,data:_Cutoff=0},  {type:SET_PROPERTY,data:_SrcBlend=1}, {type:SET_PROPERTY,data:_DstBlend=1},  {type:SET_PROPERTY,data:_AlphaToMask=0},  {type:SET_PROPERTY,data:_ZWrite=0}, {type:SET_PROPERTY,data:_ZTest=4},   {type:SET_PROPERTY,data:_AlphaPremultiply=0}]},
-            {value:5,actions:[{type:SET_PROPERTY,data:render_queue=3000}, {type:SET_PROPERTY,data:render_type=Transparent},        {type:SET_PROPERTY,data:_BlendOp=0}, {type:SET_PROPERTY,data:_BlendOpAlpha=0}, {type:SET_PROPERTY,data:_Cutoff=0},  {type:SET_PROPERTY,data:_SrcBlend=4}, {type:SET_PROPERTY,data:_DstBlend=1},  {type:SET_PROPERTY,data:_AlphaToMask=0},  {type:SET_PROPERTY,data:_ZWrite=0}, {type:SET_PROPERTY,data:_ZTest=4},   {type:SET_PROPERTY,data:_AlphaPremultiply=0}]},
-            {value:6,actions:[{type:SET_PROPERTY,data:render_queue=3000}, {type:SET_PROPERTY,data:render_type=Transparent},       {type:SET_PROPERTY,data:_BlendOp=0}, {type:SET_PROPERTY,data:_BlendOpAlpha=0}, {type:SET_PROPERTY,data:_Cutoff=0},  {type:SET_PROPERTY,data:_SrcBlend=2}, {type:SET_PROPERTY,data:_DstBlend=0},  {type:SET_PROPERTY,data:_AlphaToMask=0},  {type:SET_PROPERTY,data:_ZWrite=0}, {type:SET_PROPERTY,data:_ZTest=4},   {type:SET_PROPERTY,data:_AlphaPremultiply=0}]},
-            {value:7,actions:[{type:SET_PROPERTY,data:render_queue=3000}, {type:SET_PROPERTY,data:render_type=Transparent},       {type:SET_PROPERTY,data:_BlendOp=0}, {type:SET_PROPERTY,data:_BlendOpAlpha=0}, {type:SET_PROPERTY,data:_Cutoff=0},  {type:SET_PROPERTY,data:_SrcBlend=2}, {type:SET_PROPERTY,data:_DstBlend=3},  {type:SET_PROPERTY,data:_AlphaToMask=0},  {type:SET_PROPERTY,data:_ZWrite=0}, {type:SET_PROPERTY,data:_ZTest=4},   {type:SET_PROPERTY,data:_AlphaPremultiply=0}]}
-        }]}]}", Int) = 0
-        
-        [Enum(Off, 0, On, 1, Sharpened, 2)] _AlphaToMask ("Alpha To Coverage--{condition_show:{type:PROPERTY_BOOL,data:_Mode==1}}", Float) = 0
-        _Cutoff ("Alpha Cuttoff--{condition_show:{type:PROPERTY_BOOL,data:_Mode==1}}", Range(0, 1.001)) = 0.5
+        [Enum(Off, 0, On, 1, Sharpened, 2)] _AlphaToMask ("Alpha To Coverage", Float) = 0
+        _Cutoff ("Alpha Cuttoff", Range(0, 1.001)) = 0.5
 
 
-        _MainTex ("Base Map --{reference_property:_Color,reference_properties:[_MainTexUV,_Saturation, _EnableVertexColor]}", 2D) = "white" {}
+        _MainTex ("Base Map ", 2D) = "white" {}
         [HideInInspector] _Color ("Color", Color) = (1,1,1,1)
         [HideInInspector] _Saturation ("Saturation", Range(-1,1)) = 0
         [HideInInspector] [Enum(UV0, 0, UV1 (Lightmap), 1, UV2, 2)] _MainTexUV ("UV", Int) = 0
@@ -44,30 +27,35 @@ Shader " Lit"
 
         
         [HideInInspector] [ToggleUI] _EnablePackedMap ("Enable Roughness Map ", Float) = 0
-        [sRGBWarning] _MetallicGlossMap ("Mask Map--{tooltip:Metallic(R) Occlusion(G) Detail Mask(B) Smoothness(A),reference_properties:[_MetallicGlossMapUV,_EnableVertexColorMask],condition_show:{type:PROPERTY_BOOL,data:_EnablePackedMode==1},on_value_actions:[{value:0,actions:[{type:SET_PROPERTY,data:_EnablePackedMap=0}]},{value:1,actions:[{type:SET_PROPERTY,data:_EnablePackedMap=1}]}]} ", 2D) = "white" {}
+        _MetallicGlossMap ("Mask Map", 2D) = "white" {}
         [HideInInspector] [Enum(UV0, 0, UV1 (Lightmap), 1, UV2, 2)] _MetallicGlossMapUV ("UV", Int) = 0
         [HideInInspector] [ToggleUI] _EnableVertexColorMask ("Vertex Colors Mulitply", Float) = 0
 
 
-        [sRGBWarning] _SmoothnessMap ("Smoothness Map--{condition_show:{type:PROPERTY_BOOL,data:_EnablePackedMode==0},reference_properties:[_SmoothnessMapUV,_GlossinessInvert]}", 2D) = "white" {}
+        _SmoothnessMap ("Smoothness Map", 2D) = "white" {}
         [HideInInspector] [Enum(UV0, 0, UV1 (Lightmap), 1, UV2, 2)] _SmoothnessMapUV ("UV", Int) = 0
         [HideInInspector] [ToggleUI] _GlossinessInvert ("Invert", Float) = 0
 
-        [sRGBWarning] _MetallicMap ("Metallic Map--{condition_show:{type:PROPERTY_BOOL,data:_EnablePackedMode==0},reference_properties:[_MetallicMapUV]}", 2D) = "white" {}
+        _MetallicMap ("Metallic Map", 2D) = "white" {}
         [HideInInspector] [Enum(UV0, 0, UV1 (Lightmap), 1, UV2, 2)] _MetallicMapUV ("UV", Int) = 0
 
-        [sRGBWarning] _OcclusionMap ("Occlusion Map--{condition_show:{type:PROPERTY_BOOL,data:_EnablePackedMode==0},reference_properties:[_OcclusionMapUV]}", 2D) = "white" {}
+        _OcclusionMap ("Occlusion Map", 2D) = "white" {}
         [HideInInspector] [Enum(UV0, 0, UV1 (Lightmap), 1, UV2, 2)] _OcclusionMapUV ("UV", Int) = 0
 
-        [Normal] _BumpMap ("Normal Map--{reference_property:_BumpScale,reference_properties:[_BumpMapUV,_NormalMapOrientation]}", 2D) = "bump" {}
+        [Normal] _BumpMap ("Normal Map", 2D) = "bump" {}
         [HideInInspector] _BumpScale ("Bump Scale", Range(0,10)) = 1
         [HideInInspector] [Enum(OpenGL, 0, Direct3D, 1)] _NormalMapOrientation ("Orientation", Int) = 0
         [HideInInspector] [Enum(UV0, 0, UV1 (Lightmap), 1, UV2, 2)] _BumpMapUV ("UV", Int) = 0
 
         [ToggleUI] _EnableEmission ("Emission", Float) = 0
-        _EmissionMap ("Emission Map--{condition_show:{type:PROPERTY_BOOL,data:_EnableEmission==1},reference_property:_EmissionColor,reference_properties:[_EmissionMapUV]}", 2D) = "white" {}
+        _EmissionMap ("Emission Map", 2D) = "white" {}
         [HideInInspector] [HDR] _EmissionColor ("Color", Color) = (0,0,0)
         [HideInInspector] [Enum(UV0, 0, UV1 (Lightmap), 1, UV2, 2)] _EmissionMapUV ("UV", Int) = 0
+
+        _DetailMap ("Detail Map", 2D) = "white" {}
+        [HideInInspector] [Enum(UV0, 0, UV1 (Lightmap), 1, UV2, 2)] _DetailMapUV ("UV", Int) = 0
+
+
 
         
 
@@ -90,17 +78,13 @@ Shader " Lit"
         [Toggle(ENABLE_REFLECTIONS)] _GlossyReflections("Reflections", Float) = 1
 
 
-        [HideInInspector] m_start_GSAA("Geometric Specular AA--{reference_property:_GSAA}", Float) = 0
         [HideInInspector] [Toggle(ENABLE_GSAA)] _GSAA ("Geometric Specular AA", Float) = 0
         [PowerSlider(3)] _specularAntiAliasingVariance ("Variance", Range(0.0, 1.0)) = 0.15
         [PowerSlider(3)] _specularAntiAliasingThreshold ("Threshold", Range(0.0, 1.0)) = 0.1
-        [HideInInspector] m_end_GSAA("Matcap--{reference_property:_EnableMatcap}", Float) = 0
         
-        [HideInInspector] m_start_MatcapToggle("Matcap--{reference_property:_EnableMatcap}", Float) = 0
         [HideInInspector] [Toggle(ENABLE_MATCAP)] _EnableMatcap ("Matcap", Float) = 0
         [NoScaleOffset] _MatCap ("Matcap", 2D) = "white" {}
         _MatCapReplace ("Intensity", Range(0.0, 1.0)) = 1
-        [HideInInspector] m_end_MatcapToggle("", Float) = 0
 
 
         
@@ -114,7 +98,7 @@ Shader " Lit"
 
 
         
-        [HideInInspector] m_BakedLight ("Baked Light", Float) = 0
+
 
         
         _LightmapMultiplier ("Multiplier", Range(0, 2)) = 1
@@ -125,25 +109,18 @@ Shader " Lit"
 
         
 
-        [HideInInspector] m_RenderingOptions ("Advanced Options", Float) = 0
 
-        [HideInInspector] m_start_blending ("Blending", Float) = 0
-        [Enum(Thry.BlendOp)]_BlendOp ("RGB Blend Op", Int) = 0
-        [Enum(Thry.BlendOp)]_BlendOpAlpha ("Alpha Blend Op", Int) = 0
+        [Enum(UnityEngine.Rendering.BlendOp)] _BlendOp ("RGB Blend Op", Int) = 0
+        [Enum(UnityEngine.Rendering.BlendOp)] _BlendOpAlpha ("Alpha Blend Op", Int) = 0
         [Enum(UnityEngine.Rendering.BlendMode)] _SrcBlend ("Source Blend", Int) = 1
         [Enum(UnityEngine.Rendering.BlendMode)] _DstBlend ("Destination Blend", Int) = 0
-        [HideInInspector] m_end_blending ("Blending", Float) = 0
 
-        [HideInInspector] m_start_PP ("Post-Processing", Float) = 0
         [Enum(None, 0, ACES, 1)] _TonemappingMode ("Mode", Int) = 0
         _Contribution ("Contribution", Range(0, 1)) = 1
-        [HideInInspector] m_end_PP ("", Float) = 0
 
-        [HideInInspector] m_start_LockInToggles("Shader optimizer toggles", Float) = 0
 
         [ToggleUI] _commentIfOne_DisableShadowCaster ("Disable ShadowCaster Pass", float) = 0
         [ToggleUI] _commentIfOne_DisableAddPass ("Disable ForwardAdd Pass", float) = 0
-        [HideInInspector] m_end_LockInToggles("", Float) = 0
 
 
         [Toggle(ENABLE_PACKED_MODE)] _EnablePackedMode ("Packed Mode", Float) = 1       
@@ -396,5 +373,5 @@ Shader " Lit"
     }
 
     //FallBack "Diffuse"
-    CustomEditor "Thry.ShaderEditor"
+    CustomEditor "Shaders.Lit.ShaderEditor"
 }

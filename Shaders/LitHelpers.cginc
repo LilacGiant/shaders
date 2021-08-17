@@ -52,6 +52,17 @@ float3 ACESFilm(float3 x)
     return saturate((x*(a*x+b))/(x*(c*x+d)+e));
 }
 
+half BlendMode_Overlay(half base, half blend)
+{
+	return (base <= 0.5) ? 2*base*blend : 1 - 2*(1-base)*(1-blend);
+}
+
+half3 BlendMode_Overlay(half3 base, half3 blend)
+{
+    return half3(   BlendMode_Overlay(base.r, blend.r),
+                    BlendMode_Overlay(base.g, blend.g),
+                    BlendMode_Overlay(base.b, blend.b));
+}
   
 
 
