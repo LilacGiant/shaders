@@ -79,14 +79,13 @@ namespace Shaders.Lit
 
         protected MaterialProperty _ShaderOptimizerEnabled = null;
         const string AnimatedPropertySuffix = "Animated";
-        const char hoverSplitSeparator = ':';
+        const char ParseSplitSeparator = '/';
         //bool afterShaderOptimizerButton = false;
         MaterialProperty shaderOptimizer;
         bool[] propertyAnimated;
 
-        public static Texture2D groupTex;
+        private Material material;
 
-        
 
         public void FindProperties(MaterialProperty[] props)
         {
@@ -101,11 +100,12 @@ namespace Shaders.Lit
             }
         }
 
+
         public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] props)
         {
             FindProperties(props); // MaterialProperties can be animated so we do not cache them but fetch them every event to ensure animated values are updated correctly
             me = materialEditor;
-            Material material = materialEditor.target as Material;
+            material = materialEditor.target as Material;
             SetupFoldoutDictionary(material);
 
             // Make sure that needed setup (ie keywords/renderqueue) are set up if we're switching some existing
@@ -114,14 +114,6 @@ namespace Shaders.Lit
             if (m_FirstTimeApply)
             {
 
-                groupTex = (Texture2D)Resources.Load( EditorGUIUtility.isProSkin ? "lit_group" : "lit_group_light", typeof(Texture2D));
-                
-
-                // Clear all keywords to begin with, in case there are conflicts with different shaders
-             //   foreach (string keyword in material.shaderKeywords)
-              //      material.DisableKeyword(keyword);
-
-                
                 // Cache the animated state of each property to exclude them from being disabled when the material is locked
                 if (propertyAnimated == null)
                     propertyAnimated = new bool[props.Length];
@@ -193,7 +185,7 @@ namespace Shaders.Lit
                     Styles.sRGBWarning(_MetallicGlossMap);
                     if(MaterialData[material].Show_MetallicGlossMap){
                         Styles.PropertyGroup(() => {
-                        prop(_MetallicGlossMap);
+                        me.TextureScaleOffsetProperty(_MetallicGlossMap);
                         prop(_MetallicGlossMapUV);
                         });
                     }
@@ -308,37 +300,59 @@ namespace Shaders.Lit
             }
         }
 
-        public void prop(MaterialProperty property)
-        {
-            if(property.type == MaterialProperty.PropType.Range ||
-               property.type == MaterialProperty.PropType.Float ||
-               property.type == MaterialProperty.PropType.Vector ||
-               property.type == MaterialProperty.PropType.Color) me.ShaderProperty(property, property.displayName);
+        private void prop(MaterialProperty property) => DrawProperty(property, null);
+        private void prop(MaterialProperty property, MaterialProperty extraProperty) => DrawProperty(property, extraProperty);
 
-            if(property.type == MaterialProperty.PropType.Texture) textureProperty(property);
-        }
-
-        public void prop(MaterialProperty property, MaterialProperty extraProperty)
+        private void DrawProperty(MaterialProperty property, MaterialProperty extraProperty)
         {
-            if(property.type == MaterialProperty.PropType.Texture) textureProperty(property, extraProperty);
-        }
+            string[] propertyName = property.displayName.Split('/');
+            string displayName = propertyName[0];
+            string propParameters = propertyName.Length == 2 ? propertyName[1] : null;
 
-        public void textureProperty(MaterialProperty property)
-        {
-            if(property.type == MaterialProperty.PropType.Texture) {
-                string[] p = property.displayName.Split(hoverSplitSeparator);
-                if(p.Length == 1) me.TexturePropertySingleLine(new GUIContent(p[0]), property);
-                if(p.Length == 2) me.TexturePropertySingleLine(new GUIContent(p[0], p[1]), property);
+            if(ParseShowIf(propParameters)){
+
+                if(property.type == MaterialProperty.PropType.Range ||
+                    property.type == MaterialProperty.PropType.Float ||
+                    property.type == MaterialProperty.PropType.Vector ||
+                    property.type == MaterialProperty.PropType.Color) me.ShaderProperty(property, displayName);
+
+                if(property.type == MaterialProperty.PropType.Texture)
+                {
+                    me.TexturePropertySingleLine(new GUIContent(displayName, ParseHover(propParameters)), property, extraProperty);
+                }
             }
         }
 
-        public void textureProperty(MaterialProperty property, MaterialProperty extraProperty)
-        {
-            if(property.type == MaterialProperty.PropType.Texture) {
-                string[] p = property.displayName.Split(hoverSplitSeparator);
-                if(p.Length == 1) me.TexturePropertySingleLine(new GUIContent(p[0]), property, extraProperty);
-                if(p.Length == 2) me.TexturePropertySingleLine(new GUIContent(p[0], p[1]), property, extraProperty);
+        private bool ParseShowIf(string a){
+            if(a == null) return true; 
+            string[] d = a.Split(',');
+
+            foreach(string e in d)
+            {
+                string[] f = e.Split(':');
+
+                if(f[0] == "showif")
+                {
+                    string[] h = f[1].Split('=');
+                    if(material.GetFloat(h[0]) == float.Parse(h[1])) return true;
+                    else return false;
+                }
             }
+            return true;
+        }
+
+        private string ParseHover(string a){
+            if(a == null) return null; 
+            string[] d = a.Split(',');
+
+            foreach(string e in d)
+            {
+                string[] f = e.Split(':');
+
+                if(f[0] == "hover") return f[1];
+
+            }
+            return null;
         }
 
         

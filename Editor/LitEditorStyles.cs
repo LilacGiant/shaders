@@ -11,6 +11,8 @@ namespace Shaders.Lit
 
     public static class Styles
     {
+        public static Texture2D groupTex = (Texture2D)Resources.Load( EditorGUIUtility.isProSkin ? "lit_group" : "lit_group_light", typeof(Texture2D));
+
 
         public static bool TextureFoldout(bool display)
         {
@@ -60,7 +62,7 @@ namespace Shaders.Lit
             var rect2 = new Rect(rect.x + -20f, rect.y, rect.width + 30f, rect.height+2);
             var rectText = new Rect(rect.x -8f, rect.y+1, rect.width, rect.height);
 
-            GUI.DrawTexture(rect2, ShaderEditor.groupTex);
+            GUI.DrawTexture(rect2, groupTex);
             GUI.Label(rectText, title, style);
             return rect2;
         }
