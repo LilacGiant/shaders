@@ -11,7 +11,7 @@ Shader " Lit"
         _Cutoff ("Alpha Cuttoff", Range(0, 1.001)) = 0.5
 
 
-        _MainTex ("Base Map/showif:_Metallic=1,hover:owo uwu owo", 2D) = "white" {}
+        _MainTex ("Base Map", 2D) = "white" {}
         [HideInInspector] _Color ("Color", Color) = (1,1,1,1)
         [HideInInspector] _Saturation ("Saturation", Range(-1,1)) = 0
         [HideInInspector] [Enum(UV0, 0, UV1 (Lightmap), 1, UV2, 2)] _MainTexUV ("UV", Int) = 0
@@ -21,7 +21,7 @@ Shader " Lit"
                 
         
         
-        _Metallic ("Metallic/showif:_Glossiness=1", Range(0,1)) = 0
+        _Metallic ("Metallic", Range(0,1)) = 0
         _Glossiness ("Smoothness", Range(0,1)) = 0.5
         _Occlusion ("Occlusion", Range(0,1)) = 0
 
