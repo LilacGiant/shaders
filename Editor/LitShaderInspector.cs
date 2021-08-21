@@ -124,12 +124,6 @@ namespace Shaders.Lit
                         prop(_EmissionMapUV);
                     });
                 }
-
-                
-
-
-
-
             });
 
 
@@ -187,6 +181,16 @@ namespace Shaders.Lit
 
         }
 
+
+
+        private void ApplyChanges()
+        {
+            if(_ShaderOptimizerEnabled.floatValue == 0){
+                
+
+            }
+        }
+
         protected static Dictionary<Material, FoldoutDictionary> md = new Dictionary<Material, FoldoutDictionary>();
         protected BindingFlags bindingFlags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static;
 
@@ -239,12 +243,29 @@ namespace Shaders.Lit
 
             ShaderPropertiesGUI(material);
 
-            if (EditorGUI.EndChangeCheck()) {};
+            if (EditorGUI.EndChangeCheck()) {
+                ApplyChanges();
+            };
             EditorGUI.EndDisabledGroup();
         }
 
         public void prop(MaterialProperty property) => MaterialProp(property, null);
         public void prop(MaterialProperty property, MaterialProperty extraProperty) => MaterialProp(property, extraProperty);
+
+        public void MaterialProp(MaterialProperty property, MaterialProperty extraProperty)
+        {
+            if(property.type == MaterialProperty.PropType.Range ||
+               property.type == MaterialProperty.PropType.Float ||
+               property.type == MaterialProperty.PropType.Vector ||
+               property.type == MaterialProperty.PropType.Color) me.ShaderProperty(property, property.displayName);
+
+            if(property.type == MaterialProperty.PropType.Texture) 
+            {
+                string[] p = property.displayName.Split(hoverSplitSeparator);
+
+                me.TexturePropertySingleLine(new GUIContent(p[0], p.Length == 2 ? p[1] : null), property, extraProperty);
+            }
+        }
 
         private void Space() => EditorGUILayout.Space();
         private void Space(int a) => EditorGUILayout.Space(a);
@@ -271,24 +292,6 @@ namespace Shaders.Lit
                 });
             }
             return foldoutName;
-        }
-
-
-
-
-        public void MaterialProp(MaterialProperty property, MaterialProperty extraProperty)
-        {
-            if(property.type == MaterialProperty.PropType.Range ||
-               property.type == MaterialProperty.PropType.Float ||
-               property.type == MaterialProperty.PropType.Vector ||
-               property.type == MaterialProperty.PropType.Color) me.ShaderProperty(property, property.displayName);
-
-            if(property.type == MaterialProperty.PropType.Texture) 
-            {
-                string[] p = property.displayName.Split(hoverSplitSeparator);
-
-                me.TexturePropertySingleLine(new GUIContent(p[0], p.Length == 2 ? p[1] : null), property, extraProperty);
-            }
         }
 
 
