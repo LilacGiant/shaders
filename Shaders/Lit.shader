@@ -10,8 +10,7 @@ Shader " Lit"
         [Enum(Off, 0, On, 1, Sharpened, 2)] _AlphaToMask ("Alpha To Coverage", Float) = 0
         _Cutoff ("Alpha Cuttoff", Range(0, 1.001)) = 0.5
 
-
-        _MainTex ("Base Map", 2D) = "white" {}
+        _MainTex ("Base Map:test", 2D) = "white" {}
         [HideInInspector] _Color ("Color", Color) = (1,1,1,1)
         [HideInInspector] _Saturation ("Saturation", Range(-1,1)) = 0
         [HideInInspector] [Enum(UV0, 0, UV1 (Lightmap), 1, UV2, 2)] _MainTexUV ("UV", Int) = 0
@@ -27,7 +26,7 @@ Shader " Lit"
 
         
         [HideInInspector] [ToggleUI] _EnablePackedMap ("Enable Roughness Map ", Float) = 0
-        _MetallicGlossMap ("Mask Map/hover:Metallic(R) Occlusion(G) Detail Mask(B) Smoothness(A)", 2D) = "white" {}
+        _MetallicGlossMap ("Mask Map:Metallic(R), Occlusion(G), Detail Mask(B), Smoothness(A)", 2D) = "white" {}
         [HideInInspector] [Enum(UV0, 0, UV1 (Lightmap), 1, UV2, 2)] _MetallicGlossMapUV ("UV", Int) = 0
         [HideInInspector] [ToggleUI] _EnableVertexColorMask ("Vertex Colors Mulitply", Float) = 0
 
@@ -62,7 +61,7 @@ Shader " Lit"
         
         [HideInInspector] m_Specular ("Reflections And Specular Highlights", Float) = 0
         [Enum(Default, 0, Get From Probes, 1)] _GetDominantLight ("Mode", Int) = 0
-        _FresnelColor ("Sheen", Color) = (1,1,1,1)
+        _FresnelColor ("Sheen Color", Color) = (1,1,1,1)
         _Reflectance ("Reflectance", Range(0,1)) = 0.45
         _AngularGlossiness ("Angular Glossiness", Range(0, 1)) = 0
 
@@ -101,7 +100,7 @@ Shader " Lit"
 
 
         
-        _LightmapMultiplier ("Lightmap Multiplier", Range(0, 2)) = 1
+        _LightmapMultiplier ("Multiplier", Range(0, 2)) = 1
         _SpecularOcclusion ("Specular Occlusion", Range(0, 1)) = 0
 
         [Toggle(ENABLE_BICUBIC_LIGHTMAP)] _BicubicLightmap ("Bicubic Lightmap Interpolation", Float) = 0

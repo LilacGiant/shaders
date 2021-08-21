@@ -11,6 +11,7 @@ namespace Shaders.Lit
 
     public static class Styles
     {
+
         public static Texture2D groupTex = (Texture2D)Resources.Load( EditorGUIUtility.isProSkin ? "lit_group" : "lit_group_light", typeof(Texture2D));
 
 
@@ -31,9 +32,9 @@ namespace Shaders.Lit
             return display;
         }
 
-        public static bool ShurikenFoldout(string title, bool display)
+        public static bool Foldout(string title, bool display)
         {
-            var rect = DrawShuriken(title, new Vector2(18f, 0f),18);
+            var rect = DrawFoldout(title, new Vector2(18f, 0f),18);
             var e = Event.current;
             var toggleRect = new Rect(rect.x + 12f, rect.y + 3f, 13f, 13f);
             if (e.type == EventType.Repaint)
@@ -48,7 +49,7 @@ namespace Shaders.Lit
             return display;
         }
 
-        private static Rect DrawShuriken(string title, Vector2 contentOffset, int HeaderHeight)
+        private static Rect DrawFoldout(string title, Vector2 contentOffset, int HeaderHeight)
         {
             var style = new GUIStyle("BoldLabel");
             style.font = new GUIStyle(EditorStyles.boldLabel).font;
@@ -77,8 +78,9 @@ namespace Shaders.Lit
 			GUILayout.Space(1);
 		}
 
-        		// Mimics the normal map import warning - written by Orels1
-		static bool TextureImportWarningBox(string message){
+        // Mimics the normal map import warning - written by Orels1
+		static bool TextureImportWarningBox(string message)
+        {
 			GUILayout.BeginVertical(new GUIStyle(EditorStyles.helpBox));
 			EditorGUILayout.LabelField(message, new GUIStyle(EditorStyles.label) {
 				fontSize = 11, wordWrap = true
