@@ -8,7 +8,12 @@ v2f vert(appdata v)
     UNITY_INITIALIZE_OUTPUT(v2f, o);
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
     
+
+    #ifdef UNITY_PASS_META
+    o.pos = UnityMetaVertexPosition(v.vertex, v.uv1.xy, v.uv2.xy, unity_LightmapST, unity_DynamicLightmapST);
+    #else
     o.pos = UnityObjectToClipPos(v.vertex);
+    #endif
 
     o.uv0 = v.uv0;
     o.uv1 = v.uv1;

@@ -10,7 +10,7 @@ half4 frag(v2f i) : SV_Target
 
 
     half4 mainTex = _MainTex.Sample(sampler_MainTex, TRANSFORM_TEX(uvs[_MainTexUV], _MainTex));
-
+    //half4 mainTex = sampleTex(_MainTex, 1, _MainTexUV, i.worldPos, i.worldNormal);
     half intensity = dot(mainTex, grayscaleVec); // saturation
     mainTex.rgb = lerp(intensity, mainTex, (_Saturation+1));
 
@@ -232,7 +232,7 @@ directSpecular = getDirectSpecular(perceptualRoughness, NoH, NoV, NoL, fresnel, 
 // emission
 half3 emissionMap = 1;
 half3 emission = 0;
-#ifdef UNITY_PASS_FORWARDBASE
+#if defined(UNITY_PASS_FORWARDBASE) || defined(UNITY_PASS_META)
 #if defined(PROP_EMISSIONMAP)
 emissionMap = _EmissionMap.Sample(sampler_MainTex, TRANSFORM_MAINTEX(uvs[_EmissionMapUV], _EmissionMap)).rgb;
 #endif
@@ -241,8 +241,19 @@ emission = _EnableEmission ? emissionMap * _EmissionColor.rgb : 0;
 // emission
 
 
+
 // final color
 half3 finalColor = directDiffuse * ((indirectDiffuse * occlusion) + light) + directSpecular + indirectSpecular + emission;
+
+
+#ifdef UNITY_PASS_META
+    UnityMetaInput surfaceData;
+    UNITY_INITIALIZE_OUTPUT(UnityMetaInput, surfaceData);
+    surfaceData.Emission = emission;
+    surfaceData.Albedo = albedo;
+    surfaceData.SpecularColor = indirectSpecular;
+    return UnityMetaFragment(surfaceData);
+#endif
 
 finalColor.rgb = _TonemappingMode ? lerp(finalColor.rgb, ACESFilm(finalColor.rgb), _Contribution) : finalColor.rgb; // aces
 

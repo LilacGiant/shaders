@@ -2,7 +2,7 @@
 #define LITINPUTS
 
 
-uniform float2 uvs[3];
+uniform float2 uvs[4];
 uniform half _Cutoff;
 uniform half _Mode;
 uniform half _AlphaToMask;
@@ -13,6 +13,7 @@ uniform float4 _MainTex_ST;
 uniform half4 _Color;
 uniform half _Saturation;
 uniform half _EnableVertexColor;
+uniform half _TriplanarBlend;
 
 
 uniform float _EnableNormalMap;
@@ -73,8 +74,8 @@ uniform float _ParallaxSteps;
 uniform float _ParallaxOffset;
 uniform float _Parallax;
 
-sampler2D_float _CameraDepthTexture;
-float4 _CameraDepthTexture_TexelSize;
+//sampler2D_float _CameraDepthTexture;
+//float4 _CameraDepthTexture_TexelSize;
 
 uniform float _LightProbeMethod;
 

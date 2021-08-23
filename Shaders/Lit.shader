@@ -5,15 +5,17 @@ Shader " Lit"
     {
         _ShaderOptimizerEnabled ("", Float) = 0
 
-        [Enum(Opaque, 0, Cutout, 1, Fade, 2, Transparent, 3)]_Mode("Rendering Mode", Int) = 0
+        [Enum(Opaque, 0, Cutout, 1, Fade, 2, Transparent, 3)] _Mode("Rendering Mode", Int) = 0
         
         [Enum(Off, 0, On, 1, Sharpened, 2)] _AlphaToMask ("Alpha To Coverage", Float) = 0
-        _Cutoff ("Alpha Cuttoff", Range(0, 1.001)) = 0.5
+        _Cutoff ("Alpha Cuttoff", Range(0, 1)) = 0.5
 
         _MainTex ("Base Map:test", 2D) = "white" {}
         [HideInInspector] _Color ("Color", Color) = (1,1,1,1)
         [HideInInspector] _Saturation ("Saturation", Range(-1,1)) = 0
-        [HideInInspector] [Enum(UV0, 0, UV1 (Lightmap), 1, UV2, 2)] _MainTexUV ("UV", Int) = 0
+        [HideInInspector] [Enum(UV0, 0, UV1 (Lightmap), 1, UV2, 2, Triplanar,  3)] _MainTexUV ("UV", Int) = 0
+        [HideInInspector] _TriplanarBlend ("Blend", Range(1,100)) = 0
+
         
         [HideInInspector] [ToggleUI] _EnableVertexColor ("Vertex Colors Mulitply", Float) = 0
                
@@ -244,6 +246,28 @@ Shader " Lit"
 
             #ifndef UNITY_PASS_SHADOWCASTER
             #define UNITY_PASS_SHADOWCASTER
+            #endif
+
+            #include "LitPass.cginc"
+            ENDCG
+        }
+
+        Pass
+        {
+            Name "META"
+            Tags { "LightMode"="Meta" }
+
+            Cull Off
+
+            CGPROGRAM
+            #pragma vertex vert
+            #pragma fragment frag
+
+            #pragma shader_feature_local ENABLE_PACKED_MODE
+            #pragma shader_feature EDITOR_VISUALIZATION
+
+            #ifndef UNITY_PASS_META
+            #define UNITY_PASS_META
             #endif
 
             #include "LitPass.cginc"

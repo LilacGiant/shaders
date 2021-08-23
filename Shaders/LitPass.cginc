@@ -8,6 +8,9 @@
 #include "Lighting.cginc"
 #include "LitHelpers.cginc"
 #include "LitLighting.cginc"
+#ifdef UNITY_PASS_META
+#include "UnityMetaPass.cginc"
+#endif
 
 
 
@@ -51,7 +54,7 @@ struct v2f
     #endif
 
     #ifdef ENABLE_VERTEXCOLOR
-    half4 color : COLOR;
+    centroid half4 color : COLOR;
     #endif
 
     UNITY_VERTEX_INPUT_INSTANCE_ID

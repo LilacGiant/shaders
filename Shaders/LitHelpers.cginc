@@ -63,7 +63,45 @@ half3 BlendMode_Overlay(half3 base, half3 blend)
                     BlendMode_Overlay(base.g, blend.g),
                     BlendMode_Overlay(base.b, blend.b));
 }
-  
+
+//#define TRANSFORM_TEX(tex,name) (tex.xy * name##_ST.xy + name##_ST.zw)
+
+
+half4 sampleTex(Texture2D tex, float4 tillingOffset, half uv, half3 worldPos, half3 worldNormal)
+{
+    half4 col = 0;
+    if(uv == 3)
+    {
+        half3 weights = abs(worldNormal);
+        weights = pow(weights, _TriplanarBlend);
+
+        weights = weights / (weights.x + weights.y + weights.z);
+
+        half2 uv_front = worldPos.xy * tillingOffset.xy * _MainTex_ST.xy+ tillingOffset.zw + _MainTex_ST.zw;
+        half2 uv_side = worldPos.zy * tillingOffset.xy * _MainTex_ST.xy+ tillingOffset.zw + _MainTex_ST.zw;
+        half2 uv_top = worldPos.xz * tillingOffset.xy * _MainTex_ST.xy + tillingOffset.zw + _MainTex_ST.zw;
+
+        half4 col_front = UNITY_SAMPLE_TEX2D_SAMPLER(tex,_MainTex, uv_front) * weights.z;
+        half4 col_side = UNITY_SAMPLE_TEX2D_SAMPLER(tex,_MainTex, uv_side) *  weights.x;
+        half4 col_top = UNITY_SAMPLE_TEX2D_SAMPLER(tex,_MainTex, uv_top) * weights.y;
+
+        col = (col_front + col_side + col_top);
+    }
+
+    else
+    {
+        col = UNITY_SAMPLE_TEX2D_SAMPLER(tex, _MainTex, uvs[uv] * tillingOffset.xy * _MainTex_ST.xy + tillingOffset.zw + _MainTex_ST.zw);
+    }
+
+    return col;
+
+}
+half3 LightmappingAlbedo (half3 diffuse, half3 specular, half roughness)
+{
+    half3 res = diffuse;
+    res += specular * roughness * 0.5;
+    return res;
+}
 
 
 #endif

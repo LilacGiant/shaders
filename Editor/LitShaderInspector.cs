@@ -65,6 +65,7 @@ namespace Shaders.Lit
         protected MaterialProperty _MatCapReplace = null;
         protected MaterialProperty _MatCap = null;
         protected MaterialProperty _Cull = null;
+        protected MaterialProperty _TriplanarBlend = null;
 
 
 
@@ -89,6 +90,7 @@ namespace Shaders.Lit
                 md[material].Show_MainTex = TriangleFoldout(md[material].Show_MainTex, ()=> {
                     me.TextureScaleOffsetProperty(_MainTex);
                     prop(_MainTexUV);
+                    if(_MainTexUV.floatValue == 3) prop(_TriplanarBlend);
                     prop(_Saturation);
                 });
 
@@ -100,7 +102,7 @@ namespace Shaders.Lit
 
                 prop(_MetallicGlossMap);
                 md[material].Show_MetallicGlossMap = TriangleFoldout(md[material].Show_MetallicGlossMap, ()=> {
-                    prop(_MetallicGlossMap);
+                    me.TextureScaleOffsetProperty(_MetallicGlossMap);
                     prop(_MetallicGlossMapUV);
                 });
 
@@ -122,6 +124,7 @@ namespace Shaders.Lit
                     md[material].Show_EmissionMap = TriangleFoldout(md[material].Show_EmissionMap, ()=> {
                         me.TextureScaleOffsetProperty(_EmissionMap);
                         prop(_EmissionMapUV);
+                        me.LightmapEmissionProperty();
                     });
                 }
             });
@@ -186,7 +189,11 @@ namespace Shaders.Lit
         private void ApplyChanges()
         {
             if(_ShaderOptimizerEnabled.floatValue == 0){
+
+                SetupGIFlags(_EnableEmission.floatValue);
                 
+                
+                    
 
             }
         }
@@ -367,6 +374,19 @@ namespace Shaders.Lit
                 {
                     try { property.SetValue(this, FindProperty(property.Name, props)); } catch { /*Is it really a problem if it doesn't exist?*/ }
                 }
+            }
+        }
+
+        public void SetupGIFlags(float emissionEnabled)
+        {
+            MaterialGlobalIlluminationFlags flags = material.globalIlluminationFlags;
+            if ((flags & (MaterialGlobalIlluminationFlags.BakedEmissive | MaterialGlobalIlluminationFlags.RealtimeEmissive)) != 0)
+            {
+                flags &= ~MaterialGlobalIlluminationFlags.EmissiveIsBlack;
+                if (emissionEnabled != 1)
+                    flags |= MaterialGlobalIlluminationFlags.EmissiveIsBlack;
+
+                material.globalIlluminationFlags = flags;
             }
         }
 
