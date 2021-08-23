@@ -236,10 +236,11 @@ half3 emission = 0;
 #if defined(PROP_EMISSIONMAP)
 emissionMap = _EmissionMap.Sample(sampler_MainTex, TRANSFORM_MAINTEX(uvs[_EmissionMapUV], _EmissionMap)).rgb;
 #endif
-emission = _EnableEmission ? emissionMap * _EmissionColor.rgb : 0;
+
+
+emission = _EnableEmission ? emissionMap * pow(_EmissionColor.rgb, 2.2) : 0;
 #endif
 // emission
-
 
 
 // final color

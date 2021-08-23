@@ -96,12 +96,7 @@ half4 sampleTex(Texture2D tex, float4 tillingOffset, half uv, half3 worldPos, ha
     return col;
 
 }
-half3 LightmappingAlbedo (half3 diffuse, half3 specular, half roughness)
-{
-    half3 res = diffuse;
-    res += specular * roughness * 0.5;
-    return res;
-}
+
 
 
 #endif
