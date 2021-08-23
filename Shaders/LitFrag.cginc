@@ -4,10 +4,9 @@
 half4 frag(v2f i) : SV_Target
 {
 
-    uvs[0] = i.uv0;
-    uvs[1] = i.uv1;
-    uvs[2] = i.uv2;
-
+    uvs[0] = i.texcoord0.xy;
+    uvs[1] = i.texcoord0.zw;
+    uvs[2] = i.texcoord1.xy;
 
     half4 mainTex = _MainTex.Sample(sampler_MainTex, TRANSFORM_TEX(uvs[_MainTexUV], _MainTex));
     //half4 mainTex = sampleTex(_MainTex, 1, _MainTexUV, i.worldPos, i.worldNormal);
@@ -266,9 +265,11 @@ alpha += mainTex.a * 0.00001; // fix main tex sampler without changing the color
 
 fixed4 ShadowCasterfrag(v2f i) : SV_Target
 {
-    uvs[0] = i.uv0;
-    uvs[1] = i.uv1;
-    uvs[2] = i.uv2;
+
+    uvs[0] = i.texcoord0.xy;
+    uvs[1] = i.texcoord0.zw;
+    uvs[2] = i.texcoord1.xy;
+
     half4 mainTex = _MainTex.Sample(sampler_MainTex, TRANSFORM_TEX(uvs[_MainTexUV], _MainTex));
 
     half alpha = mainTex.a * _Color.a;
