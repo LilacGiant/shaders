@@ -10,6 +10,8 @@ namespace Shaders.Lit
 {
     public partial class FoldoutDictionary
     {
+        public bool AnimatedProps = false;
+
         public bool ShowSurfaceInputs = true;
         public bool ShowSpecular = false;
         public bool ShowAdvanced = false;
@@ -65,7 +67,6 @@ namespace Shaders.Lit
         protected MaterialProperty _MatCapReplace = null;
         protected MaterialProperty _MatCap = null;
         protected MaterialProperty _Cull = null;
-        protected MaterialProperty _TriplanarBlend = null;
 
 
 
@@ -73,10 +74,12 @@ namespace Shaders.Lit
         public void ShaderPropertiesGUI(Material material)
         {
 
+
+
             md[material].ShowSurfaceInputs = Foldout("Surface Inputs", md[material].ShowSurfaceInputs, ()=> {
 
                 EditorGUI.BeginChangeCheck();
-                prop(_Mode);
+                prop(_Mode, false);
                 if (EditorGUI.EndChangeCheck()) SetupMaterialWithBlendMode(material);
 
                 if(_Mode.floatValue == 1){
@@ -89,8 +92,7 @@ namespace Shaders.Lit
 
                 md[material].Show_MainTex = TriangleFoldout(md[material].Show_MainTex, ()=> {
                     propTileOffset(_MainTex);
-                    prop(_MainTexUV);
-                    if(_MainTexUV.floatValue == 3) prop(_TriplanarBlend);
+                    prop(_MainTexUV, false);
                     prop(_Saturation);
                 });
 
@@ -103,27 +105,29 @@ namespace Shaders.Lit
                 prop(_MetallicGlossMap);
                 md[material].Show_MetallicGlossMap = TriangleFoldout(md[material].Show_MetallicGlossMap, ()=> {
                     propTileOffset(_MetallicGlossMap);
-                    prop(_MetallicGlossMapUV);
+                    prop(_MetallicGlossMapUV, false);
                 });
+
+                Styles.sRGBWarning(_MetallicGlossMap);
 
 
                 prop(_BumpMap, _BumpMap.textureValue ? _BumpScale : null);
 
                 md[material].Show_BumpMap = TriangleFoldout(md[material].Show_BumpMap, ()=> {
                     propTileOffset(_BumpMap);
-                    prop(_BumpMapUV);
-                    prop(_NormalMapOrientation);
+                    prop(_BumpMapUV, false);
+                    prop(_NormalMapOrientation, false);
                 });
 
 
-                prop(_EnableEmission);
+                prop(_EnableEmission, false);
 
                 if(_EnableEmission.floatValue == 1){
                     prop(_EmissionMap, _EmissionColor);
 
                     md[material].Show_EmissionMap = TriangleFoldout(md[material].Show_EmissionMap, ()=> {
                         propTileOffset(_EmissionMap);
-                        prop(_EmissionMapUV);
+                        prop(_EmissionMapUV, false);
                         me.LightmapEmissionProperty();
                     });
                 }
@@ -131,13 +135,13 @@ namespace Shaders.Lit
 
 
             md[material].ShowSpecular = Foldout("Specular Reflections", md[material].ShowSpecular, ()=> {
-                prop(_GetDominantLight);
+                prop(_GetDominantLight, false);
                 prop(_FresnelColor);
                 prop(_Reflectance);
                 prop(_AngularGlossiness);
                 prop(_Anisotropy);
 
-                prop(_GSAA);
+                prop(_GSAA, false);
                 if(_GSAA.floatValue == 1){
                     Styles.PropertyGroup(() => {
                         prop(_specularAntiAliasingVariance);
@@ -145,7 +149,7 @@ namespace Shaders.Lit
                     });
                 };
 
-                prop(_EnableMatcap);
+                prop(_EnableMatcap, false);
                 if(_EnableMatcap.floatValue == 1){
                     Styles.PropertyGroup(() => {
                     prop(_MatCap);
@@ -154,8 +158,8 @@ namespace Shaders.Lit
                 };
 
                 Space();
-                prop(_GlossyReflections);
-                prop(_SpecularHighlights);
+                prop(_GlossyReflections, false);
+                prop(_SpecularHighlights, false);
             });
 
 
@@ -164,13 +168,13 @@ namespace Shaders.Lit
                 prop(_SpecularOcclusion);
                 Space();
 
-                prop(_BicubicLightmap);
-                prop(_LightProbeMethod);
+                prop(_BicubicLightmap, false);
+                prop(_LightProbeMethod, false);
             });
 
 
             md[material].ShowAdvanced = Foldout("Advanced Options", md[material].ShowAdvanced, ()=> {
-                prop(_TonemappingMode);
+                prop(_TonemappingMode, false);
                 if(_TonemappingMode.floatValue == 1) prop(_Contribution);
                 Space();
                 
@@ -179,6 +183,8 @@ namespace Shaders.Lit
                 me.DoubleSidedGIField();
                 me.RenderQueueField();
             });
+
+            ListAnimatedProps();
 
 
 
@@ -209,6 +215,7 @@ namespace Shaders.Lit
         const char hoverSplitSeparator = ':';
         bool[] propertyAnimated;
         Material material = null;
+        MaterialProperty[] allProps;
 
         public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] props)
         {
@@ -216,6 +223,7 @@ namespace Shaders.Lit
             me = materialEditor;
             material = materialEditor.target as Material;
             SetupFoldoutDictionary(material);
+            allProps = props;
 
             // Make sure that needed setup (ie keywords/renderqueue) are set up if we're switching some existing
             // material to a standard shader.
@@ -256,12 +264,13 @@ namespace Shaders.Lit
             EditorGUI.EndDisabledGroup();
         }
 
-        public void prop(MaterialProperty property) => MaterialProp(property, null);
-        public void prop(MaterialProperty property, MaterialProperty extraProperty) => MaterialProp(property, extraProperty);
+        public void prop(MaterialProperty property) => MaterialProp(property, null, true);
+        public void prop(MaterialProperty property, bool isAnimatable) => MaterialProp(property, null, isAnimatable);
+        public void prop(MaterialProperty property, MaterialProperty extraProperty) => MaterialProp(property, extraProperty, true);
        
 
 
-        public void MaterialProp(MaterialProperty property, MaterialProperty extraProperty)
+        public void MaterialProp(MaterialProperty property, MaterialProperty extraProperty, bool isAnimatable)
         {
             string animatedPropName = null;
             bool drawRight = false;
@@ -286,13 +295,47 @@ namespace Shaders.Lit
                 me.TexturePropertySingleLine(new GUIContent(p[0], p.Length == 2 ? p[1] : null), property, extraProperty);
             }
 
-            AnimatedPropertyToggle(animatedPropName, drawRight);
+            if(isAnimatable) AnimatedPropertyToggle(animatedPropName, drawRight);
 
             
 
 
 
             
+        }
+
+        private void ListAnimatedProps()
+        {
+            //EditorGUILayout.LabelField("Unlocked Properties", new GUIStyle("BoldLabel"));
+            
+            //md[material].AnimatedProps = TriangleFoldout(md[material].AnimatedProps, ()=> {
+            md[material].AnimatedProps = Foldout("Unlocked Properties", md[material].AnimatedProps, ()=> {
+
+                EditorGUI.indentLevel--;
+            EditorGUILayout.HelpBox("Middle click a property to make it animatable when locked in", MessageType.Info);
+                EditorGUI.indentLevel++;
+
+            foreach(MaterialProperty property in allProps){
+                string animatedName = property.name + AnimatedPropertySuffix;
+                bool isAnimated = material.GetTag(animatedName, false) == "" ? false : true;
+                if (isAnimated)
+                { 
+                    EditorGUILayout.LabelField(property.displayName);
+                    Rect lastRect = GUILayoutUtility.GetLastRect();
+                    Rect x = new Rect(lastRect.x + 0f, lastRect.y  +  4f, 15f, 12f);
+                    GUI.DrawTexture(x, Styles.xTex);
+
+                var e = Event.current;
+
+                if (e.type == EventType.MouseDown && x.Contains(e.mousePosition) && e.button == 0)
+                {
+                    e.Use();
+                    material.SetOverrideTag(animatedName, "");
+                }
+                }
+
+            }
+            });
         }
 
         private void AnimatedPropertyToggle (string k, bool drawRight)
@@ -306,7 +349,6 @@ namespace Shaders.Lit
             {
                 e.Use();
                 material.SetOverrideTag(animatedName, isAnimated ? "" : "1");
-                Debug.Log("Clicked " + animatedName + " " + material.GetTag(animatedName, false));
             }
             if(isAnimated)
             {

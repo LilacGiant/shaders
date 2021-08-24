@@ -1,10 +1,10 @@
 #ifndef LITHELPERS
 #define LITHELPERS
 
-float calcAlpha(half cutoff, half alpha, half mode)
+float calcAlpha(half cutoff, half alpha)
 {
     UNITY_BRANCH
-    if(mode == 1)
+    if(_Mode == 1)
     {
         if (_AlphaToMask == 2) alpha = (alpha - cutoff) / max(fwidth(alpha), 0.0001) + 0.5;
         if (_AlphaToMask == 0) clip(alpha - cutoff);
@@ -64,39 +64,8 @@ half3 BlendMode_Overlay(half3 base, half3 blend)
                     BlendMode_Overlay(base.b, blend.b));
 }
 
-#define TRANSFORMTEX(uv, tileOffset) (uv.xy * tileOffset.xy + tileOffset.zw) // because using ## wouldnt replace on lock in
-#define TRANSFORMMAINTEX(uv, tileOffset) (uv.xy * tileOffset.xy * _MainTex_ST.xy + tileOffset.zw + _MainTex_ST.zw)
-
-
-half4 sampleTex(Texture2D tex, float4 tillingOffset, half uv, half3 worldPos, half3 worldNormal)
-{
-    half4 col = 0;
-    if(uv == 3)
-    {
-        half3 weights = abs(worldNormal);
-        weights = pow(weights, _TriplanarBlend);
-
-        weights = weights / (weights.x + weights.y + weights.z);
-
-        half2 uv_front = worldPos.xy * tillingOffset.xy * _MainTex_ST.xy+ tillingOffset.zw + _MainTex_ST.zw;
-        half2 uv_side = worldPos.zy * tillingOffset.xy * _MainTex_ST.xy+ tillingOffset.zw + _MainTex_ST.zw;
-        half2 uv_top = worldPos.xz * tillingOffset.xy * _MainTex_ST.xy + tillingOffset.zw + _MainTex_ST.zw;
-
-        half4 col_front = UNITY_SAMPLE_TEX2D_SAMPLER(tex,_MainTex, uv_front) * weights.z;
-        half4 col_side = UNITY_SAMPLE_TEX2D_SAMPLER(tex,_MainTex, uv_side) *  weights.x;
-        half4 col_top = UNITY_SAMPLE_TEX2D_SAMPLER(tex,_MainTex, uv_top) * weights.y;
-
-        col = (col_front + col_side + col_top);
-    }
-
-    else
-    {
-        col = UNITY_SAMPLE_TEX2D_SAMPLER(tex, _MainTex, uvs[uv] * tillingOffset.xy * _MainTex_ST.xy + tillingOffset.zw + _MainTex_ST.zw);
-    }
-
-    return col;
-
-}
+#define TRANSFORM(uv, tileOffset) (uv.xy * tileOffset.xy + tileOffset.zw) // because using ## wouldnt replace on lock in
+#define TRANSFORMTEX(uv, tileOffset, transformTex) (uv.xy * tileOffset.xy * transformTex.xy + tileOffset.zw + transformTex.zw)
 
 
 

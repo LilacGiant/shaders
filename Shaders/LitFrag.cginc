@@ -8,7 +8,7 @@ half4 frag(v2f i) : SV_Target
     uvs[1] = i.texcoord0.zw;
     uvs[2] = i.texcoord1.xy;
 
-    half4 mainTex = _MainTex.Sample(sampler_MainTex, TRANSFORMTEX(uvs[_MainTexUV].xy, _MainTex_ST));
+    half4 mainTex = _MainTex.Sample(sampler_MainTex, TRANSFORM(uvs[_MainTexUV].xy, _MainTex_ST));
 
     
     
@@ -28,7 +28,7 @@ half4 frag(v2f i) : SV_Target
     
     half alpha = 1;
     #ifdef ENABLE_TRANSPARENCY
-    alpha = calcAlpha(_Cutoff,albedo.a,_Mode);
+    alpha = calcAlpha(_Cutoff,albedo.a);
     if(_Mode!=1 && _Mode!=0) albedo.rgb *= _Color.a;
 
     #endif
@@ -45,13 +45,13 @@ half4 frag(v2f i) : SV_Target
 
     #ifndef ENABLE_PACKED_MODE
     #ifdef PROP_METALLICMAP
-    metallicMap = _MetallicMap.Sample(sampler_MainTex, TRANSFORMMAINTEX(uvs[_MetallicMapUV], _MetallicMap_ST));
+    metallicMap = _MetallicMap.Sample(sampler_MainTex, TRANSFORMTEX(uvs[_MetallicMapUV], _MetallicMap_ST, _MainTex_ST));
     #endif
     #ifdef PROP_SMOOTHNESSMAP
-    smoothnessMap = _SmoothnessMap.Sample(sampler_MainTex, TRANSFORMMAINTEX(uvs[_SmoothnessMapUV], _SmoothnessMap_ST));
+    smoothnessMap = _SmoothnessMap.Sample(sampler_MainTex, TRANSFORMTEX(uvs[_SmoothnessMapUV], _SmoothnessMap_ST, _MainTex_ST));
     #endif
     #ifdef PROP_OCCLUSIONMAP
-    occlusionMap = _OcclusionMap.Sample(sampler_MainTex, TRANSFORMMAINTEX(uvs[_OcclusionMapUV], _OcclusionMap_ST));
+    occlusionMap = _OcclusionMap.Sample(sampler_MainTex, TRANSFORMTEX(uvs[_OcclusionMapUV], _OcclusionMap_ST, _MainTex_ST));
     #endif
 
     #else
@@ -60,7 +60,7 @@ half4 frag(v2f i) : SV_Target
     #define PROP_SMOOTHNESSMAP
     #define PROP_OCCLUSIONMAP
     #define PROP_METALLICMAP
-    maskMap = _MetallicGlossMap.Sample(sampler_MainTex, TRANSFORMMAINTEX(uvs[_MetallicGlossMapUV], _MetallicGlossMap_ST));
+    maskMap = _MetallicGlossMap.Sample(sampler_MainTex, TRANSFORMTEX(uvs[_MetallicGlossMapUV], _MetallicGlossMap_ST, _MainTex_ST));
     #endif
     metallicMap = maskMap.r;
     smoothnessMap = maskMap.a;
@@ -70,7 +70,7 @@ half4 frag(v2f i) : SV_Target
 
 /*
     #if defined(PROP_DETAILMAP) && defined(PROP_METALLICGLOSSMAP)
-    detailMap = _DetailMap.Sample(sampler_MainTex, TRANSFORMMAINTEX(uvs[_DetailMapUV], _DetailMap_ST));
+    detailMap = _DetailMap.Sample(sampler_MainTex, TRANSFORMTEX(uvs[_DetailMapUV], _DetailMap_ST, _MainTex_ST));
     detailMap *= 1 - maskMap.b;
     albedo.rgb = ( albedo.rgb * maskMap.bbb ) + BlendMode_Overlay(albedo.rgb, detailMap.rrr);
     
@@ -106,7 +106,7 @@ half4 frag(v2f i) : SV_Target
 
 
     #ifdef PROP_BUMPMAP
-    half4 normalMap = _BumpMap.Sample(sampler_BumpMap, TRANSFORMMAINTEX(uvs[_BumpMapUV], _BumpMap_ST));
+    half4 normalMap = _BumpMap.Sample(sampler_BumpMap, TRANSFORMTEX(uvs[_BumpMapUV], _BumpMap_ST, _MainTex_ST));
     #if defined(PROP_DETAILMAP) && defined(PROP_METALLICGLOSSMAP)
       
     #endif
@@ -236,7 +236,7 @@ half3 emissionMap = 1;
 half3 emission = 0;
 #if defined(UNITY_PASS_FORWARDBASE) || defined(UNITY_PASS_META)
 #if defined(PROP_EMISSIONMAP)
-emissionMap = _EmissionMap.Sample(sampler_MainTex, TRANSFORMMAINTEX(uvs[_EmissionMapUV], _EmissionMap_ST)).rgb;
+emissionMap = _EmissionMap.Sample(sampler_MainTex, TRANSFORMTEX(uvs[_EmissionMapUV], _EmissionMap_ST, _MainTex_ST)).rgb;
 #endif
 
 
@@ -273,12 +273,12 @@ fixed4 ShadowCasterfrag(v2f i) : SV_Target
     uvs[1] = i.texcoord0.zw;
     uvs[2] = i.texcoord1.xy;
 
-    half4 mainTex = _MainTex.Sample(sampler_MainTex, TRANSFORMTEX(uvs[_MainTexUV], _MainTex_ST));
+    half4 mainTex = _MainTex.Sample(sampler_MainTex, TRANSFORM(uvs[_MainTexUV], _MainTex_ST));
 
     half alpha = mainTex.a * _Color.a;
 
     #ifdef ENABLE_TRANSPARENCY
-    alpha = calcAlpha(_Cutoff,alpha,_Mode);
+    alpha = calcAlpha(_Cutoff,alpha);
     if(_Mode > 1) clip(alpha-0.5);
     #endif
     SHADOW_CASTER_FRAGMENT(i);

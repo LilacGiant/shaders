@@ -14,13 +14,15 @@ namespace Shaders.Lit
 
         public static Texture2D groupTex = (Texture2D)Resources.Load( EditorGUIUtility.isProSkin ? "lit_group" : "lit_group_light", typeof(Texture2D));
         public static Texture2D animatedTex = (Texture2D)Resources.Load( "lit_animated", typeof(Texture2D));
+        public static Texture2D xTex = (Texture2D)Resources.Load( "lit_x", typeof(Texture2D));
 
 
         public static bool TextureFoldout(bool display)
         {
-            var rect = GUILayoutUtility.GetRect(16f, -4);
+            //var rect = GUILayoutUtility.GetRect(16f, -4);
+            var lastRect = GUILayoutUtility.GetLastRect();
             var e = Event.current;
-            var toggleRect = new Rect(rect.x, rect.y - 20f, 12f, 12f);
+            var toggleRect = new Rect(lastRect.x, lastRect.y + 2f, 12f, 12f);
             if (e.type == EventType.Repaint)
             {
                 EditorStyles.foldout.Draw(toggleRect, false, false, display, false);

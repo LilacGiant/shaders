@@ -10,18 +10,14 @@ Shader " Lit"
         [Enum(Off, 0, On, 1, Sharpened, 2)] _AlphaToMask ("Alpha To Coverage", Float) = 0
         _Cutoff ("Alpha Cuttoff", Range(0, 1)) = 0.5
 
-        _MainTex ("Base Map:test", 2D) = "white" {}
-        [HideInInspector] _Color ("Color", Color) = (1,1,1,1)
+        _MainTex ("Base Map", 2D) = "white" {}
+        [HideInInspector] _Color ("Base Color", Color) = (1,1,1,1)
         [HideInInspector] _Saturation ("Saturation", Range(-1,1)) = 0
-        [HideInInspector] [Enum(UV0, 0, UV1 (Lightmap), 1, UV2, 2, Triplanar,  3)] _MainTexUV ("UV", Int) = 0
-        [HideInInspector] _TriplanarBlend ("Blend", Range(1,100)) = 0
-
+        [HideInInspector] [Enum(UV0, 0, UV1 (Lightmap), 1, UV2, 2)] _MainTexUV ("UV", Int) = 0
         
-        [HideInInspector] [ToggleUI] _EnableVertexColor ("Vertex Colors Mulitply", Float) = 0
+        [HideInInspector] [ToggleUI] _EnableVertexColor ("Vertex Colors Mulitply Base", Float) = 0
                
-                
-        
-        
+
         _Metallic ("Metallic", Range(0,1)) = 0
         _Glossiness ("Smoothness", Range(0,1)) = 0.5
         _Occlusion ("Occlusion", Range(0,1)) = 0
@@ -30,12 +26,12 @@ Shader " Lit"
         [HideInInspector] [ToggleUI] _EnablePackedMap ("Enable Roughness Map ", Float) = 0
         _MetallicGlossMap ("Mask Map:Metallic(R), Occlusion(G), Detail Mask(B), Smoothness(A)", 2D) = "white" {}
         [HideInInspector] [Enum(UV0, 0, UV1 (Lightmap), 1, UV2, 2)] _MetallicGlossMapUV ("UV", Int) = 0
-        [HideInInspector] [ToggleUI] _EnableVertexColorMask ("Vertex Colors Mulitply", Float) = 0
+        [HideInInspector] [ToggleUI] _EnableVertexColorMask ("Vertex Colors Mulitply Mask", Float) = 0
 
 
         _SmoothnessMap ("Smoothness Map", 2D) = "white" {}
         [HideInInspector] [Enum(UV0, 0, UV1 (Lightmap), 1, UV2, 2)] _SmoothnessMapUV ("UV", Int) = 0
-        [HideInInspector] [ToggleUI] _GlossinessInvert ("Invert", Float) = 0
+        [HideInInspector] [ToggleUI] _GlossinessInvert ("Invert Smoothness", Float) = 0
 
         _MetallicMap ("Metallic Map", 2D) = "white" {}
         [HideInInspector] [Enum(UV0, 0, UV1 (Lightmap), 1, UV2, 2)] _MetallicMapUV ("UV", Int) = 0
@@ -50,31 +46,20 @@ Shader " Lit"
 
         [ToggleUI] _EnableEmission ("Emission", Float) = 0
         _EmissionMap ("Emission Map", 2D) = "white" {}
-        [HideInInspector] [HDR] _EmissionColor ("Color", Color) = (0,0,0)
+        [HideInInspector] [HDR] _EmissionColor ("Emission Color", Color) = (0,0,0)
         [HideInInspector] [Enum(UV0, 0, UV1 (Lightmap), 1, UV2, 2)] _EmissionMapUV ("UV", Int) = 0
 
         _DetailMap ("Detail Map", 2D) = "white" {}
         [HideInInspector] [Enum(UV0, 0, UV1 (Lightmap), 1, UV2, 2)] _DetailMapUV ("UV", Int) = 0
 
-
-
         
-
-        
-        [HideInInspector] m_Specular ("Reflections And Specular Highlights", Float) = 0
         [Enum(Default, 0, Get From Probes, 1)] _GetDominantLight ("Mode", Int) = 0
         _FresnelColor ("Sheen Color", Color) = (1,1,1,1)
         _Reflectance ("Reflectance", Range(0,1)) = 0.45
         _AngularGlossiness ("Angular Smoothness", Range(0, 1)) = 0
-
         _Anisotropy ("Anisotropy", Range(-1,1)) = 0
 
 
-
-
-
-        
-        [Space(10)]
         [Toggle(ENABLE_SPECULAR_HIGHLIGHTS)] _SpecularHighlights("Specular Highlights", Float) = 1
         [Toggle(ENABLE_REFLECTIONS)] _GlossyReflections("Reflections", Float) = 1
 
@@ -116,7 +101,7 @@ Shader " Lit"
         [Enum(UnityEngine.Rendering.BlendMode)] _SrcBlend ("Source Blend", Int) = 1
         [Enum(UnityEngine.Rendering.BlendMode)] _DstBlend ("Destination Blend", Int) = 0
 
-        [Enum(None, 0, ACES, 1)] _TonemappingMode ("Mode", Int) = 0
+        [Enum(None, 0, ACES, 1)] _TonemappingMode ("Tonemapping Mode", Int) = 0
         _Contribution ("Contribution", Range(0, 1)) = 1
 
 

@@ -189,7 +189,7 @@ half3 getDirectSpecular(half perceptualRoughness, half NoH, half NoV, half NoL, 
 
     half D = D_GGX(NoH, roughness);
 
-    if(_Anisotropy != 0) {
+    if(anisotropy != 0) {
         anisotropy *= saturate(5.0 * perceptualRoughness);
         half at = max(roughness * (1.0 + anisotropy), 0.001);
         half ab = max(roughness * (1.0 - anisotropy), 0.001);
