@@ -13,6 +13,7 @@ namespace Shaders.Lit
     {
 
         public static Texture2D groupTex = (Texture2D)Resources.Load( EditorGUIUtility.isProSkin ? "lit_group" : "lit_group_light", typeof(Texture2D));
+        public static Texture2D animatedTex = (Texture2D)Resources.Load( "lit_animated", typeof(Texture2D));
 
 
         public static bool TextureFoldout(bool display)

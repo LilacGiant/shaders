@@ -88,7 +88,7 @@ namespace Shaders.Lit
                 prop(_MainTex, _Color);
 
                 md[material].Show_MainTex = TriangleFoldout(md[material].Show_MainTex, ()=> {
-                    me.TextureScaleOffsetProperty(_MainTex);
+                    propTileOffset(_MainTex);
                     prop(_MainTexUV);
                     if(_MainTexUV.floatValue == 3) prop(_TriplanarBlend);
                     prop(_Saturation);
@@ -102,7 +102,7 @@ namespace Shaders.Lit
 
                 prop(_MetallicGlossMap);
                 md[material].Show_MetallicGlossMap = TriangleFoldout(md[material].Show_MetallicGlossMap, ()=> {
-                    me.TextureScaleOffsetProperty(_MetallicGlossMap);
+                    propTileOffset(_MetallicGlossMap);
                     prop(_MetallicGlossMapUV);
                 });
 
@@ -110,7 +110,7 @@ namespace Shaders.Lit
                 prop(_BumpMap, _BumpMap.textureValue ? _BumpScale : null);
 
                 md[material].Show_BumpMap = TriangleFoldout(md[material].Show_BumpMap, ()=> {
-                    me.TextureScaleOffsetProperty(_BumpMap);
+                    propTileOffset(_BumpMap);
                     prop(_BumpMapUV);
                     prop(_NormalMapOrientation);
                 });
@@ -122,7 +122,7 @@ namespace Shaders.Lit
                     prop(_EmissionMap, _EmissionColor);
 
                     md[material].Show_EmissionMap = TriangleFoldout(md[material].Show_EmissionMap, ()=> {
-                        me.TextureScaleOffsetProperty(_EmissionMap);
+                        propTileOffset(_EmissionMap);
                         prop(_EmissionMapUV);
                         me.LightmapEmissionProperty();
                     });
@@ -188,14 +188,14 @@ namespace Shaders.Lit
 
         private void ApplyChanges()
         {
-            if(_ShaderOptimizerEnabled.floatValue == 0){
+            if(_ShaderOptimizerEnabled.floatValue != 0) return;
 
-                SetupGIFlags(_EnableEmission.floatValue);
+            SetupGIFlags(_EnableEmission.floatValue);
                 
                 
                     
 
-            }
+            
         }
 
         protected static Dictionary<Material, FoldoutDictionary> md = new Dictionary<Material, FoldoutDictionary>();
@@ -258,20 +258,70 @@ namespace Shaders.Lit
 
         public void prop(MaterialProperty property) => MaterialProp(property, null);
         public void prop(MaterialProperty property, MaterialProperty extraProperty) => MaterialProp(property, extraProperty);
+       
+
 
         public void MaterialProp(MaterialProperty property, MaterialProperty extraProperty)
         {
+            string animatedPropName = null;
+            bool drawRight = false;
+
             if(property.type == MaterialProperty.PropType.Range ||
                property.type == MaterialProperty.PropType.Float ||
                property.type == MaterialProperty.PropType.Vector ||
-               property.type == MaterialProperty.PropType.Color) me.ShaderProperty(property, property.displayName);
+               property.type == MaterialProperty.PropType.Color)
+            {
+                me.ShaderProperty(property, property.displayName);
+                animatedPropName = property.name.ToString();
+                
+            }
 
             if(property.type == MaterialProperty.PropType.Texture) 
             {
                 string[] p = property.displayName.Split(hoverSplitSeparator);
+                animatedPropName = extraProperty != null ? extraProperty.name.ToString() : null;
+                drawRight = true;
+
 
                 me.TexturePropertySingleLine(new GUIContent(p[0], p.Length == 2 ? p[1] : null), property, extraProperty);
             }
+
+            AnimatedPropertyToggle(animatedPropName, drawRight);
+
+            
+
+
+
+            
+        }
+
+        private void AnimatedPropertyToggle (string k, bool drawRight)
+        {
+            if(k == null) return;
+            string animatedName = k + AnimatedPropertySuffix;
+            bool isAnimated = material.GetTag(animatedName, false) == "" ? false : true;
+            var e = Event.current;
+
+            if (e.type == EventType.MouseDown && GUILayoutUtility.GetLastRect().Contains(e.mousePosition) && e.button == 2)
+            {
+                e.Use();
+                material.SetOverrideTag(animatedName, isAnimated ? "" : "1");
+                Debug.Log("Clicked " + animatedName + " " + material.GetTag(animatedName, false));
+            }
+            if(isAnimated)
+            {
+                Rect lastRect = GUILayoutUtility.GetLastRect();
+                Rect stopWatch = new Rect(lastRect.x + (drawRight ? 145f : 0f), lastRect.y  + (drawRight ? 3f : 4f), 12f, 12f);
+
+                GUI.DrawTexture(stopWatch, Styles.animatedTex);
+
+            }
+        }
+
+        public void propTileOffset(MaterialProperty property)
+        {
+            me.TextureScaleOffsetProperty(property);
+            AnimatedPropertyToggle(property.name.ToString(), false);
         }
 
         private void Space() => EditorGUILayout.Space();

@@ -65,7 +65,7 @@ Shader " Lit"
         [Enum(Default, 0, Get From Probes, 1)] _GetDominantLight ("Mode", Int) = 0
         _FresnelColor ("Sheen Color", Color) = (1,1,1,1)
         _Reflectance ("Reflectance", Range(0,1)) = 0.45
-        _AngularGlossiness ("Angular Glossiness", Range(0, 1)) = 0
+        _AngularGlossiness ("Angular Smoothness", Range(0, 1)) = 0
 
         _Anisotropy ("Anisotropy", Range(-1,1)) = 0
 

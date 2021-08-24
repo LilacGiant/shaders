@@ -356,7 +356,7 @@ namespace Shaders.Lit
                         break;
                 }
 
-                if (prop.name.EndsWith(AnimatedPropertySuffix))
+                if (prop.name.EndsWith(AnimatedPropertySuffix) || (material.GetTag(prop.name.ToString() + AnimatedPropertySuffix, false) == "" ? false : true))
                     continue;
                 else if (prop.name == UseInlineSamplerStatesPropertyName)
                 {

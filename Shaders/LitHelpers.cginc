@@ -64,7 +64,8 @@ half3 BlendMode_Overlay(half3 base, half3 blend)
                     BlendMode_Overlay(base.b, blend.b));
 }
 
-//#define TRANSFORM_TEX(tex,name) (tex.xy * name##_ST.xy + name##_ST.zw)
+#define TRANSFORMTEX(uv, tileOffset) (uv.xy * tileOffset.xy + tileOffset.zw) // because using ## wouldnt replace on lock in
+#define TRANSFORMMAINTEX(uv, tileOffset) (uv.xy * tileOffset.xy * _MainTex_ST.xy + tileOffset.zw + _MainTex_ST.zw)
 
 
 half4 sampleTex(Texture2D tex, float4 tillingOffset, half uv, half3 worldPos, half3 worldNormal)

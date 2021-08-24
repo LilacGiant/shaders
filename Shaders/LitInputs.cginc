@@ -97,8 +97,6 @@ uniform half _DetailMapUV;
 
 // ----------------- defines -----------------
 
-#define TRANSFORM_MAINTEX(tex,name) (tex.xy * name##_ST.xy * _MainTex_ST.xy + name##_ST.zw + _MainTex_ST.zw)
-
 #if (PROP_MODE!=0) || !defined(OPTIMIZER_ENABLED)
 #define ENABLE_TRANSPARENCY
 #endif

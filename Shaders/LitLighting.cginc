@@ -215,7 +215,7 @@ float3 getAnisotropicReflectionVector(float3 viewDir, float3 bitangent, float3 t
     float3 anisotropicTangent = cross(anisotropicDirection, viewDir);
     float3 anisotropicNormal = cross(anisotropicTangent, anisotropicDirection);
     float bendFactor = abs(anisotropy) * saturate(5.0 * roughness);
-    float3 bentNormal = normalize(lerp(normal, anisotropicNormal, bendFactor));
+    float3 bentNormal = normalize(lerp(normal, anisotropicNormal, anisotropy));
     return reflect(-viewDir, bentNormal);
 }
 
