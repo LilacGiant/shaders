@@ -380,6 +380,6 @@ Shader " Lit"
 
     }
 
-    //FallBack "Diffuse"
+    FallBack "Diffuse"
     CustomEditor "Shaders.Lit.ShaderEditor"
 }

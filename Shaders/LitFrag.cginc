@@ -4,6 +4,8 @@
 half4 frag(v2f i) : SV_Target
 {
 
+    UNITY_SETUP_INSTANCE_ID(i); 
+
     uvs[0] = i.texcoord0.xy;
     uvs[1] = i.texcoord0.zw;
     uvs[2] = i.texcoord1.xy;
@@ -14,7 +16,7 @@ half4 frag(v2f i) : SV_Target
     
     //half4 mainTex = sampleTex(_MainTex, 1, _MainTexUV, i.worldPos, i.worldNormal);
     half intensity = dot(mainTex, grayscaleVec); // saturation
-    mainTex.rgb = lerp(intensity, mainTex, (_Saturation+1));
+    mainTex.rgb = lerp(intensity, mainTex.rgb, (_Saturation+1));
 
 
     half4 albedo = mainTex * _Color;
@@ -152,10 +154,10 @@ half4 frag(v2f i) : SV_Target
     
     half3 indirectDiffuse = 0;
     #if defined(LIGHTMAP_ON)
-    half3 lightMap = getLightmap(uvs[1], worldNormal, i.worldPos);
+    half3 lightMap = getLightmap(uvs[1], worldNormal);
     
     #if defined(DYNAMICLIGHTMAP_ON)
-    half3 realtimeLightMap = getRealtimeLightmap(uvs[1], worldNormal);
+    half3 realtimeLightMap = getRealtimeLightmap(uvs[2], worldNormal);
     lightMap +=realtimeLightMap; 
     #endif
     
@@ -202,10 +204,9 @@ half3 indirectSpecular = 0;
 #if defined(UNITY_PASS_FORWARDBASE)
 
     #if defined(ENABLE_REFLECTIONS)
-        float3 worldPos = i.worldPos;
         half3 reflViewDir = reflect(-viewDir, worldNormal);
         if(_Anisotropy != 0) reflViewDir = getAnisotropicReflectionVector(viewDir, bitangent, tangent, worldNormal, perceptualRoughness, _Anisotropy);
-        indirectSpecular = getIndirectSpecular(metallic, perceptualRoughness, reflViewDir, worldPos, directDiffuse, worldNormal);
+        indirectSpecular = getIndirectSpecular(metallic, perceptualRoughness, reflViewDir, i.worldPos, directDiffuse, worldNormal);
         indirectSpecular *= lerp(fresnel, f0, perceptualRoughness);
         //indirectSpecular *= f0;
     #endif
@@ -261,6 +262,7 @@ half3 finalColor = directDiffuse * ((indirectDiffuse * occlusion) + light) + dir
 finalColor.rgb = _TonemappingMode ? lerp(finalColor.rgb, ACESFilm(finalColor.rgb), _Contribution) : finalColor.rgb; // aces
 
 alpha += mainTex.a * 0.00001; // fix main tex sampler without changing the color;
+
 
     return half4(finalColor, alpha);
 

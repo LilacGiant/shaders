@@ -320,7 +320,7 @@ float3 tex2DFastBicubicLightmap(float2 uv)
     #endif
 }
 
-float3 getLightmap(float2 uv, half3 worldNormal, float3 worldPos)
+float3 getLightmap(float2 uv, half3 worldNormal)
 {
     float2 lightmapUV = uv * unity_LightmapST.xy + unity_LightmapST.zw;
 

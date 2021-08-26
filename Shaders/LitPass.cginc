@@ -31,11 +31,12 @@ struct appdata
     #ifdef ENABLE_VERTEXCOLOR
     half4 color : COLOR;
     #endif
+    uint vertexId : SV_VertexID;
     UNITY_VERTEX_INPUT_INSTANCE_ID
 };
 
 struct v2f
-    {
+{
     float4 pos : SV_POSITION;
 
     float4 texcoord0 : TEXCOORD0;
@@ -62,12 +63,20 @@ struct v2f
 	UNITY_VERTEX_OUTPUT_STEREO
 };
 
+UNITY_INSTANCING_BUFFER_START(Props)
+    //UNITY_DEFINE_INSTANCED_PROP(half4, _Color)
+UNITY_INSTANCING_BUFFER_END(Props)
+
 v2f vert(appdata v)
 {
-    UNITY_SETUP_INSTANCE_ID(v);
     v2f o;
     UNITY_INITIALIZE_OUTPUT(v2f, o);
+
+    UNITY_SETUP_INSTANCE_ID(v);
+    UNITY_TRANSFER_INSTANCE_ID(v, o);
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
+
+
     
 
     #ifdef UNITY_PASS_META
@@ -109,6 +118,8 @@ v2f vert(appdata v)
     
     return o;
 }
+
+
 
 
 #include "LitFrag.cginc"

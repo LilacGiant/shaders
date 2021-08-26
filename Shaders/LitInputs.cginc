@@ -13,7 +13,6 @@ uniform float4 _MainTex_ST;
 uniform half4 _Color;
 uniform half _Saturation;
 uniform half _EnableVertexColor;
-uniform half _TriplanarBlend;
 
 
 uniform float _EnableNormalMap;
@@ -23,21 +22,28 @@ uniform float _BumpMapUV;
 uniform float4 _BumpMap_ST;
 uniform half _BumpScale;
 
-
+#ifndef PACKED_MODE
 UNITY_DECLARE_TEX2D_NOSAMPLER(_MetallicMap);
 uniform float _MetallicMapUV;
 uniform float4 _MetallicMap_ST;
+#endif
 uniform half _Metallic;
+
+#ifndef PACKED_MODE
 
 UNITY_DECLARE_TEX2D_NOSAMPLER(_SmoothnessMap);
 uniform float _SmoothnessMapUV;
 uniform float4 _SmoothnessMap_ST;
-uniform half _Glossiness;
 uniform float _GlossinessInvert;
 
+#endif
+uniform half _Glossiness;
+
+#ifndef PACKED_MODE
 UNITY_DECLARE_TEX2D_NOSAMPLER(_OcclusionMap);
 uniform float _OcclusionMapUV;
 uniform float4 _OcclusionMap_ST;
+#endif
 uniform half _Occlusion;
 
 
@@ -87,9 +93,11 @@ UNITY_DECLARE_TEX2D_NOSAMPLER(_MatCap);
 uniform half _MatCapReplace;
 
 
+/*
 UNITY_DECLARE_TEX2D_NOSAMPLER(_DetailMap);
 uniform float4 _DetailMap_ST;
 uniform half _DetailMapUV;
+*/
 
 
 

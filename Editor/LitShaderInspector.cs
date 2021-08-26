@@ -162,7 +162,6 @@ namespace Shaders.Lit
                 prop(_SpecularHighlights, false);
             });
 
-
             md[material].ShowBakedLight = Foldout("Baked Light", md[material].ShowBakedLight, ()=> {
                 prop(_LightmapMultiplier);
                 prop(_SpecularOcclusion);
@@ -173,7 +172,7 @@ namespace Shaders.Lit
             });
 
 
-            md[material].ShowAdvanced = Foldout("Advanced Options", md[material].ShowAdvanced, ()=> {
+            md[material].ShowAdvanced = Foldout("Advanced", md[material].ShowAdvanced, ()=> {
                 prop(_TonemappingMode, false);
                 if(_TonemappingMode.floatValue == 1) prop(_Contribution);
                 Space();
@@ -182,6 +181,7 @@ namespace Shaders.Lit
                 me.EnableInstancingField();
                 me.DoubleSidedGIField();
                 me.RenderQueueField();
+                EditorGUILayout.LabelField("Lit v0.1.0", new GUIStyle("BoldLabel"));
             });
 
             ListAnimatedProps();
@@ -353,7 +353,7 @@ namespace Shaders.Lit
             if(isAnimated)
             {
                 Rect lastRect = GUILayoutUtility.GetLastRect();
-                Rect stopWatch = new Rect(lastRect.x + (drawRight ? 145f : 0f), lastRect.y  + (drawRight ? 3f : 4f), 12f, 12f);
+                Rect stopWatch = new Rect(drawRight ? Screen.width - 28f : lastRect.x, lastRect.y  + (drawRight ? 3f : 4f), 12f, 12f);
 
                 GUI.DrawTexture(stopWatch, Styles.animatedTex);
 
@@ -392,9 +392,6 @@ namespace Shaders.Lit
             }
             return foldoutName;
         }
-
-
-
 
         private void SetupFoldoutDictionary(Material material)
         {

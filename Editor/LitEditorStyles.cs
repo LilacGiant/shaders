@@ -52,7 +52,7 @@ namespace Shaders.Lit
             return display;
         }
 
-        private static Rect DrawFoldout(string title, Vector2 contentOffset, int HeaderHeight)
+        public static Rect DrawFoldout(string title, Vector2 contentOffset, int HeaderHeight)
         {
             var style = new GUIStyle("BoldLabel");
             style.font = new GUIStyle(EditorStyles.boldLabel).font;
