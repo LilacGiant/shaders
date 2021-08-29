@@ -261,7 +261,7 @@ half3 finalColor = directDiffuse * ((indirectDiffuse * occlusion) + light) + dir
 
 finalColor.rgb = _TonemappingMode ? lerp(finalColor.rgb, ACESFilm(finalColor.rgb), _Contribution) : finalColor.rgb; // aces
 
-alpha += mainTex.a * 0.00001; // fix main tex sampler without changing the color;
+alpha -= mainTex.a * 0.00001; // fix main tex sampler without changing the color;
 
 
     return half4(finalColor, alpha);

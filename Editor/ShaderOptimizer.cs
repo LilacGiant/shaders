@@ -1,3 +1,7 @@
+/*
+https://github.com/DarthShader/Kaj-Unity-Shaders/blob/master/LICENSE
+*/
+
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -1262,61 +1266,5 @@ namespace Shaders.Lit
 
             return true;
         }
-
-        //----VRChat Callback to force Locking on upload
-/*
-#if VRC_SDK_VRCSDK2 || VRC_SDK_VRCSDK3
-        public class LockMaterialsOnUpload : IVRCSDKPreprocessAvatarCallback
-        {
-            public int callbackOrder => 100;
-
-            public bool OnPreprocessAvatar(GameObject avatarGameObject)
-            {
-                List<Material> materials = avatarGameObject.GetComponentsInChildren<Renderer>(true).SelectMany(r => r.sharedMaterials).ToList();
-#if VRC_SDK_VRCSDK3  && !UDON
-                VRCAvatarDescriptor descriptor = avatarGameObject.GetComponent<VRCAvatarDescriptor>();
-                if(descriptor != null)
-                {
-                    IEnumerable<AnimationClip> clips = descriptor.baseAnimationLayers.Select(l => l.animatorController).Where(a => a != null).SelectMany(a => a.animationClips).Distinct();
-                    foreach (AnimationClip clip in clips)
-                    {
-                        IEnumerable<Material> clipMaterials = AnimationUtility.GetObjectReferenceCurveBindings(clip).Where(b => b.isPPtrCurve && b.type == typeof(Renderer) && b.propertyName.StartsWith("m_Materials"))
-                            .SelectMany(b => AnimationUtility.GetObjectReferenceCurve(clip, b)).Select(r => r.value as Material);
-                        materials.AddRange(clipMaterials);
-                    }
-                }
-                
-#endif
-                SetLockedForAllMaterials(materials, 1, showProgressbar: true, showDialog: PersistentData.Get<bool>("ShowLockInDialog", true), allowCancel: false);
-                //returning true all the time, because build process cant be stopped it seems
-                return true;
-            }
-        }
-        public class LockMaterialsOnUploadWorlds : IVRCSDKBuildRequestedCallback
-        {
-            public int callbackOrder => 100;
-
-            bool IVRCSDKBuildRequestedCallback.OnBuildRequested(VRCSDKRequestedBuildType requestedBuildType) // get all materials in scene and lock them
-            {
-                List<Material> materials = new List<Material>();
-                if (requestedBuildType == VRCSDKRequestedBuildType.Scene)
-                {
-                    if (UnityEngine.Object.FindObjectsOfType(typeof(VRC_SceneDescriptor)) is VRC_SceneDescriptor[] descriptors && descriptors.Length > 0){
-                        var _renderers = UnityEngine.Object.FindObjectsOfType<Renderer>();
-                        foreach (var rend in _renderers)
-                        {
-                            foreach (var mat in rend.sharedMaterials){
-                                materials.Add(mat);
-                            }
-                        }
-                    }
-                
-                }
-                SetLockedForAllMaterials(materials, 1, showProgressbar: true, showDialog: PersistentData.Get<bool>("ShowLockInDialog", true), allowCancel: false);
-                return true;
-            }
-        }
-#endif
-*/
     }
 }

@@ -181,7 +181,6 @@ namespace Shaders.Lit
                 me.EnableInstancingField();
                 me.DoubleSidedGIField();
                 me.RenderQueueField();
-                EditorGUILayout.LabelField("Lit v0.1.0", new GUIStyle("BoldLabel"));
             });
 
             ListAnimatedProps();
@@ -214,6 +213,7 @@ namespace Shaders.Lit
         const string AnimatedPropertySuffix = "Animated";
         const char hoverSplitSeparator = ':';
         bool[] propertyAnimated;
+        public bool isLocked;
         Material material = null;
         MaterialProperty[] allProps;
 
@@ -251,8 +251,7 @@ namespace Shaders.Lit
             }
             
             ShaderOptimizerButton(_ShaderOptimizerEnabled, me);
-
-            EditorGUI.BeginDisabledGroup(_ShaderOptimizerEnabled.floatValue == 1);
+            isLocked = _ShaderOptimizerEnabled.floatValue == 1;
             EditorGUI.BeginChangeCheck();
             EditorGUI.indentLevel++;
 
@@ -261,7 +260,6 @@ namespace Shaders.Lit
             if (EditorGUI.EndChangeCheck()) {
                 ApplyChanges();
             };
-            EditorGUI.EndDisabledGroup();
         }
 
         public void prop(MaterialProperty property) => MaterialProp(property, null, true);
@@ -272,17 +270,20 @@ namespace Shaders.Lit
 
         public void MaterialProp(MaterialProperty property, MaterialProperty extraProperty, bool isAnimatable)
         {
+
+            EditorGUI.BeginDisabledGroup(isLocked);
+
             string animatedPropName = null;
             bool drawRight = false;
 
-            if(property.type == MaterialProperty.PropType.Range ||
-               property.type == MaterialProperty.PropType.Float ||
-               property.type == MaterialProperty.PropType.Vector ||
-               property.type == MaterialProperty.PropType.Color)
+            if( property.type == MaterialProperty.PropType.Range ||
+                property.type == MaterialProperty.PropType.Float ||
+                property.type == MaterialProperty.PropType.Vector ||
+                property.type == MaterialProperty.PropType.Color)
             {
                 me.ShaderProperty(property, property.displayName);
                 animatedPropName = property.name.ToString();
-                
+
             }
 
             if(property.type == MaterialProperty.PropType.Texture) 
@@ -297,6 +298,7 @@ namespace Shaders.Lit
 
             if(isAnimatable) AnimatedPropertyToggle(animatedPropName, drawRight);
 
+            EditorGUI.EndDisabledGroup();
             
 
 
@@ -312,29 +314,27 @@ namespace Shaders.Lit
             md[material].AnimatedProps = Foldout("Unlocked Properties", md[material].AnimatedProps, ()=> {
 
                 EditorGUI.indentLevel--;
-            EditorGUILayout.HelpBox("Middle click a property to make it animatable when locked in", MessageType.Info);
+                EditorGUILayout.HelpBox("Middle click a property to make it animatable when locked in", MessageType.Info);
                 EditorGUI.indentLevel++;
 
-            foreach(MaterialProperty property in allProps){
-                string animatedName = property.name + AnimatedPropertySuffix;
-                bool isAnimated = material.GetTag(animatedName, false) == "" ? false : true;
-                if (isAnimated)
-                { 
-                    EditorGUILayout.LabelField(property.displayName);
-                    Rect lastRect = GUILayoutUtility.GetLastRect();
-                    Rect x = new Rect(lastRect.x + 0f, lastRect.y  +  4f, 15f, 12f);
-                    GUI.DrawTexture(x, Styles.xTex);
+                foreach(MaterialProperty property in allProps){
+                    string animatedName = property.name + AnimatedPropertySuffix;
+                    bool isAnimated = material.GetTag(animatedName, false) == "" ? false : true;
+                    if (isAnimated)
+                    { 
+                        EditorGUILayout.LabelField(property.displayName);
+                        Rect lastRect = GUILayoutUtility.GetLastRect();
+                        Rect x = new Rect(lastRect.x, lastRect.y + 4f, 15f, 12f);
+                        GUI.DrawTexture(x, Styles.xTex);
 
-                var e = Event.current;
-
-                if (e.type == EventType.MouseDown && x.Contains(e.mousePosition) && e.button == 0)
-                {
-                    e.Use();
-                    material.SetOverrideTag(animatedName, "");
+                        var e = Event.current;
+                        if (e.type == EventType.MouseDown && x.Contains(e.mousePosition) && e.button == 0)
+                        {
+                            e.Use();
+                            material.SetOverrideTag(animatedName, "");
+                        }
+                    }
                 }
-                }
-
-            }
             });
         }
 
@@ -362,8 +362,10 @@ namespace Shaders.Lit
 
         public void propTileOffset(MaterialProperty property)
         {
+            EditorGUI.BeginDisabledGroup(isLocked);
             me.TextureScaleOffsetProperty(property);
             AnimatedPropertyToggle(property.name.ToString(), false);
+            EditorGUI.EndDisabledGroup();
         }
 
         private void Space() => EditorGUILayout.Space();

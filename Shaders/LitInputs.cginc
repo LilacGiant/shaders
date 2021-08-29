@@ -22,24 +22,25 @@ uniform float _BumpMapUV;
 uniform float4 _BumpMap_ST;
 uniform half _BumpScale;
 
-#ifndef PACKED_MODE
+#ifndef ENABLE_PACKED_MODE
 UNITY_DECLARE_TEX2D_NOSAMPLER(_MetallicMap);
 uniform float _MetallicMapUV;
 uniform float4 _MetallicMap_ST;
 #endif
 uniform half _Metallic;
 
-#ifndef PACKED_MODE
+#ifndef ENABLE_PACKED_MODE
 
 UNITY_DECLARE_TEX2D_NOSAMPLER(_SmoothnessMap);
 uniform float _SmoothnessMapUV;
 uniform float4 _SmoothnessMap_ST;
-uniform float _GlossinessInvert;
 
 #endif
+uniform float _GlossinessInvert;
+
 uniform half _Glossiness;
 
-#ifndef PACKED_MODE
+#ifndef ENABLE_PACKED_MODE
 UNITY_DECLARE_TEX2D_NOSAMPLER(_OcclusionMap);
 uniform float _OcclusionMapUV;
 uniform float4 _OcclusionMap_ST;

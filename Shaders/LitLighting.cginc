@@ -1,3 +1,6 @@
+
+// https://github.com/Xiexe/Unity-Lit-Shader-Templates/blob/master/LICENSE
+// https://github.com/google/filament/blob/main/LICENSE
 #ifndef LITLIGHTING
 #define LITLIGHTING
 #define grayscaleVec float3(0.2125, 0.7154, 0.0721)
