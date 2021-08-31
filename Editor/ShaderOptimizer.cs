@@ -11,23 +11,37 @@ using System.IO;
 using System.Text.RegularExpressions;
 using System.Text;
 using System.Globalization;
+using UnityEditor.Build;
+using UnityEditor.Build.Reporting;
 
-#if VRC_SDK_VRCSDK3
-using VRC.SDKBase;
-#endif
-#if VRC_SDK_VRCSDK2 || VRC_SDK_VRCSDK3
-using VRC.SDKBase.Editor.BuildPipeline;
-#endif
-#if VRC_SDK_VRCSDK3 && !UDON
-using static VRC.SDK3.Avatars.Components.VRCAvatarDescriptor;
-using VRC.SDK3.Avatars.Components;
-using System.Reflection;
-#endif
 
 // v11
 
 namespace Shaders.Lit
 {
+    
+    class AutoLock : IPreprocessBuildWithReport
+    {
+        public int callbackOrder { get { return 69; } }
+        public void OnPreprocessBuild(BuildReport report)
+        {
+            var renderers = UnityEngine.Object.FindObjectsOfType<Renderer>();
+
+            if(renderers != null) foreach (var rend in renderers)
+            {
+                if(rend != null) foreach (var mat in rend.sharedMaterials)
+                {
+                    if(mat != null) if(mat.shader.name == " Lit" ) {
+                        mat.SetFloat("_ShaderOptimizerEnabled", 1);
+                        MaterialProperty[] props = MaterialEditor.GetMaterialProperties(new UnityEngine.Object[] { mat });
+                        if (!ShaderOptimizer.Lock(mat, props)) // Error locking shader, revert property
+                            mat.SetFloat("_ShaderOptimizerEnabled", 0);
+                    }
+                }
+            }
+        }
+    }
+
     
     public enum LightMode
     {

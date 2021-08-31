@@ -185,12 +185,11 @@ half4 frag(v2f i) : SV_Target
     fresnel = lerp(f0, fresnel , _FresnelColor.a); // kill fresnel
     fresnel *= _FresnelColor.rgb;
 
-    #if defined(LIGHTMAP_ON)
-        fresnel *= _SpecularOcclusion ? saturate(lerp(1, pow(length(lightMap), _SpecularOcclusion), _SpecularOcclusion)) : 1; // lightmap occlusion
-    #endif
+    //#if defined(LIGHTMAP_ON)
+        fresnel *= _SpecularOcclusion ? saturate(lerp(1, pow(length(indirectDiffuse), _SpecularOcclusion), _SpecularOcclusion * (1 - metallic))) : 1; // lightmap occlusion
+    //#endif
 
     #if !defined(SHADER_API_MOBILE)
-        perceptualRoughness = _AngularGlossiness ? lerp(saturate(perceptualRoughness * (1-_AngularGlossiness * UNITY_PI * fresnel)), perceptualRoughness,  perceptualRoughness) : perceptualRoughness;  // roughness fresnel
         #if defined(ENABLE_GSAA)
             perceptualRoughness = GSAA_Filament(worldNormal, perceptualRoughness);
         #endif
@@ -259,7 +258,7 @@ half3 finalColor = directDiffuse * ((indirectDiffuse * occlusion) + light) + dir
     return UnityMetaFragment(surfaceData);
 #endif
 
-finalColor.rgb = _TonemappingMode ? lerp(finalColor.rgb, ACESFilm(finalColor.rgb), _Contribution) : finalColor.rgb; // aces
+finalColor = _TonemappingMode ? lerp(finalColor, ACESFilm(finalColor), _Contribution) : finalColor; // aces
 
 alpha -= mainTex.a * 0.00001; // fix main tex sampler without changing the color;
 

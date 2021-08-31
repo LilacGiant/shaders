@@ -17,12 +17,10 @@ Shader " Lit"
         
         [HideInInspector] [ToggleUI] _EnableVertexColor ("Vertex Colors Mulitply Base", Float) = 0
                
-
         _Metallic ("Metallic", Range(0,1)) = 0
         _Glossiness ("Smoothness", Range(0,1)) = 0.5
         _Occlusion ("Occlusion", Range(0,1)) = 0
 
-        
         [HideInInspector] [ToggleUI] _EnablePackedMap ("Enable Roughness Map ", Float) = 0
         _MetallicGlossMap ("Mask Map:Metallic(R), Occlusion(G), Detail Mask(B), Smoothness(A)", 2D) = "white" {}
         [HideInInspector] [Enum(UV0, 0, UV1 (Lightmap), 1, UV2, 2)] _MetallicGlossMapUV ("UV", Int) = 0
@@ -53,10 +51,9 @@ Shader " Lit"
         [HideInInspector] [Enum(UV0, 0, UV1 (Lightmap), 1, UV2, 2)] _DetailMapUV ("UV", Int) = 0
 
         
-        [Enum(Default, 0, Get From Probes, 1)] _GetDominantLight ("Mode", Int) = 0
+        [Enum(Default, 0, Get From Probes, 1)] _GetDominantLight ("Dominant Light", Int) = 0
         _FresnelColor ("Sheen Color", Color) = (1,1,1,1)
         _Reflectance ("Reflectance", Range(0,1)) = 0.45
-        _AngularGlossiness ("Angular Smoothness", Range(0, 1)) = 0
         _Anisotropy ("Anisotropy", Range(-1,1)) = 0
 
 
@@ -72,22 +69,8 @@ Shader " Lit"
         [NoScaleOffset] _MatCap ("Matcap", 2D) = "white" {}
         _MatCapReplace ("Intensity", Range(0.0, 1.0)) = 1
 
-
         
-
-
-
-
-        
-
-        
-
-
-        
-
-
-        
-        _LightmapMultiplier ("Multiplier", Range(0, 2)) = 1
+        _LightmapMultiplier ("Lightmap Multiplier", Range(0, 2)) = 1
         _SpecularOcclusion ("Specular Occlusion", Range(0, 1)) = 0
 
         [Toggle(ENABLE_BICUBIC_LIGHTMAP)] _BicubicLightmap ("Bicubic Lightmap Interpolation", Float) = 0
