@@ -22,6 +22,10 @@ namespace Shaders.Lit
         public bool Show_BumpMap = false;
         public bool Show_EmissionMap = false;
 
+        public bool Show_MetallicMap = false;
+        public bool Show_SmoothnessMap = false;
+        public bool Show_OcclusionMap = false;
+
     }
     
     public class ShaderEditor : ShaderGUI
@@ -67,6 +71,15 @@ namespace Shaders.Lit
         protected MaterialProperty _MatCap = null;
         protected MaterialProperty _Cull = null;
 
+        protected MaterialProperty _EnablePackedMode = null;
+        protected MaterialProperty _SmoothnessMap = null;
+        protected MaterialProperty _SmoothnessMapUV = null;
+        protected MaterialProperty _GlossinessInvert = null;
+        protected MaterialProperty _MetallicMap = null;
+        protected MaterialProperty _MetallicMapUV = null;
+        protected MaterialProperty _OcclusionMap = null;
+        protected MaterialProperty _OcclusionMapUV = null;
+
 
 
 
@@ -95,19 +108,48 @@ namespace Shaders.Lit
                     prop(_Saturation);
                 });
 
-
+            
+                
                 prop(_Metallic);
                 prop(_Glossiness);
 
-                if (_MetallicGlossMap.textureValue) prop(_Occlusion);
+                if (_MetallicGlossMap.textureValue || _EnablePackedMode.floatValue == 0) prop(_Occlusion);
 
-                prop(_MetallicGlossMap);
-                md[material].Show_MetallicGlossMap = TriangleFoldout(md[material].Show_MetallicGlossMap, ()=> {
-                    propTileOffset(_MetallicGlossMap);
-                    prop(_MetallicGlossMapUV, false);
-                });
+                if(_EnablePackedMode.floatValue == 1)
+                {
+                    prop(_MetallicGlossMap);
+                    md[material].Show_MetallicGlossMap = TriangleFoldout(md[material].Show_MetallicGlossMap, ()=> {
+                        propTileOffset(_MetallicGlossMap);
+                        prop(_MetallicGlossMapUV, false);
+                    });
+                    Styles.sRGBWarning(_MetallicGlossMap);
+                }
+                else
+                {
+                    prop(_MetallicMap);
+                    md[material].Show_MetallicMap = TriangleFoldout(md[material].Show_MetallicMap, ()=> {
+                        propTileOffset(_MetallicMap);
+                        prop(_MetallicMapUV, false);
+                    });
+                    Styles.sRGBWarning(_MetallicMap);
+                    
+                    prop(_SmoothnessMap);
+                    md[material].Show_SmoothnessMap = TriangleFoldout(md[material].Show_SmoothnessMap, ()=> {
+                        propTileOffset(_SmoothnessMap);
+                        prop(_SmoothnessMapUV, false);
+                        prop(_GlossinessInvert, false);
+                    });
+                    Styles.sRGBWarning(_SmoothnessMap);
+                    
+                    prop(_OcclusionMap);
+                    md[material].Show_OcclusionMap = TriangleFoldout(md[material].Show_OcclusionMap, ()=> {
+                        propTileOffset(_OcclusionMap);
+                        prop(_OcclusionMapUV, false);
+                    });
+                    Styles.sRGBWarning(_OcclusionMapUV);
+                }
 
-                Styles.sRGBWarning(_MetallicGlossMap);
+
 
 
                 prop(_BumpMap, _BumpMap.textureValue ? _BumpScale : null);
@@ -171,6 +213,7 @@ namespace Shaders.Lit
                 prop(_GetDominantLight, false);
                 prop(_TonemappingMode, false);
                 if(_TonemappingMode.floatValue == 1) prop(_Contribution);
+                prop(_EnablePackedMode);
                 Space();
                 
                 prop(_Cull);

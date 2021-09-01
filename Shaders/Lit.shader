@@ -21,7 +21,7 @@ Shader " Lit"
         _Glossiness ("Smoothness", Range(0,1)) = 0.5
         _Occlusion ("Occlusion", Range(0,1)) = 0
 
-        [HideInInspector] [ToggleUI] _EnablePackedMap ("Enable Roughness Map ", Float) = 0
+
         _MetallicGlossMap ("Mask Map:Metallic(R), Occlusion(G), Detail Mask(B), Smoothness(A)", 2D) = "white" {}
         [HideInInspector] [Enum(UV0, 0, UV1 (Lightmap), 1, UV2, 2)] _MetallicGlossMapUV ("UV", Int) = 0
         [HideInInspector] [ToggleUI] _EnableVertexColorMask ("Vertex Colors Mulitply Mask", Float) = 0
