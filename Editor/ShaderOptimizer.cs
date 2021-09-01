@@ -13,6 +13,17 @@ using System.Text;
 using System.Globalization;
 using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
+using UnityEditor.Rendering;
+
+#if VRC_SDK_VRCSDK3
+using VRC.SDKBase;
+#endif
+#if VRC_SDK_VRCSDK2
+using VRCSDK2;
+#endif
+#if VRC_SDK_VRCSDK2 || VRC_SDK_VRCSDK3
+using VRC.SDKBase.Editor.BuildPipeline;
+#endif
 
 
 // v11
@@ -20,7 +31,7 @@ using UnityEditor.Build.Reporting;
 namespace Shaders.Lit
 {
     
-    class AutoLock : IPreprocessBuildWithReport
+    class AutoLockOnBuild : IPreprocessBuildWithReport
     {
         public int callbackOrder { get { return 69; } }
         public void OnPreprocessBuild(BuildReport report)
@@ -31,13 +42,41 @@ namespace Shaders.Lit
             {
                 if(rend != null) foreach (var mat in rend.sharedMaterials)
                 {
-                    if(mat != null) if(mat.shader.name == " Lit" ) {
-                        mat.SetFloat("_ShaderOptimizerEnabled", 1);
-                        MaterialProperty[] props = MaterialEditor.GetMaterialProperties(new UnityEngine.Object[] { mat });
-                        if (!ShaderOptimizer.Lock(mat, props)) // Error locking shader, revert property
-                            mat.SetFloat("_ShaderOptimizerEnabled", 0);
+                    if(mat != null) if(mat.shader.name == " Lit" )
+                    {
+                        ShaderOptimizer.LockMaterial(mat);
                     }
                 }
+            }
+        }
+    }
+
+
+#if VRC_SDK_VRCSDK2 || VRC_SDK_VRCSDK3
+    public class LockMaterialsOnVRCWorldUpload : IVRCSDKBuildRequestedCallback
+    {
+        public int callbackOrder => 69;
+
+        bool IVRCSDKBuildRequestedCallback.OnBuildRequested(VRCSDKRequestedBuildType requestedBuildType)
+        {
+            ShaderOptimizer.LockAllMaterials();
+            return true;
+        }
+    }
+#endif
+
+    public class OnShaderPreprocess : IPreprocessShaders
+    {
+        public int callbackOrder { get { return 69; } }
+
+        public void OnProcessShader(Shader shader, ShaderSnippetData snippet, IList<ShaderCompilerData> data)
+        {
+            bool shouldStrip = false;
+            if (shader.name == " Lit" ) shouldStrip = true; // make your shader pink if you dont lock it :>
+
+            for (int i = data.Count - 1; i >= 0; --i)
+            {
+                if (shouldStrip) data.RemoveAt(i);
             }
         }
     }
@@ -133,6 +172,49 @@ namespace Shaders.Lit
         private static bool ReplaceAnimatedParameters = false;
 
         private static string CurrentLightmode = "";
+
+        public static void LockMaterial(Material mat)
+        {
+            mat.SetFloat("_ShaderOptimizerEnabled", 1);
+            MaterialProperty[] props = MaterialEditor.GetMaterialProperties(new UnityEngine.Object[] { mat });
+            if (!ShaderOptimizer.Lock(mat, props)) // Error locking shader, revert property
+                mat.SetFloat("_ShaderOptimizerEnabled", 0);
+        }
+
+        [MenuItem("Tools/Lit/Unlock all materials")]
+        public static void UnlockAllMaterials()
+        {
+            var renderers = UnityEngine.Object.FindObjectsOfType<Renderer>();
+
+            if(renderers != null) foreach (var rend in renderers)
+            {
+                if(rend != null) foreach (var mat in rend.sharedMaterials)
+                {
+                    if(mat != null) if(mat.shader.name.StartsWith("Hidden/ Lit") )
+                    {
+                        ShaderOptimizer.Unlock(mat);
+                        mat.SetFloat("_ShaderOptimizerEnabled", 0);
+                    }
+                }
+            }
+        }
+        
+        [MenuItem("Tools/Lit/Lock all materials")]
+        public static void LockAllMaterials()
+        {
+            var renderers = UnityEngine.Object.FindObjectsOfType<Renderer>();
+
+            if(renderers != null) foreach (var rend in renderers)
+            {
+                if(rend != null) foreach (var mat in rend.sharedMaterials)
+                {
+                    if(mat != null) if(mat.shader.name == " Lit")
+                    {
+                        LockMaterial(mat);
+                    }
+                }
+            }
+        }
 
         // In-order list of inline sampler state names that will be replaced by InlineSamplerState() lines
         public static readonly string[] InlineSamplerStateNames = new string[]
