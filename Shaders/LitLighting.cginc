@@ -353,7 +353,7 @@ float3 getLightDir(bool lightEnv, float3 worldPos)
 
 float3 getLightCol(bool lightEnv, float3 lightColor, float3 indirectDominantColor)
 {
-    float3 c = lightEnv ? lightColor : indirectDominantColor * UNITY_PI; 
+    float3 c = lightEnv ? lightColor : indirectDominantColor; 
     return c;
 }
 

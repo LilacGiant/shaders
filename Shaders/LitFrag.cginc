@@ -249,7 +249,7 @@ alpha -= mainTex.a * 0.00001; // fix main tex sampler without changing the color
     surfaceData.Emission = emission;
     surfaceData.Albedo = albedo;
     surfaceData.SpecularColor = directSpecular;
-    return UnityMetaFragment(surfaceData);
+    return float4(UnityMetaFragment(surfaceData).rgb, alpha);
 #endif
 
 finalColor = _TonemappingMode ? lerp(finalColor, ACESFilm(finalColor), _Contribution) : finalColor; // aces

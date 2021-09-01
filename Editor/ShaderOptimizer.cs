@@ -224,8 +224,10 @@ namespace Shaders.Lit
 
             for (int i=0; i<progress; i++)
             {
+                EditorUtility.DisplayCancelableProgressBar("Replacing Shaders", mats[i].name, i/progress);
                 LockApplyShader(mats[i]);
             }
+            EditorUtility.ClearProgressBar();
         }
 
         public static List<Material> GetAllMaterials()
