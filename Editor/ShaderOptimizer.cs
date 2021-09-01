@@ -162,35 +162,75 @@ namespace Shaders.Lit
 
         private static string CurrentLightmode = "";
 
-        public static void LockMaterial(Material mat)
+        public static void LockMaterial(Material mat, bool applyLater)
         {
+
             mat.SetFloat("_ShaderOptimizerEnabled", 1);
             MaterialProperty[] props = MaterialEditor.GetMaterialProperties(new UnityEngine.Object[] { mat });
-            if (!ShaderOptimizer.Lock(mat, props)) // Error locking shader, revert property
+            if (!ShaderOptimizer.Lock(mat, props, applyLater)) // Error locking shader, revert property
                 mat.SetFloat("_ShaderOptimizerEnabled", 0);
         }
 
         [MenuItem("Tools/Lit/Unlock all materials")]
         public static void UnlockAllMaterials()
         {
+            AssetDatabase.StartAssetEditing();
+
+            List<Material> mats = new List<Material>();
             var renderers = UnityEngine.Object.FindObjectsOfType<Renderer>();
 
             if(renderers != null) foreach (var rend in renderers)
             {
                 if(rend != null) foreach (var mat in rend.sharedMaterials)
                 {
-                    if(mat != null) if(mat.shader.name.StartsWith("Hidden/ Lit") )
+                    if(mat != null)
                     {
-                        ShaderOptimizer.Unlock(mat);
-                        mat.SetFloat("_ShaderOptimizerEnabled", 0);
+                        if(mat.shader.name.StartsWith("Hidden/ Lit") )
+                        {
+                            if(!mats.Contains(mat)) mats.Add(mat);
+                        }
+                        else if (mat.shader.name == " Lit")
+                        {
+                            mat.SetFloat("_ShaderOptimizerEnabled", 0);
+                        }
                     }
                 }
             }
+
+            foreach (Material m in mats)
+            {
+                ShaderOptimizer.Unlock(m);
+                m.SetFloat("_ShaderOptimizerEnabled", 0);
+            }
+            AssetDatabase.StopAssetEditing();
         }
         
         [MenuItem("Tools/Lit/Lock all materials")]
         public static void LockAllMaterials()
         {
+            AssetDatabase.StartAssetEditing();
+            List<Material> mats = GetAllMaterials();
+            float progress = mats.Count;
+
+            
+            for (int i=0; i<progress; i++)
+            {
+                EditorUtility.DisplayCancelableProgressBar("Generating Shaders", mats[i].name, i/progress);
+                LockMaterial(mats[i], true);
+            }
+            EditorUtility.ClearProgressBar();
+            AssetDatabase.StopAssetEditing();
+            AssetDatabase.Refresh();
+
+            for (int i=0; i<progress; i++)
+            {
+                LockApplyShader(mats[i]);
+            }
+        }
+
+        public static List<Material> GetAllMaterials()
+        {
+            List<Material> materials = new List<Material>();
             var renderers = UnityEngine.Object.FindObjectsOfType<Renderer>();
 
             if(renderers != null) foreach (var rend in renderers)
@@ -199,10 +239,11 @@ namespace Shaders.Lit
                 {
                     if(mat != null) if(mat.shader.name == " Lit")
                     {
-                        LockMaterial(mat);
+                        if(!materials.Contains(mat)) materials.Add(mat);
                     }
                 }
             }
+            return materials;
         }
 
         // In-order list of inline sampler state names that will be replaced by InlineSamplerState() lines
@@ -392,6 +433,12 @@ namespace Shaders.Lit
 
         public static bool Lock(Material material, MaterialProperty[] props)
         {
+            Lock(material, props, false);
+            return true;
+        }
+
+        public static bool Lock(Material material, MaterialProperty[] props, bool applyShaderLater)
+        {
             // File filepaths and names
             Shader shader = material.shader;
             string shaderFilePath = AssetDatabase.GetAssetPath(shader);
@@ -400,6 +447,8 @@ namespace Shaders.Lit
             string smallguid = Guid.NewGuid().ToString().Split('-')[0];
             string newShaderName = "Hidden/" + shader.name + "/" + material.name + "-" + smallguid;
             string newShaderDirectory = materialFolder + "/OptimizedShaders/" + material.name + "-" + smallguid + "/";
+
+            
 
             // Get collection of all properties to replace
             // Simultaneously build a string of #defines for each CGPROGRAM
@@ -726,31 +775,35 @@ namespace Shaders.Lit
                 }
             }
             
-            AssetDatabase.Refresh();
-            // Write original shader to override tag
-            material.SetOverrideTag("OriginalShader", shader.name);
-            // Write the new shader folder name in an override tag so it will be deleted 
-            material.SetOverrideTag("OptimizedShaderFolder", material.name + "-" + smallguid);
+
+
+
+
+
+
+
+
+
 
             
+                
+            // thx thry https://github.com/Thryrallo/ThryEditor/blob/b800a32d5e098b923db4d977277a05d53b985d76/Editor/ShaderOptimizer.cs#L762
+            ApplyLater applyLater = new ApplyLater();
+            applyLater.material = material;
+            applyLater.shader = shader;
+            applyLater.smallguid = smallguid;
+            applyLater.newShaderName = newShaderName;
 
-            // For some reason when shaders are swapped on a material the RenderType override tag gets completely deleted and render queue set back to -1
-            // So these are saved as temp values and reassigned after switching shaders
-            string renderType = material.GetTag("RenderType", false, "");
-            int renderQueue = material.renderQueue;
-
-            // Actually switch the shader
-            Shader newShader = Shader.Find(newShaderName);
-            if (newShader == null)
+            if (applyShaderLater)
             {
-                Debug.LogError("[Kaj Shader Optimizer] Generated shader " + newShaderName + " could not be found");
-                return false;
+                applyStructsLater.Add(material, applyLater);
+                return true;
             }
-            material.shader = newShader;
-            material.SetOverrideTag("RenderType", renderType);
-            material.renderQueue = renderQueue;
+
+            AssetDatabase.Refresh();
 
             // Loop through animated properties and set new properties to current property values
+            /*
             if (ReplaceAnimatedParameters)
                 foreach (string animatedPropName in animatedProps)
                 {
@@ -773,13 +826,66 @@ namespace Shaders.Lit
                             break;
                     }
                 }
+                */
+
+            
+
+                return ReplaceShader(applyLater);
+        }
+
+        private static Dictionary<Material, ApplyLater> applyStructsLater = new Dictionary<Material, ApplyLater>();
+
+        private struct ApplyLater
+        {
+            public Material material;
+            public Shader shader;
+            public string smallguid;
+            public string newShaderName;
+        }
+        
+        private static bool LockApplyShader(Material material)
+        {
+            if (applyStructsLater.ContainsKey(material) == false) return false;
+            ApplyLater applyStruct = applyStructsLater[material];
+            applyStructsLater.Remove(material);
+            return ReplaceShader(applyStruct);
+        }
+
+
+        private static bool ReplaceShader(ApplyLater applyLater)
+        {
+
+            // Write original shader to override tag
+            applyLater.material.SetOverrideTag("OriginalShader", applyLater.shader.name);
+            // Write the new shader folder name in an override tag so it will be deleted 
+            applyLater.material.SetOverrideTag("OptimizedShaderFolder", applyLater.material.name + "-" + applyLater.smallguid);
+
+            
+
+            // For some reason when shaders are swapped on a material the RenderType override tag gets completely deleted and render queue set back to -1
+            // So these are saved as temp values and reassigned after switching shaders
+            string renderType = applyLater.material.GetTag("RenderType", false, "");
+            int renderQueue = applyLater.material.renderQueue;
+
+            // Actually switch the shader
+            Shader newShader = Shader.Find(applyLater.newShaderName);
+            if (newShader == null)
+            {
+                Debug.LogError("[Kaj Shader Optimizer] Generated shader " + applyLater.newShaderName + " could not be found");
+                return false;
+            }
+            applyLater.material.shader = newShader;
+            applyLater.material.SetOverrideTag("RenderType", renderType);
+            applyLater.material.renderQueue = renderQueue;
 
             // Remove ALL keywords
-            foreach (string keyword in material.shaderKeywords)
-            material.DisableKeyword(keyword);
+            foreach (string keyword in applyLater.material.shaderKeywords)
+            applyLater.material.DisableKeyword(keyword);
 
             return true;
         }
+
+        
 
         // Preprocess each file for macros and includes
         // Save each file as string[], parse each macro with //KSOEvaluateMacro
