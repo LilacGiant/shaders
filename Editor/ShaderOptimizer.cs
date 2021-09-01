@@ -36,18 +36,7 @@ namespace Shaders.Lit
         public int callbackOrder { get { return 69; } }
         public void OnPreprocessBuild(BuildReport report)
         {
-            var renderers = UnityEngine.Object.FindObjectsOfType<Renderer>();
-
-            if(renderers != null) foreach (var rend in renderers)
-            {
-                if(rend != null) foreach (var mat in rend.sharedMaterials)
-                {
-                    if(mat != null) if(mat.shader.name == " Lit" )
-                    {
-                        ShaderOptimizer.LockMaterial(mat);
-                    }
-                }
-            }
+            ShaderOptimizer.LockAllMaterials();
         }
     }
 
