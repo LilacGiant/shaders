@@ -127,27 +127,23 @@ half4 frag(v2f i) : SV_Target
 
     half3 indirectDominantColor = half3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w);
     half3 lightDir = getLightDir(!_GetDominantLight, i.worldPos);
-    half3 lightCol = getLightCol(!_GetDominantLight, _LightColor0.rgb, indirectDominantColor);
+    half3 lightCol = getLightCol(!_GetDominantLight, _LightColor0.rgb, indirectDominantColor) * 0.95;
 
     half NoL = saturate(dot(worldNormal, lightDir));
     half3 viewDir = normalize(_WorldSpaceCameraPos - i.worldPos);
-    float NoV = abs(dot(worldNormal, viewDir)) + 1e-5;
+    half NoV = abs(dot(worldNormal, viewDir)) + 1e-5;
     half3 halfVector = normalize(lightDir + viewDir);
-    float LoH = saturate(dot(lightDir, halfVector));
+    half LoH = saturate(dot(lightDir, halfVector));
     UNITY_LIGHT_ATTENUATION(attenuation, i, i.worldPos.xyz);
-    #ifdef UNITY_PASS_FORWARDBASE // fix for rare bug where light atten is 0 when there is no directional light in the scene
-    if(all(_LightColor0.rgb == 0.0)) attenuation = 1;
-    #endif
+    //#ifdef UNITY_PASS_FORWARDBASE // fix for rare bug where light atten is 0 when there is no directional light in the scene
+    //if(all(_LightColor0.rgb == 0.0)) attenuation = 1;
+    //#endif
     
     
     
-    
-
     half3 light = (NoL * attenuation * lightCol);
     half3 directDiffuse = albedo;
 
-    
-    
     #ifndef SHADER_API_MOBILE
     light *= Fd_Burley(perceptualRoughness, NoV, NoL, LoH);
     #endif
@@ -184,10 +180,7 @@ half4 frag(v2f i) : SV_Target
     half3 fresnel = F_Schlick(f0, NoV);
     fresnel = lerp(f0, fresnel , _FresnelColor.a); // kill fresnel
     fresnel *= _FresnelColor.rgb;
-
-    //#if defined(LIGHTMAP_ON)
-        fresnel *= _SpecularOcclusion ? saturate(lerp(1, pow(length(indirectDiffuse), _SpecularOcclusion), _SpecularOcclusion * (1 - metallic))) : 1; // lightmap occlusion
-    //#endif
+    fresnel *= _SpecularOcclusion ? saturate(lerp(1, pow(length(indirectDiffuse), _SpecularOcclusion), _SpecularOcclusion * (1 - metallic))) : 1; // lightmap occlusion
 
     #if !defined(SHADER_API_MOBILE)
         #if defined(ENABLE_GSAA)
@@ -226,7 +219,7 @@ half3 indirectSpecular = 0;
 half3 directSpecular = 0;
 #ifdef ENABLE_SPECULAR_HIGHLIGHTS
 float NoH = saturate(dot(worldNormal, halfVector));
-directSpecular = getDirectSpecular(perceptualRoughness, NoH, NoV, NoL, fresnel, _Anisotropy, halfVector, tangent, bitangent) * light;
+directSpecular = getDirectSpecular(perceptualRoughness, NoH, NoV, NoL, LoH, f0, _Anisotropy, halfVector, tangent, bitangent) * NoL * attenuation * lightCol;
 #endif
 // specular highlights
 
@@ -248,23 +241,20 @@ emission = _EnableEmission ? emissionMap * pow(_EmissionColor.rgb, 2.2) : 0;
 // final color
 half3 finalColor = directDiffuse * ((indirectDiffuse * occlusion) + light) + directSpecular + indirectSpecular + emission;
 
+alpha -= mainTex.a * 0.00001; // fix main tex sampler without changing the color;
 
 #ifdef UNITY_PASS_META
     UnityMetaInput surfaceData;
     UNITY_INITIALIZE_OUTPUT(UnityMetaInput, surfaceData);
     surfaceData.Emission = emission;
     surfaceData.Albedo = albedo;
-    surfaceData.SpecularColor = indirectSpecular;
+    surfaceData.SpecularColor = directSpecular;
     return UnityMetaFragment(surfaceData);
 #endif
 
 finalColor = _TonemappingMode ? lerp(finalColor, ACESFilm(finalColor), _Contribution) : finalColor; // aces
 
-alpha -= mainTex.a * 0.00001; // fix main tex sampler without changing the color;
-
-
-    return half4(finalColor, alpha);
-
+return half4(finalColor, alpha);
 }
 
 fixed4 ShadowCasterfrag(v2f i) : SV_Target

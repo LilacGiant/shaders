@@ -185,7 +185,7 @@ float3 getIndirectSpecular(float metallic, float roughness, float3 reflDir, floa
     return spec;
 }
 
-half3 getDirectSpecular(half perceptualRoughness, half NoH, half NoV, half NoL, half3 fresnel, half anisotropy, half3 halfVector, half3 tangent, half3 bitangent)
+half3 getDirectSpecular(half perceptualRoughness, half NoH, half NoV, half NoL, half LoH, half f0, half anisotropy, half3 halfVector, half3 tangent, half3 bitangent)
 {
     half roughness = max(perceptualRoughness * perceptualRoughness, 0.002);
 
@@ -203,7 +203,7 @@ half3 getDirectSpecular(half perceptualRoughness, half NoH, half NoV, half NoL, 
     #else
     half V = V_SmithGGXCorrelated(NoV, NoL, roughness);
     #endif  
-    half3 F = fresnel;
+    half3 F = F_Schlick(f0, LoH);
    
     half3 directSpecular = max(0, (D * V) * F);
 
@@ -353,7 +353,7 @@ float3 getLightDir(bool lightEnv, float3 worldPos)
 
 float3 getLightCol(bool lightEnv, float3 lightColor, float3 indirectDominantColor)
 {
-    float3 c = lightEnv ? lightColor : indirectDominantColor;
+    float3 c = lightEnv ? lightColor : indirectDominantColor * UNITY_PI; 
     return c;
 }
 

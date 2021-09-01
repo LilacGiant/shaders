@@ -38,7 +38,7 @@ Shader " Lit"
         [HideInInspector] [Enum(UV0, 0, UV1 (Lightmap), 1, UV2, 2)] _OcclusionMapUV ("UV", Int) = 0
 
         [Normal] _BumpMap ("Normal Map", 2D) = "bump" {}
-        [HideInInspector] _BumpScale ("Bump Scale", Range(0,10)) = 1
+        [HideInInspector] _BumpScale ("Bump Scale", Range(0,10)) = 0
         [HideInInspector] [Enum(OpenGL, 0, Direct3D, 1)] _NormalMapOrientation ("Orientation", Int) = 0
         [HideInInspector] [Enum(UV0, 0, UV1 (Lightmap), 1, UV2, 2)] _BumpMapUV ("UV", Int) = 0
 
@@ -51,9 +51,9 @@ Shader " Lit"
         [HideInInspector] [Enum(UV0, 0, UV1 (Lightmap), 1, UV2, 2)] _DetailMapUV ("UV", Int) = 0
 
         
-        [Enum(Default, 0, Get From Probes, 1)] _GetDominantLight ("Dominant Light", Int) = 0
+        [Enum(Default, 0, Light Probes, 1)] _GetDominantLight ("Dominant Light", Int) = 0
         _FresnelColor ("Sheen Color", Color) = (1,1,1,1)
-        _Reflectance ("Reflectance", Range(0,1)) = 0.45
+        _Reflectance ("Reflectance", Range(0,1)) = 0.40
         _Anisotropy ("Anisotropy", Range(-1,1)) = 0
 
 
