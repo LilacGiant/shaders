@@ -99,7 +99,35 @@ UNITY_DECLARE_TEX2D_NOSAMPLER(_DetailMap);
 uniform float4 _DetailMap_ST;
 uniform half _DetailMapUV;
 */
+struct Lighting
+{
+    half3 color;
+    half3 direction;
+    half NoL;
+    half LoH;
+    half3 halfVector;
+    half attenuation;
+    half3 indirectDominantColor;
+    half3 finalLight;
+    half3 directDiffuse;
+    half3 indirectDiffuse;
+    half3 directSpecular;
+    half3 indirectSpecular;
+};
 
+static Lighting light;
+
+struct Surface
+{
+    half4 albedo;
+    half metallic;
+    half perceptualRoughness;
+    half roughness;
+    half occlusion;
+    half3 emission;
+};
+
+static Surface surface;
 
 
 
@@ -122,6 +150,10 @@ uniform half _DetailMapUV;
     #define PROP_EMISSIONMAP
     #define PROP_METALLICGLOSSMAP
     #define PROP_DETAILMAP
+#endif
+
+#if defined(FOG_LINEAR) || defined(FOG_EXP) || defined(FOG_EXP2)
+    #define USE_FOG
 #endif
 
 // ----------------- defines -----------------

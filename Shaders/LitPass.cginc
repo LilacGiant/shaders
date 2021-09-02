@@ -59,8 +59,10 @@ struct v2f
     centroid half4 color : COLOR;
     #endif
 
-    #if !defined(UNITY_PASS_SHADOWCASTER)
-    UNITY_FOG_COORDS(8)
+    #ifdef USE_FOG
+        #if !defined(UNITY_PASS_SHADOWCASTER)
+            UNITY_FOG_COORDS(8)
+        #endif
     #endif
 
     UNITY_VERTEX_INPUT_INSTANCE_ID
@@ -113,8 +115,10 @@ v2f vert(appdata v)
 
 
     #if !defined(UNITY_PASS_SHADOWCASTER)
-    UNITY_TRANSFER_SHADOW(o, o.texcoord0.xy);
-    UNITY_TRANSFER_FOG(o, o.pos);
+        UNITY_TRANSFER_SHADOW(o, o.texcoord0.xy);
+        #ifdef USE_FOG
+            UNITY_TRANSFER_FOG(o, o.pos);
+        #endif
     #else
     TRANSFER_SHADOW_CASTER_NOPOS(o, o.pos);
     #endif
@@ -124,6 +128,12 @@ v2f vert(appdata v)
     return o;
 }
 
+void initUVs(v2f i)
+{
+    uvs[0] = i.texcoord0.xy;
+    uvs[1] = i.texcoord0.zw;
+    uvs[2] = i.texcoord1.xy;
+}
 
 
 

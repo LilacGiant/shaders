@@ -24,13 +24,10 @@ float calcAlpha(half cutoff, half alpha)
     return alpha;
 }
 
-void initBumpedNormalTangentBitangent(half4 normalMap, inout half3 bitangent, inout half3 tangent, inout half3 normal, half nScale, half orientation)
+void initNormalMap(half4 normalMap, inout half3 bitangent, inout half3 tangent, inout half3 normal, half nScale, half orientation)
 {
-
     normalMap.g = orientation ? normalMap.g : 1-normalMap.g;
-    
     float3 tangentNormal = UnpackScaleNormal(normalMap, nScale);
-
     float3 calcedNormal = normalize
     (
 		tangentNormal.x * tangent +
@@ -38,21 +35,17 @@ void initBumpedNormalTangentBitangent(half4 normalMap, inout half3 bitangent, in
 		tangentNormal.z * normal
     );
 
-
-
-
-
     normal = calcedNormal;
     tangent = cross(normal, bitangent);
-    bitangent = cross(normal, tangent);
-    
+    bitangent = cross(normal, tangent);    
 }
+
+
 
 bool isInMirror()
 {
     return unity_CameraProjection[2][0] != 0.f || unity_CameraProjection[2][1] != 0.f;
 }
-
 
 float3 ACESFilm(float3 x)
 {
@@ -78,6 +71,10 @@ half3 BlendMode_Overlay(half3 base, half3 blend)
 
 #define TRANSFORM(uv, tileOffset) (uv.xy * tileOffset.xy + tileOffset.zw) // because using ## wouldnt replace on lock in
 #define TRANSFORMTEX(uv, tileOffset, transformTex) (uv.xy * tileOffset.xy * transformTex.xy + tileOffset.zw + transformTex.zw)
+
+#define MAIN_TEX(tex, sampl, texUV, texST) (tex.Sample(sampl, TRANSFORM(texUV.xy, texST)))
+
+#define NOSAMPLER_TEX(tex, texUV, texST, mainST) (tex.Sample(sampler_MainTex, TRANSFORMTEX(texUV.xy, texST, mainST)))
 
 
 
