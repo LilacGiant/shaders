@@ -59,6 +59,10 @@ struct v2f
     centroid half4 color : COLOR;
     #endif
 
+    #if !defined(UNITY_PASS_SHADOWCASTER)
+    UNITY_FOG_COORDS(8)
+    #endif
+
     UNITY_VERTEX_INPUT_INSTANCE_ID
 	UNITY_VERTEX_OUTPUT_STEREO
 };
@@ -110,6 +114,7 @@ v2f vert(appdata v)
 
     #if !defined(UNITY_PASS_SHADOWCASTER)
     UNITY_TRANSFER_SHADOW(o, o.texcoord0.xy);
+    UNITY_TRANSFER_FOG(o, o.pos);
     #else
     TRANSFER_SHADOW_CASTER_NOPOS(o, o.pos);
     #endif

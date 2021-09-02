@@ -252,9 +252,13 @@ alpha -= mainTex.a * 0.00001; // fix main tex sampler without changing the color
     return float4(UnityMetaFragment(surfaceData).rgb, alpha);
 #endif
 
-finalColor = _TonemappingMode ? lerp(finalColor, ACESFilm(finalColor), _Contribution) : finalColor; // aces
 
-return half4(finalColor, alpha);
+half4 col = half4(finalColor, alpha);
+UNITY_APPLY_FOG(i.fogCoord, col);
+
+
+col.rgb = _TonemappingMode ? lerp(col.rgb, ACESFilm(col.rgb), _Contribution) : col.rgb; // aces
+return col;
 }
 
 fixed4 ShadowCasterfrag(v2f i) : SV_Target

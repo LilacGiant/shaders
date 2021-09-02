@@ -88,9 +88,6 @@ Shader " Lit"
         _Contribution ("Contribution", Range(0, 1)) = 1
 
 
-        [ToggleUI] _commentIfOne_DisableShadowCaster ("Disable ShadowCaster Pass", float) = 0
-        [ToggleUI] _commentIfOne_DisableAddPass ("Disable ForwardAdd Pass", float) = 0
-
 
         [Toggle(ENABLE_PACKED_MODE)] _EnablePackedMode ("Packed Mode", Float) = 1       
 
@@ -137,6 +134,7 @@ Shader " Lit"
             #pragma exclude_renderers gles3
             #pragma multi_compile_fwdbase
             #pragma multi_compile_instancing
+            #pragma multi_compile_fog
 
             #pragma shader_feature_local ENABLE_GSAA
             #pragma shader_feature_local ENABLE_SPECULAR_HIGHLIGHTS
@@ -154,7 +152,7 @@ Shader " Lit"
             ENDCG
         }
 
-//DisableAddPass
+
         Pass
         {
             Name "FWDADD"
@@ -175,6 +173,7 @@ Shader " Lit"
             #pragma exclude_renderers gles3
             #pragma multi_compile_fwdadd_fullshadows
             #pragma multi_compile_instancing
+            #pragma multi_compile_fog
 
             #pragma shader_feature_local ENABLE_SPECULAR_HIGHLIGHTS
             #pragma shader_feature_local ENABLE_PACKED_MODE
@@ -187,9 +186,8 @@ Shader " Lit"
             #include "LitPass.cginc"
             ENDCG
         }
-//DisableAddPass
 
-//DisableShadowCaster
+
         Pass
         {
             Name "ShadowCaster"
@@ -241,7 +239,6 @@ Shader " Lit"
             #include "LitPass.cginc"
             ENDCG
         }
-//DisableShadowCaster 
 
     }
 
@@ -275,6 +272,7 @@ Shader " Lit"
             #pragma only_renderers gles3
             #pragma multi_compile_fwdbase
             #pragma multi_compile_instancing
+            #pragma multi_compile_fog
 
             #pragma shader_feature_local ENABLE_SPECULAR_HIGHLIGHTS
             #pragma shader_feature_local ENABLE_REFLECTIONS
@@ -290,7 +288,6 @@ Shader " Lit"
             ENDCG
         }
 
-//DisableAddPass
         Pass
         {
             Name "FWDADD"
@@ -313,6 +310,7 @@ Shader " Lit"
             #pragma only_renderers gles3
             #pragma multi_compile_fwdadd_fullshadows
             #pragma multi_compile_instancing
+            #pragma multi_compile_fog
 
             #pragma shader_feature_local ENABLE_SPECULAR_HIGHLIGHTS
             #pragma shader_feature_local ENABLE_PACKED_MODE
@@ -325,9 +323,7 @@ Shader " Lit"
             #include "LitPass.cginc"
             ENDCG
         }
-//DisableAddPass
 
-//DisableShadowCaster
         Pass
         {
             Name "ShadowCaster"
@@ -359,7 +355,6 @@ Shader " Lit"
             #include "LitPass.cginc"
             ENDCG
         }
-//DisableShadowCaster
 
     }
 
