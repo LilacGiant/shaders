@@ -6,8 +6,20 @@ float calcAlpha(half cutoff, half alpha)
     UNITY_BRANCH
     if(_Mode == 1)
     {
-        if (_AlphaToMask == 2) alpha = (alpha - cutoff) / max(fwidth(alpha), 0.0001) + 0.5;
-        if (_AlphaToMask == 0) clip(alpha - cutoff);
+        switch(_AlphaToMask)
+        {
+            case 0:
+                clip(alpha - cutoff);
+                break;
+            case 1:
+                clip(alpha - 0.01);
+                break;
+            case 2:
+                alpha = (alpha - cutoff) / max(fwidth(alpha), 0.0001) + 0.5;
+                clip(alpha - 0.01);
+                break;
+        }
+
     }
     return alpha;
 }

@@ -8,7 +8,7 @@ Shader " Lit"
         [Enum(Opaque, 0, Cutout, 1, Fade, 2, Transparent, 3)] _Mode("Rendering Mode", Int) = 0
         
         [Enum(Off, 0, On, 1, Sharpened, 2)] _AlphaToMask ("Alpha To Coverage", Float) = 0
-        _Cutoff ("Alpha Cuttoff", Range(0, 1)) = 0.5
+        _Cutoff ("Alpha Cuttoff", Range(0.001, 1)) = 0.5
 
         _MainTex ("Base Map", 2D) = "white" {}
         [HideInInspector] _Color ("Base Color", Color) = (1,1,1,1)
@@ -165,6 +165,7 @@ Shader " Lit"
             Blend One One
             Cull [_Cull]
             ZTest [_ZTest]
+            AlphaToMask [_AlphaToMask]
 
             CGPROGRAM
             #pragma target 5.0
@@ -300,7 +301,7 @@ Shader " Lit"
             Blend One One
             Cull [_Cull]
             ZTest [_ZTest]
-            AlphaToMask Off
+            AlphaToMask [_AlphaToMask]
 
 
             CGPROGRAM
@@ -335,7 +336,6 @@ Shader " Lit"
             ZWrite On
             Cull [_Cull]
             ZTest LEqual
-            AlphaToMask Off
 
 
             CGPROGRAM
