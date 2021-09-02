@@ -61,7 +61,7 @@ namespace Shaders.Lit
         public void OnProcessShader(Shader shader, ShaderSnippetData snippet, IList<ShaderCompilerData> data)
         {
             bool shouldStrip = false;
-            if (shader.name == " Lit" ) shouldStrip = true; // make your shader pink if you dont lock it :>
+            if (shader.name == ShaderEditor.litShaderName) shouldStrip = true; // make your shader pink if you dont lock it :>
 
             for (int i = data.Count - 1; i >= 0; --i)
             {
@@ -185,11 +185,11 @@ namespace Shaders.Lit
                 {
                     if(mat != null)
                     {
-                        if(mat.shader.name.StartsWith("Hidden/ Lit") )
+                        if(mat.shader.name.StartsWith("Hidden/" + ShaderEditor.litShaderName))
                         {
                             if(!mats.Contains(mat)) mats.Add(mat);
                         }
-                        else if (mat.shader.name == " Lit")
+                        else if (mat.shader.name == ShaderEditor.litShaderName)
                         {
                             mat.SetFloat("_ShaderOptimizerEnabled", 0);
                         }
@@ -209,7 +209,7 @@ namespace Shaders.Lit
         public static void LockAllMaterials()
         {
             AssetDatabase.StartAssetEditing();
-            List<Material> mats = GetAllMaterials();
+            List<Material> mats = GetAllMaterials(ShaderEditor.litShaderName);
             float progress = mats.Count;
 
             
@@ -230,7 +230,7 @@ namespace Shaders.Lit
             EditorUtility.ClearProgressBar();
         }
 
-        public static List<Material> GetAllMaterials()
+        public static List<Material> GetAllMaterials(string shaderName)
         {
             List<Material> materials = new List<Material>();
             var renderers = UnityEngine.Object.FindObjectsOfType<Renderer>();
@@ -239,7 +239,7 @@ namespace Shaders.Lit
             {
                 if(rend != null) foreach (var mat in rend.sharedMaterials)
                 {
-                    if(mat != null) if(mat.shader.name == " Lit")
+                    if(mat != null) if(mat.shader.name == shaderName)
                     {
                         if(!materials.Contains(mat)) materials.Add(mat);
                     }

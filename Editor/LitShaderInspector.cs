@@ -250,6 +250,7 @@ namespace Shaders.Lit
         const string AnimatedPropertySuffix = "Animated";
         const char hoverSplitSeparator = ':';
         bool[] propertyAnimated;
+        public static string litShaderName = " Lit";
         public bool isLocked;
         Material material = null;
         MaterialProperty[] allProps;
@@ -550,6 +551,36 @@ namespace Shaders.Lit
             }
         }
 
+        [MenuItem("Tools/Lit/Standard -> Lit")]
+        public static void SwitchToLit()
+        {
+            List<Material> mats = ShaderOptimizer.GetAllMaterials("Standard");
+            int progress = mats.Count;
 
+            Shader lit = Shader.Find(litShaderName);
+
+            for (int i=0; i<progress; i++)
+            {
+                EditorUtility.DisplayCancelableProgressBar("Replacing Shaders", mats[i].name, i/progress);
+                mats[i].shader = lit;
+            }
+            EditorUtility.ClearProgressBar();
+        }
+
+        [MenuItem("Tools/Lit/Lit -> Standard")]
+        public static void SwitchToStandard()
+        {
+            List<Material> mats = ShaderOptimizer.GetAllMaterials(litShaderName);
+            int progress = mats.Count;
+
+            Shader standard = Shader.Find("Standard");
+
+            for (int i=0; i<progress; i++)
+            {
+                EditorUtility.DisplayCancelableProgressBar("Replacing Shaders", mats[i].name, i/progress);
+                mats[i].shader = standard;
+            }
+            EditorUtility.ClearProgressBar();
+        }
     }
 }
