@@ -1,6 +1,43 @@
 #ifndef LITINPUTS
 #define LITINPUTS
 
+// ----------------- defines -----------------
+
+#if (PROP_MODE!=0) || !defined(OPTIMIZER_ENABLED)
+#define ENABLE_TRANSPARENCY
+#endif
+
+#if (PROP_ENABLEVERTEXCOLOR==1) || (PROP_ENABLEVERTEXCOLORMASK==1) || !defined(OPTIMIZER_ENABLED)
+#define ENABLE_VERTEXCOLOR
+#endif
+
+#if !defined(OPTIMIZER_ENABLED) // defined if texture gets used
+    #define PROP_BUMPMAP
+    #define PROP_METALLICMAP
+    #define PROP_SMOOTHNESSMAP
+    #define PROP_OCCLUSIONMAP
+    #define PROP_EMISSIONMAP
+    #define PROP_METALLICGLOSSMAP
+    #define PROP_DETAILMAP
+#endif
+
+
+
+#ifdef SHADER_API_MOBILE
+    #undef ENABLE_PARALLAX
+    #undef PROP_DETAILMAP
+#endif
+
+#if defined(PROP_DETAILMAP)
+    #define PROP_BUMPMAP
+#endif
+
+#if defined(FOG_LINEAR) || defined(FOG_EXP) || defined(FOG_EXP2)
+    #define USE_FOG
+#endif
+
+// ----------------- defines -----------------
+
 
 uniform float2 uvs[4];
 uniform half _Cutoff;
@@ -83,6 +120,13 @@ uniform float _ParallaxOffset;
 uniform float _Parallax;
 #endif
 
+UNITY_DECLARE_TEX2D_NOSAMPLER(_DetailMap);
+uniform float4 _DetailMap_ST;
+uniform half _DetailMapUV;
+uniform half _DetailAlbedoScale;
+uniform half _DetailNormalScale;
+uniform half _DetailSmoothnessScale;
+
 //sampler2D_float _CameraDepthTexture;
 //float4 _CameraDepthTexture_TexelSize;
 
@@ -96,11 +140,6 @@ UNITY_DECLARE_TEX2D_NOSAMPLER(_MatCap);
 uniform half _MatCapReplace;
 
 
-/*
-UNITY_DECLARE_TEX2D_NOSAMPLER(_DetailMap);
-uniform float4 _DetailMap_ST;
-uniform half _DetailMapUV;
-*/
 struct Lighting
 {
     half3 color;
@@ -134,36 +173,6 @@ static Surface surface;
 
 
 
-// ----------------- defines -----------------
 
-#if (PROP_MODE!=0) || !defined(OPTIMIZER_ENABLED)
-#define ENABLE_TRANSPARENCY
-#endif
-
-#if (PROP_ENABLEVERTEXCOLOR==1) || (PROP_ENABLEVERTEXCOLORMASK==1) || !defined(OPTIMIZER_ENABLED)
-#define ENABLE_VERTEXCOLOR
-#endif
-
-#if !defined(OPTIMIZER_ENABLED) // defined if texture gets used
-    #define PROP_BUMPMAP
-    #define PROP_METALLICMAP
-    #define PROP_SMOOTHNESSMAP
-    #define PROP_OCCLUSIONMAP
-    #define PROP_EMISSIONMAP
-    #define PROP_METALLICGLOSSMAP
-    #define PROP_DETAILMAP
-#endif
-
-#ifdef SHADER_API_MOBILE
-    #ifdef ENABLE_PARALLAX
-        #undef ENABLE_PARALLAX
-    #endif
-#endif
-
-#if defined(FOG_LINEAR) || defined(FOG_EXP) || defined(FOG_EXP2)
-    #define USE_FOG
-#endif
-
-// ----------------- defines -----------------
 
 #endif

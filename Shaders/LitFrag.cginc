@@ -15,15 +15,15 @@ half4 frag(v2f i) : SV_Target
 
     
     half2 parallaxOffset = 0;
-    #ifdef ENABLE_PARALLAX
+    #if defined(ENABLE_PARALLAX) && !defined(SHADER_API_MOBILE) && !defined(UNITY_PASS_SHADOWCASTER)
         float3 viewDirForParallax = CalculateTangentViewDir(i.viewDirForParallax);
         parallaxOffset = ParallaxOffset(uvs[_MainTexUV], viewDirForParallax);
     #endif
 
     half4 mainTex = MAIN_TEX(_MainTex, sampler_MainTex, uvs[_MainTexUV], _MainTex_ST);
 
-    half intensity = dot(mainTex, grayscaleVec); // saturation
-    mainTex.rgb = lerp(intensity, mainTex.rgb, (_Saturation+1));
+    half mainTexDesaturated = dot(mainTex, grayscaleVec); // saturation
+    mainTex.rgb = lerp(mainTexDesaturated, mainTex.rgb, (_Saturation+1));
 
     surface.albedo = mainTex * _Color;
 
@@ -46,6 +46,7 @@ half4 frag(v2f i) : SV_Target
     half metallicMap = 1;
     half smoothnessMap = 1;
     half occlusionMap = 1;
+    
 
     #ifndef ENABLE_PACKED_MODE
 
@@ -76,26 +77,44 @@ half4 frag(v2f i) : SV_Target
         isRoughness = 0;
     #endif
 
-/*
-    #if defined(PROP_DETAILMAP) && defined(PROP_METALLICGLOSSMAP)
-    detailMap = _DetailMap.Sample(sampler_MainTex, TRANSFORMTEX(uvs[_DetailMapUV], _DetailMap_ST, _MainTex_ST));
-    detailMap *= 1 - maskMap.b;
-    surface.albedo.rgb = ( surface.albedo.rgb * maskMap.bbb ) + BlendMode_Overlay(surface.albedo.rgb, detailMap.rrr);
     
-    #endif
-*/
+
     half smoothness = _Glossiness * smoothnessMap;
     surface.perceptualRoughness = isRoughness ? smoothness : 1-smoothness;
     surface.metallic = metallicMap * _Metallic * _Metallic;
     surface.occlusion = lerp(1,occlusionMap , _Occlusion);
 
 
-    if(_EnableVertexColorMask)
-    {
-        surface.metallic *= vertexColor.r;
-        surface.perceptualRoughness *= vertexColor.a;
-        surface.occlusion *= vertexColor.g;
-    }
+    #if defined(PROP_DETAILMAP) && !defined(SHADER_API_MOBILE)
+        detailMap = _DetailMap.Sample(sampler_MainTex, TRANSFORM(uvs[_DetailMapUV], _DetailMap_ST));
+
+        float detailMask = maskMap.b;
+        float detailAlbedo = detailMap.r * 2.0 - 1.0;
+        float detailSmoothness = (detailMap.b * 2.0 - 1.0);
+
+        // Goal: we want the detail albedo map to be able to darken down to black and brighten up to white the surface albedo.
+        // The scale control the speed of the gradient. We simply remap detailAlbedo from [0..1] to [-1..1] then perform a lerp to black or white
+        // with a factor based on speed.
+        // For base color we interpolate in sRGB space (approximate here as square) as it get a nicer perceptual gradient
+
+        float albedoDetailSpeed = saturate(abs(detailAlbedo) * _DetailAlbedoScale);
+        float3 baseColorOverlay = lerp(sqrt(surface.albedo.rgb), (detailAlbedo < 0.0) ? float3(0.0, 0.0, 0.0) : float3(1.0, 1.0, 1.0), albedoDetailSpeed * albedoDetailSpeed);
+        baseColorOverlay *= baseColorOverlay;							   
+        // Lerp with details mask
+        surface.albedo.rgb = lerp(surface.albedo.rgb, saturate(baseColorOverlay), detailMask);
+
+        float perceptualSmoothness = (1 - surface.perceptualRoughness);
+        // See comment for baseColorOverlay
+        float smoothnessDetailSpeed = saturate(abs(detailSmoothness) * _DetailSmoothnessScale);
+        float smoothnessOverlay = lerp(perceptualSmoothness, (detailSmoothness < 0.0) ? 0.0 : 1.0, smoothnessDetailSpeed);
+        // Lerp with details mask
+        perceptualSmoothness = lerp(perceptualSmoothness, saturate(smoothnessOverlay), detailMask);
+
+        surface.perceptualRoughness = (1 - perceptualSmoothness);
+
+    #endif
+
+    
 
     
     
@@ -108,7 +127,11 @@ half4 frag(v2f i) : SV_Target
 
     #ifdef PROP_BUMPMAP
         half4 normalMap = _BumpMap.Sample(sampler_BumpMap, TRANSFORMTEX(uvs[_BumpMapUV], _BumpMap_ST, _MainTex_ST));
-        initNormalMap(normalMap, bitangent, tangent, worldNormal, _BumpScale, _NormalMapOrientation);
+        float4 detailNormalMap = float4(0.5, 0.5, 1, 1);
+        #if defined(PROP_DETAILMAP) && !defined(SHADER_API_MOBILE)
+            detailNormalMap = float4(detailMap.a, detailMap.g, 1, 1);
+        #endif
+        initNormalMap(normalMap, bitangent, tangent, worldNormal, detailNormalMap);
     #endif
 
 

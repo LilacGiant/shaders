@@ -13,7 +13,7 @@ Shader " Lit"
         _MainTex ("Base Map", 2D) = "white" {}
         [HideInInspector] _Color ("Base Color", Color) = (1,1,1,1)
         [HideInInspector] _Saturation ("Saturation", Range(-1,1)) = 0
-        [HideInInspector] [Enum(UV0, 0, UV1 (Lightmap), 1, UV2, 2)] _MainTexUV ("UV", Int) = 0
+        [HideInInspector] [Enum(UV0, 0, UV1, 1, UV2, 2)] _MainTexUV ("UV", Int) = 0
         
         [HideInInspector] [ToggleUI] _EnableVertexColor ("Vertex Colors Mulitply Base", Float) = 0
                
@@ -23,32 +23,28 @@ Shader " Lit"
 
 
         _MetallicGlossMap ("Mask Map:Metallic(R), Occlusion(G), Detail Mask(B), Smoothness(A)", 2D) = "white" {}
-        [HideInInspector] [Enum(UV0, 0, UV1 (Lightmap), 1, UV2, 2)] _MetallicGlossMapUV ("UV", Int) = 0
-        [HideInInspector] [ToggleUI] _EnableVertexColorMask ("Vertex Colors Mulitply Mask", Float) = 0
+        [HideInInspector] [Enum(UV0, 0, UV1, 1, UV2, 2)] _MetallicGlossMapUV ("UV", Int) = 0
 
 
         _SmoothnessMap ("Smoothness Map", 2D) = "white" {}
-        [HideInInspector] [Enum(UV0, 0, UV1 (Lightmap), 1, UV2, 2)] _SmoothnessMapUV ("UV", Int) = 0
+        [HideInInspector] [Enum(UV0, 0, UV1, 1, UV2, 2)] _SmoothnessMapUV ("UV", Int) = 0
         [HideInInspector] [ToggleUI] _GlossinessInvert ("Invert Smoothness", Float) = 0
 
         _MetallicMap ("Metallic Map", 2D) = "white" {}
-        [HideInInspector] [Enum(UV0, 0, UV1 (Lightmap), 1, UV2, 2)] _MetallicMapUV ("UV", Int) = 0
+        [HideInInspector] [Enum(UV0, 0, UV1, 1, UV2, 2)] _MetallicMapUV ("UV", Int) = 0
 
         _OcclusionMap ("Occlusion Map", 2D) = "white" {}
-        [HideInInspector] [Enum(UV0, 0, UV1 (Lightmap), 1, UV2, 2)] _OcclusionMapUV ("UV", Int) = 0
+        [HideInInspector] [Enum(UV0, 0, UV1, 1, UV2, 2)] _OcclusionMapUV ("UV", Int) = 0
 
         [Normal] _BumpMap ("Normal Map", 2D) = "bump" {}
         [HideInInspector] _BumpScale ("Bump Scale", Range(0,10)) = 0
         [HideInInspector] [Enum(OpenGL, 0, Direct3D, 1)] _NormalMapOrientation ("Orientation", Int) = 0
-        [HideInInspector] [Enum(UV0, 0, UV1 (Lightmap), 1, UV2, 2)] _BumpMapUV ("UV", Int) = 0
+        [HideInInspector] [Enum(UV0, 0, UV1, 1, UV2, 2)] _BumpMapUV ("UV", Int) = 0
 
         [ToggleUI] _EnableEmission ("Emission", Float) = 0
         _EmissionMap ("Emission Map", 2D) = "white" {}
         [HideInInspector] [HDR] _EmissionColor ("Emission Color", Color) = (0,0,0)
-        [HideInInspector] [Enum(UV0, 0, UV1 (Lightmap), 1, UV2, 2)] _EmissionMapUV ("UV", Int) = 0
-
-        _DetailMap ("Detail Map", 2D) = "white" {}
-        [HideInInspector] [Enum(UV0, 0, UV1 (Lightmap), 1, UV2, 2)] _DetailMapUV ("UV", Int) = 0
+        [HideInInspector] [Enum(UV0, 0, UV1, 1, UV2, 2)] _EmissionMapUV ("UV", Int) = 0
 
         
         [Enum(Default, 0, Light Probes, 1)] _GetDominantLight ("Dominant Light", Int) = 0
@@ -98,10 +94,15 @@ Shader " Lit"
         [Toggle(ENABLE_PARALLAX)] _EnableParallax ("Parallax", Float) = 0  
         _Parallax ("Height Scale", Range (0, 0.2)) = 0.02
         _ParallaxMap ("Height Map", 2D) = "black" {}
-		[IntRange] _ParallaxSteps ("Parallax Steps", Range(1,50)) = 25
-		_ParallaxOffset ("Parallax Offset", Range(-1, 1)) = 0
- 
-        
+        [IntRange] _ParallaxSteps ("Parallax Steps", Range(1,50)) = 25
+        _ParallaxOffset ("Parallax Offset", Range(-1, 1)) = 0
+
+
+        _DetailMap ("Detail Map:Desaturated Albedo(R), Normal Y(G), Smoothness(B), Normal X(A)", 2D) = "linearGrey" {}
+        [Enum(UV0, 0, UV1, 1, UV2, 2)] _DetailMapUV ("UV", Int) = 0
+        _DetailAlbedoScale ("Albedo Scale", Range(0.0, 2.0)) = 1
+        _DetailNormalScale ("Normal Scale", Range(0.0, 2.0)) = 0
+        _DetailSmoothnessScale ("Smoothness Scale", Range(0.0, 2.0)) = 1
         
         
 

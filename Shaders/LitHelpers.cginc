@@ -24,11 +24,19 @@ float calcAlpha(half cutoff, half alpha)
     return alpha;
 }
 
-void initNormalMap(half4 normalMap, inout half3 bitangent, inout half3 tangent, inout half3 normal, half nScale, half orientation)
+void initNormalMap(half4 normalMap, inout half3 bitangent, inout half3 tangent, inout half3 normal, half4 detailNormalMap)
 {
-    normalMap.g = orientation ? normalMap.g : 1-normalMap.g;
-    float3 tangentNormal = UnpackScaleNormal(normalMap, nScale);
-    float3 calcedNormal = normalize
+    normalMap.g = _NormalMapOrientation ? normalMap.g : 1-normalMap.g;
+
+    half3 tangentNormal = UnpackScaleNormal(normalMap, _BumpScale);
+
+    #if defined(PROP_DETAILMAP) && !defined(SHADER_API_MOBILE)
+        detailNormalMap.g = 1-detailNormalMap.g;
+        half3 detailNormal = UnpackScaleNormal(detailNormalMap, _DetailNormalScale);
+        tangentNormal = BlendNormals(tangentNormal, detailNormal);
+    #endif
+
+    half3 calcedNormal = normalize
     (
 		tangentNormal.x * tangent +
 		tangentNormal.y * bitangent +
@@ -40,12 +48,7 @@ void initNormalMap(half4 normalMap, inout half3 bitangent, inout half3 tangent, 
     bitangent = cross(normal, tangent);    
 }
 
-float3 CalculateTangentViewDir(float3 tangentViewDir)
-{
-    tangentViewDir = Unity_SafeNormalize(tangentViewDir);
-    tangentViewDir.xy /= (tangentViewDir.z + 0.42);
-	return tangentViewDir;
-}
+
 
 
 
@@ -95,6 +98,13 @@ float2 Rotate(float2 coords, float rot){
 #define NOSAMPLER_TEX(tex, texUV, texST, mainST) (tex.Sample(sampler_MainTex, TRANSFORMTEX(texUV.xy, texST, mainST)))
 
 #ifdef ENABLE_PARALLAX
+
+float3 CalculateTangentViewDir(float3 tangentViewDir)
+{
+    tangentViewDir = Unity_SafeNormalize(tangentViewDir);
+    tangentViewDir.xy /= (tangentViewDir.z + 0.42);
+	return tangentViewDir;
+}
 
 // uwu https://github.com/MochiesCode/Mochies-Unity-Shaders/blob/7d48f101d04dac11bd4702586ee838ca669f426b/Mochie/Standard%20Shader/MochieStandardParallax.cginc#L13
 float2 ParallaxOffsetMultiStep(float surfaceHeight, float strength, float2 uv, float3 tangentViewDir)

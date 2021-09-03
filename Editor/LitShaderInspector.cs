@@ -21,6 +21,7 @@ namespace Shaders.Lit
         public bool Show_MetallicGlossMap = false;
         public bool Show_BumpMap = false;
         public bool Show_EmissionMap = false;
+        public bool Show_DetailMap = false;
 
         public bool Show_MetallicMap = false;
         public bool Show_SmoothnessMap = false;
@@ -85,6 +86,12 @@ namespace Shaders.Lit
         protected MaterialProperty _ParallaxMap = null;
         protected MaterialProperty _ParallaxSteps = null;
         protected MaterialProperty _ParallaxOffset = null;
+
+        protected MaterialProperty _DetailMap = null;
+        protected MaterialProperty _DetailMapUV = null;
+        protected MaterialProperty _DetailAlbedoScale = null;
+        protected MaterialProperty _DetailNormalScale = null;
+        protected MaterialProperty _DetailSmoothnessScale = null;
 
 
 
@@ -164,6 +171,16 @@ namespace Shaders.Lit
                     propTileOffset(_BumpMap);
                     prop(_BumpMapUV, false);
                     prop(_NormalMapOrientation, false);
+                });
+                
+
+                prop(_DetailMap);
+                md[material].Show_DetailMap = TriangleFoldout(md[material].Show_DetailMap, ()=> {
+                    propTileOffset(_DetailMap);
+                    prop(_DetailMapUV, false);
+                    prop(_DetailAlbedoScale);
+                    prop(_DetailNormalScale);
+                    prop(_DetailSmoothnessScale);
                 });
 
 
