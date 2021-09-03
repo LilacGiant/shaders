@@ -75,11 +75,13 @@ uniform float4 _EmissionMap_ST;
 uniform half3 _EmissionColor;
 
 
+#ifdef ENABLE_PARALLAX
 UNITY_DECLARE_TEX2D_NOSAMPLER(_ParallaxMap);
 uniform float4 _ParallaxMap_ST;
 uniform float _ParallaxSteps;
 uniform float _ParallaxOffset;
 uniform float _Parallax;
+#endif
 
 //sampler2D_float _CameraDepthTexture;
 //float4 _CameraDepthTexture_TexelSize;
@@ -150,6 +152,12 @@ static Surface surface;
     #define PROP_EMISSIONMAP
     #define PROP_METALLICGLOSSMAP
     #define PROP_DETAILMAP
+#endif
+
+#ifdef SHADER_API_MOBILE
+    #ifdef ENABLE_PARALLAX
+        #undef ENABLE_PARALLAX
+    #endif
 #endif
 
 #if defined(FOG_LINEAR) || defined(FOG_EXP) || defined(FOG_EXP2)

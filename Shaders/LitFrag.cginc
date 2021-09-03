@@ -6,6 +6,20 @@ half4 frag(v2f i) : SV_Target
     UNITY_SETUP_INSTANCE_ID(i); 
     initUVs(i);
 
+    half3 worldNormal = i.worldNormal;
+    #ifndef SHADER_API_MOBILE
+        worldNormal = normalize(worldNormal);
+    #endif
+    half3 viewDir = normalize(_WorldSpaceCameraPos - i.worldPos);
+    half NoV = abs(dot(worldNormal, viewDir)) + 1e-5;
+
+    
+    half2 parallaxOffset = 0;
+    #ifdef ENABLE_PARALLAX
+        float3 viewDirForParallax = CalculateTangentViewDir(i.viewDirForParallax);
+        parallaxOffset = ParallaxOffset(uvs[_MainTexUV], viewDirForParallax);
+    #endif
+
     half4 mainTex = MAIN_TEX(_MainTex, sampler_MainTex, uvs[_MainTexUV], _MainTex_ST);
 
     half intensity = dot(mainTex, grayscaleVec); // saturation
@@ -84,10 +98,7 @@ half4 frag(v2f i) : SV_Target
     }
 
     
-    half3 worldNormal = i.worldNormal;
-    #ifndef SHADER_API_MOBILE
-        worldNormal = normalize(worldNormal);
-    #endif
+    
 
     #if defined(ENABLE_REFLECTIONS) || defined(ENABLE_SPECULAR_HIGHLIGHTS) || defined (PROP_BUMPMAP)
         half3 tangent = i.tangent;
@@ -101,8 +112,7 @@ half4 frag(v2f i) : SV_Target
     #endif
 
 
-    half3 viewDir = normalize(_WorldSpaceCameraPos - i.worldPos);
-    half NoV = abs(dot(worldNormal, viewDir)) + 1e-5;
+
     
 
     #if !defined(LIGHTMAP_ON) || defined(USING_LIGHT_MULTI_COMPILE)
@@ -219,6 +229,7 @@ half4 frag(v2f i) : SV_Target
 fixed4 ShadowCasterfrag(v2f i) : SV_Target
 {
     initUVs(i);
+    half2 parallaxOffset = 0;
     half4 mainTex = MAIN_TEX(_MainTex, sampler_MainTex, uvs[_MainTexUV], _MainTex_ST);
 
     half alpha = mainTex.a * _Color.a;

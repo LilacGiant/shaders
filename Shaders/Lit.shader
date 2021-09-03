@@ -94,6 +94,12 @@ Shader " Lit"
         [Enum(Off, 0, On, 1)] _ZWrite ("ZWrite", Int) = 1
         [Enum(UnityEngine.Rendering.CompareFunction)] _ZTest ("ZTest", Float) = 4
         [Enum(UnityEngine.Rendering.CullMode)] _Cull ("Cull", Float) = 2
+
+        [Toggle(ENABLE_PARALLAX)] _EnableParallax ("Parallax", Float) = 0  
+        _Parallax ("Height Scale", Range (0, 0.2)) = 0.02
+        _ParallaxMap ("Height Map", 2D) = "black" {}
+		[IntRange] _ParallaxSteps ("Parallax Steps", Range(1,50)) = 25
+		_ParallaxOffset ("Parallax Offset", Range(-1, 1)) = 0
  
         
         
@@ -142,6 +148,7 @@ Shader " Lit"
             #pragma shader_feature_local ENABLE_PACKED_MODE
             #pragma shader_feature_local ENABLE_BICUBIC_LIGHTMAP
             #pragma shader_feature_local ENABLE_MATCAP
+            #pragma shader_feature_local ENABLE_PARALLAX
 
 
             #ifndef UNITY_PASS_FORWARDBASE
@@ -178,6 +185,7 @@ Shader " Lit"
 
             #pragma shader_feature_local ENABLE_SPECULAR_HIGHLIGHTS
             #pragma shader_feature_local ENABLE_PACKED_MODE
+            #pragma shader_feature_local ENABLE_PARALLAX
 
 
             #ifndef UNITY_PASS_FORWARDADD

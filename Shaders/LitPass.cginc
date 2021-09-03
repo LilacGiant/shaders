@@ -65,6 +65,10 @@ struct v2f
         #endif
     #endif
 
+    #ifdef ENABLE_PARALLAX
+        float3 viewDirForParallax : TEXCOORD9;
+    #endif
+
     UNITY_VERTEX_INPUT_INSTANCE_ID
 	UNITY_VERTEX_OUTPUT_STEREO
 };
@@ -111,7 +115,10 @@ v2f vert(appdata v)
 
     o.worldPos = mul(unity_ObjectToWorld, v.vertex);
 
-
+    #ifdef ENABLE_PARALLAX
+        TANGENT_SPACE_ROTATION;
+			o.viewDirForParallax = mul (rotation, ObjSpaceViewDir(v.vertex));
+    #endif
 
 
     #if !defined(UNITY_PASS_SHADOWCASTER)

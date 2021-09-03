@@ -80,6 +80,12 @@ namespace Shaders.Lit
         protected MaterialProperty _OcclusionMap = null;
         protected MaterialProperty _OcclusionMapUV = null;
 
+        protected MaterialProperty _EnableParallax = null;
+        protected MaterialProperty _Parallax = null;
+        protected MaterialProperty _ParallaxMap = null;
+        protected MaterialProperty _ParallaxSteps = null;
+        protected MaterialProperty _ParallaxOffset = null;
+
 
 
 
@@ -99,7 +105,7 @@ namespace Shaders.Lit
                     prop(_Cutoff);
                 }
                 Space();
-                
+
                 prop(_MainTex, _Color);
 
                 md[material].Show_MainTex = TriangleFoldout(md[material].Show_MainTex, ()=> {
@@ -163,15 +169,32 @@ namespace Shaders.Lit
 
                 prop(_EnableEmission, false);
 
-                if(_EnableEmission.floatValue == 1){
-                    prop(_EmissionMap, _EmissionColor);
+                if(_EnableEmission.floatValue == 1)
+                {
+                    Styles.PropertyGroup(() => {
+                        prop(_EmissionMap, _EmissionColor);
 
-                    md[material].Show_EmissionMap = TriangleFoldout(md[material].Show_EmissionMap, ()=> {
-                        propTileOffset(_EmissionMap);
-                        prop(_EmissionMapUV, false);
+                        md[material].Show_EmissionMap = TriangleFoldout(md[material].Show_EmissionMap, ()=> {
+                            propTileOffset(_EmissionMap);
+                            prop(_EmissionMapUV, false);
+                        });
                         me.LightmapEmissionProperty();
                     });
                 }
+
+                prop(_EnableParallax, false);
+
+                if(_EnableParallax.floatValue == 1)
+                {
+                    Styles.PropertyGroup(() => {
+                        prop(_ParallaxMap, _Parallax);
+                        Styles.sRGBWarning(_ParallaxMap);
+                        prop(_ParallaxOffset, false);
+                        prop(_ParallaxSteps, false);
+                    });
+                }
+
+
             });
 
 
@@ -423,9 +446,11 @@ namespace Shaders.Lit
             foldoutName = Styles.TextureFoldout(foldoutName);
             if(foldoutName)
             {
+                //EditorGUI.indentLevel++;
                 Styles.PropertyGroup(() => {
                     action();
                 });
+                //EditorGUI.indentLevel--;
             }
             return foldoutName;
         }
