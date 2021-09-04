@@ -93,6 +93,8 @@ namespace Shaders.Lit
         protected MaterialProperty _DetailNormalScale = null;
         protected MaterialProperty _DetailSmoothnessScale = null;
 
+        protected MaterialProperty _EnableRefraction = null;
+        protected MaterialProperty _Refraction = null;
 
 
 
@@ -234,6 +236,13 @@ namespace Shaders.Lit
                     Styles.PropertyGroup(() => {
                     prop(_MatCap);
                     prop(_MatCapReplace);
+                    });
+                };
+
+                prop(_EnableRefraction, false);
+                if(_EnableRefraction.floatValue == 1){
+                    Styles.PropertyGroup(() => {
+                        prop(_Refraction);
                     });
                 };
 

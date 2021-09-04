@@ -105,6 +105,8 @@ Shader " Lit"
         _DetailSmoothnessScale ("Smoothness Scale", Range(0.0, 2.0)) = 1
         
         
+        [Toggle(ENABLE_REFRACTION)] _EnableRefraction ("Fake Refraction", Float) = 0
+        [PowerSlider(0.25)] _Refraction ("Refraction", Range(0.0, 1)) = 0.9
 
 
 
@@ -150,6 +152,7 @@ Shader " Lit"
             #pragma shader_feature_local ENABLE_BICUBIC_LIGHTMAP
             #pragma shader_feature_local ENABLE_MATCAP
             #pragma shader_feature_local ENABLE_PARALLAX
+            #pragma shader_feature_local ENABLE_REFRACTION
 
 
             #ifndef UNITY_PASS_FORWARDBASE

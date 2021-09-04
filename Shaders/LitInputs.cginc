@@ -135,6 +135,10 @@ uniform float _LightProbeMethod;
 uniform float _TonemappingMode;
 uniform half _Contribution;
 
+#ifdef ENABLE_REFRACTION
+uniform half _Refraction;
+#endif
+
 
 UNITY_DECLARE_TEX2D_NOSAMPLER(_MatCap);
 uniform half _MatCapReplace;

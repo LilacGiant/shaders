@@ -166,7 +166,6 @@ half4 frag(v2f i) : SV_Target
         light.indirectDiffuse = getIndirectDiffuse(worldNormal);
     #endif
 
-
     #if defined(ENABLE_REFLECTIONS) || defined(ENABLE_SPECULAR_HIGHLIGHTS)
         half3 f0 = 0.16 * _Reflectance * _Reflectance * (1 - surface.metallic) + surface.albedo * surface.metallic;
         half3 fresnel = F_Schlick(f0, NoV);
@@ -188,10 +187,19 @@ half4 frag(v2f i) : SV_Target
 
         #if defined(ENABLE_REFLECTIONS)
             float3 reflViewDir = reflect(-viewDir, worldNormal);
+            float3 reflWorldNormal = worldNormal;
+
             #if !defined(SHADER_API_MOBILE)
+
+                #ifdef ENABLE_REFRACTION
+                    reflViewDir = refract(-viewDir, worldNormal, _Refraction);
+                    reflWorldNormal = 0;
+                #endif
+            
                 if(_Anisotropy != 0) reflViewDir = getAnisotropicReflectionVector(viewDir, bitangent, tangent, worldNormal, surface.perceptualRoughness, _Anisotropy);
             #endif
-            light.indirectSpecular = getIndirectSpecular(surface.metallic, surface.perceptualRoughness, reflViewDir, i.worldPos, light.directDiffuse, worldNormal);
+            
+            light.indirectSpecular = getIndirectSpecular(surface.metallic, surface.perceptualRoughness, reflViewDir, i.worldPos, light.directDiffuse, reflWorldNormal);
             light.indirectSpecular *= lerp(fresnel, f0, surface.perceptualRoughness);
         #endif
 
