@@ -12,7 +12,6 @@
 #include "UnityMetaPass.cginc"
 #endif
 
-//#define SHADER_API_MOBILE
 
 
 struct appdata

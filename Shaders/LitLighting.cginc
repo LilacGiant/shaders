@@ -147,7 +147,6 @@ float3 getBoxProjection (float3 direction, float3 position, float4 cubemapPositi
 
 half3 getIndirectSpecular(half metallic, half roughness, float3 reflDir, float3 worldPos, half3 lightmap, float3 normal)
 {
-    half3 indirectSpecular = 0;
     Unity_GlossyEnvironmentData envData;
     envData.roughness = roughness;
     envData.reflUVW = getBoxProjection(
@@ -157,20 +156,26 @@ half3 getIndirectSpecular(half metallic, half roughness, float3 reflDir, float3 
     );
 
     half3 probe0 = Unity_GlossyEnvironment(UNITY_PASS_TEXCUBE(unity_SpecCube0), unity_SpecCube0_HDR, envData);
-    
-    #if defined(UNITY_SPECCUBE_BLENDING)
-        envData.reflUVW = getBoxProjection(
-            reflDir, worldPos,
-            unity_SpecCube1_ProbePosition,
-            unity_SpecCube1_BoxMin, unity_SpecCube1_BoxMax
-        );
-        half3 probe1 = Unity_GlossyEnvironment(UNITY_PASS_TEXCUBE_SAMPLER(unity_SpecCube1, unity_SpecCube0), unity_SpecCube0_HDR, envData);
-        indirectSpecular = lerp(probe1, probe0, unity_SpecCube0_BoxMin.w);
-    #else
-        indirectSpecular = probe0;
-    #endif
 
+    half3 indirectSpecular = probe0;
+    
     #if !defined(SHADER_API_MOBILE)
+    
+        #if defined(UNITY_SPECCUBE_BLENDING)
+            half interpolator = unity_SpecCube0_BoxMin.w;
+            UNITY_BRANCH
+            if (interpolator < 0.99999)
+            {
+                envData.reflUVW = getBoxProjection(
+                    reflDir, worldPos,
+                    unity_SpecCube1_ProbePosition,
+                    unity_SpecCube1_BoxMin, unity_SpecCube1_BoxMax
+                );
+                half3 probe1 = Unity_GlossyEnvironment(UNITY_PASS_TEXCUBE_SAMPLER(unity_SpecCube1, unity_SpecCube0), unity_SpecCube1_HDR, envData);
+                indirectSpecular = lerp(probe1, probe0, interpolator);
+            }
+        #endif
+
         half horizon = min(1 + dot(reflDir, normal), 1);
         indirectSpecular *= horizon * horizon;
     #endif
