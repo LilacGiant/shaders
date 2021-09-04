@@ -12,13 +12,13 @@
 #include "UnityMetaPass.cginc"
 #endif
 
-
+//#define SHADER_API_MOBILE
 
 
 struct appdata
 {
     float4 vertex : POSITION;
-    half3 normal : NORMAL;
+    float3 normal : NORMAL;
     #if defined(ENABLE_REFLECTIONS) || defined(ENABLE_SPECULAR_HIGHLIGHTS) || defined (PROP_BUMPMAP) || defined(ENABLE_MATCAP)
     half4 tangent : TANGENT;
     #endif
@@ -99,7 +99,7 @@ v2f vert(appdata v)
     o.color = v.color;
     #endif
 
-    half3 worldNormal = UnityObjectToWorldNormal(v.normal);
+    float3 worldNormal = UnityObjectToWorldNormal(v.normal);
 
     #if defined(ENABLE_REFLECTIONS) || defined(ENABLE_SPECULAR_HIGHLIGHTS) || defined (PROP_BUMPMAP) || defined(ENABLE_MATCAP)
         half3 tangent = UnityObjectToWorldDir(v.tangent);

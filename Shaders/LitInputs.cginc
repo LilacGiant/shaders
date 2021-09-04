@@ -95,7 +95,7 @@ uniform half _specularAntiAliasingVariance;
 uniform half _specularAntiAliasingThreshold;
 uniform half4 _FresnelColor;
 uniform half _AngularGlossiness;
-uniform float _GetDominantLight;
+uniform half _GetDominantLight;
 
 uniform half _Reflectance;
 uniform half _ExposureOcclusion;
@@ -103,9 +103,9 @@ uniform half _Anisotropy;
 
 
 uniform half _LightmapMultiplier;
-uniform float _SpecularOcclusion;
+uniform half _SpecularOcclusion;
 
-uniform float _EnableEmission;
+uniform half _EnableEmission;
 UNITY_DECLARE_TEX2D_NOSAMPLER(_EmissionMap);
 uniform float _EmissionMapUV;
 uniform float4 _EmissionMap_ST;
@@ -143,10 +143,10 @@ uniform half _MatCapReplace;
 struct Lighting
 {
     half3 color;
-    half3 direction;
+    float3 direction;
     half NoL;
     half LoH;
-    half3 halfVector;
+    float3 halfVector;
     half attenuation;
     half3 indirectDominantColor;
     half3 finalLight;

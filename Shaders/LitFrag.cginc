@@ -6,11 +6,11 @@ half4 frag(v2f i) : SV_Target
     UNITY_SETUP_INSTANCE_ID(i); 
     initUVs(i);
 
-    half3 worldNormal = i.worldNormal;
+    float3 worldNormal = i.worldNormal;
     #ifndef SHADER_API_MOBILE
         worldNormal = normalize(worldNormal);
     #endif
-    half3 viewDir = normalize(_WorldSpaceCameraPos - i.worldPos);
+    float3 viewDir = normalize(_WorldSpaceCameraPos - i.worldPos);
     half NoV = abs(dot(worldNormal, viewDir)) + 1e-5;
 
     
@@ -157,9 +157,9 @@ half4 frag(v2f i) : SV_Target
     light.directDiffuse = surface.albedo.rgb * (1 - surface.metallic);
     #if defined(LIGHTMAP_ON)
         half3 lightMap = getLightmap(uvs[1], worldNormal);
-        #if defined(DYNAMICLIGHTMAP_ON)
+        #if defined(DYNAMICLIGHTMAP_ON) && !defined(SHADER_API_MOBILE)
             half3 realtimeLightMap = getRealtimeLightmap(uvs[2], worldNormal);
-        lightMap +=realtimeLightMap; 
+            lightMap +=realtimeLightMap; 
         #endif
         light.indirectDiffuse = lightMap;
         #else
@@ -170,11 +170,12 @@ half4 frag(v2f i) : SV_Target
     #if defined(ENABLE_REFLECTIONS) || defined(ENABLE_SPECULAR_HIGHLIGHTS)
         half3 f0 = 0.16 * _Reflectance * _Reflectance * (1 - surface.metallic) + surface.albedo * surface.metallic;
         half3 fresnel = F_Schlick(f0, NoV);
-        fresnel = lerp(f0, fresnel , _FresnelColor.a); // kill fresnel
-        fresnel *= _FresnelColor.rgb;
-        fresnel *= _SpecularOcclusion ? saturate(lerp(1, pow(length(light.indirectDiffuse), _SpecularOcclusion), _SpecularOcclusion * (1 - surface.metallic))) : 1; // lightmap surface.occlusion
 
         #if !defined(SHADER_API_MOBILE)
+            fresnel = lerp(f0, fresnel , _FresnelColor.a); // kill fresnel
+            fresnel *= _FresnelColor.rgb;
+            fresnel *= _SpecularOcclusion ? saturate(lerp(1, pow(length(light.indirectDiffuse), _SpecularOcclusion), _SpecularOcclusion * (1 - surface.metallic))) : 1; // lightmap surface.occlusion
+        
             #if defined(ENABLE_GSAA)
                 surface.perceptualRoughness = GSAA_Filament(worldNormal, surface.perceptualRoughness);
             #endif
@@ -186,8 +187,10 @@ half4 frag(v2f i) : SV_Target
     #if defined(UNITY_PASS_FORWARDBASE)
 
         #if defined(ENABLE_REFLECTIONS)
-            half3 reflViewDir = reflect(-viewDir, worldNormal);
-            if(_Anisotropy != 0) reflViewDir = getAnisotropicReflectionVector(viewDir, bitangent, tangent, worldNormal, surface.perceptualRoughness, _Anisotropy);
+            float3 reflViewDir = reflect(-viewDir, worldNormal);
+            #if !defined(SHADER_API_MOBILE)
+                if(_Anisotropy != 0) reflViewDir = getAnisotropicReflectionVector(viewDir, bitangent, tangent, worldNormal, surface.perceptualRoughness, _Anisotropy);
+            #endif
             light.indirectSpecular = getIndirectSpecular(surface.metallic, surface.perceptualRoughness, reflViewDir, i.worldPos, light.directDiffuse, worldNormal);
             light.indirectSpecular *= lerp(fresnel, f0, surface.perceptualRoughness);
         #endif
@@ -196,7 +199,7 @@ half4 frag(v2f i) : SV_Target
             light.indirectSpecular = lerp(light.indirectSpecular, _MatCap.Sample(sampler_MainTex, mul((float3x3)UNITY_MATRIX_V, worldNormal).xy * 0.5 + 0.5).rgb, _MatCapReplace);
         #endif
 
-        #if defined(PROP_OCCLUSIONMAP)
+        #if defined(PROP_OCCLUSIONMAP) && !defined(SHADER_API_MOBILE)
             light.indirectSpecular *= computeSpecularAO(NoV, surface.occlusion, surface.perceptualRoughness * surface.perceptualRoughness);
         #endif
 

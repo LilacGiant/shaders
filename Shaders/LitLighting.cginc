@@ -14,9 +14,9 @@ float sq(float x) {
     return x * x;
 }
 
-float D_GGX(float NoH, float roughness) {
-    float a = NoH * roughness;
-    float k = roughness / (1.0 - NoH * NoH + a * a);
+half D_GGX(half NoH, half roughness) {
+    half a = NoH * roughness;
+    half k = roughness / (1.0 - NoH * NoH + a * a);
     return k * k * (1.0 / UNITY_PI);
 }
 
@@ -33,7 +33,7 @@ float D_GGX_Anisotropic(float NoH, float3 h, float3 t, float3 b, float at, float
 }
 
 
-float V_Kelemen(float LoH) {
+half V_Kelemen(half LoH) {
     return 0.25 / (LoH * LoH);
 }
 
@@ -72,10 +72,10 @@ float V_SmithGGXCorrelated(float NoV, float NoL, float roughness) {
     return 0.5 / (GGXV + GGXL);
 }
 
-float V_SmithGGXCorrelatedFast(float NoV, float NoL, float roughness) {
-    float a = roughness;
-    float GGXV = NoL * (NoV * (1.0 - a) + a);
-    float GGXL = NoV * (NoL * (1.0 - a) + a);
+half V_SmithGGXCorrelatedFast(half NoV, half NoL, half roughness) {
+    half a = roughness;
+    half GGXV = NoL * (NoV * (1.0 - a) + a);
+    half GGXL = NoV * (NoL * (1.0 - a) + a);
     return 0.5 / (GGXV + GGXL);
 }
 
@@ -112,9 +112,9 @@ float shEvaluateDiffuseL1Geomerics_local(float L0, float3 L1, float3 n)
     return R0 * (a + (1.0f - a) * (p + 1.0f) * pow(q, p));
 }
 
-float3 getIndirectDiffuse(float3 normal)
+half3 getIndirectDiffuse(half3 normal)
 {
-    float3 indirectDiffuse;
+    half3 indirectDiffuse;
     UNITY_BRANCH
     if(_LightProbeMethod == 0)
     {
@@ -122,7 +122,7 @@ float3 getIndirectDiffuse(float3 normal)
     }
     else
     {
-        float3 L0 = float3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w);
+        half3 L0 = half3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w);
         indirectDiffuse.r = shEvaluateDiffuseL1Geomerics_local(L0.r, unity_SHAr.xyz, normal);
         indirectDiffuse.g = shEvaluateDiffuseL1Geomerics_local(L0.g, unity_SHAg.xyz, normal);
         indirectDiffuse.b = shEvaluateDiffuseL1Geomerics_local(L0.b, unity_SHAb.xyz, normal);
@@ -145,44 +145,38 @@ float3 getBoxProjection (float3 direction, float3 position, float4 cubemapPositi
     return direction;
 }
 
-float3 getIndirectSpecular(float metallic, float roughness, float3 reflDir, float3 worldPos, float3 lightmap, float3 normal)
+half3 getIndirectSpecular(half metallic, half roughness, float3 reflDir, float3 worldPos, half3 lightmap, float3 normal)
 {
-    float3 spec = float3(0,0,0);
-    #if defined(UNITY_PASS_FORWARDBASE)
-        float3 indirectSpecular;
-        Unity_GlossyEnvironmentData envData;
-        envData.roughness = roughness;
+    half3 indirectSpecular = 0;
+    Unity_GlossyEnvironmentData envData;
+    envData.roughness = roughness;
+    envData.reflUVW = getBoxProjection(
+        reflDir, worldPos,
+        unity_SpecCube0_ProbePosition,
+        unity_SpecCube0_BoxMin, unity_SpecCube0_BoxMax
+    );
+
+    half3 probe0 = Unity_GlossyEnvironment(UNITY_PASS_TEXCUBE(unity_SpecCube0), unity_SpecCube0_HDR, envData);
+    
+    #if defined(UNITY_SPECCUBE_BLENDING)
         envData.reflUVW = getBoxProjection(
             reflDir, worldPos,
-            unity_SpecCube0_ProbePosition,
-            unity_SpecCube0_BoxMin, unity_SpecCube0_BoxMax
+            unity_SpecCube1_ProbePosition,
+            unity_SpecCube1_BoxMin, unity_SpecCube1_BoxMax
         );
-
-        float3 probe0 = Unity_GlossyEnvironment(UNITY_PASS_TEXCUBE(unity_SpecCube0), unity_SpecCube0_HDR, envData);
-        float interpolator = unity_SpecCube0_BoxMin.w;
-        UNITY_BRANCH
-        if (interpolator < 0.99999)
-        {
-            envData.reflUVW = getBoxProjection(
-                reflDir, worldPos,
-                unity_SpecCube1_ProbePosition,
-                unity_SpecCube1_BoxMin, unity_SpecCube1_BoxMax
-            );
-            float3 probe1 = Unity_GlossyEnvironment(UNITY_PASS_TEXCUBE_SAMPLER(unity_SpecCube1, unity_SpecCube0), unity_SpecCube0_HDR, envData);
-            indirectSpecular = lerp(probe1, probe0, interpolator);
-        }
-        else
-        {
-            indirectSpecular = probe0;
-        }
-        float horizon = min(1 + dot(reflDir, normal), 1);
-        indirectSpecular *= horizon * horizon;
-
-        spec = indirectSpecular;
-        
-
+        half3 probe1 = Unity_GlossyEnvironment(UNITY_PASS_TEXCUBE_SAMPLER(unity_SpecCube1, unity_SpecCube0), unity_SpecCube0_HDR, envData);
+        indirectSpecular = lerp(probe1, probe0, unity_SpecCube0_BoxMin.w);
+    #else
+        indirectSpecular = probe0;
     #endif
-    return spec;
+
+    #if !defined(SHADER_API_MOBILE)
+        half horizon = min(1 + dot(reflDir, normal), 1);
+        indirectSpecular *= horizon * horizon;
+    #endif
+
+    return indirectSpecular;
+
 }
 
 half3 getDirectSpecular(half perceptualRoughness, half NoH, half NoV, half NoL, half LoH, half f0, half anisotropy, half3 halfVector, half3 tangent, half3 bitangent)
@@ -192,17 +186,21 @@ half3 getDirectSpecular(half perceptualRoughness, half NoH, half NoV, half NoL, 
 
     half D = D_GGX(NoH, roughness);
 
-    if(anisotropy != 0) {
-        anisotropy *= saturate(5.0 * perceptualRoughness);
-        half at = max(roughness * (1.0 + anisotropy), 0.001);
-        half ab = max(roughness * (1.0 - anisotropy), 0.001);
-        D = D_GGX_Anisotropic(NoH, halfVector, tangent, bitangent, at, ab);
-    }
+    #if !defined(SHADER_API_MOBILE)
+        if(anisotropy != 0) {
+            anisotropy *= saturate(5.0 * perceptualRoughness);
+            half at = max(roughness * (1.0 + anisotropy), 0.001);
+            half ab = max(roughness * (1.0 - anisotropy), 0.001);
+            D = D_GGX_Anisotropic(NoH, halfVector, tangent, bitangent, at, ab);
+        }
+    #endif
+
     #ifdef SHADER_API_MOBILE
-    half V = V_SmithGGXCorrelatedFast(NoV, NoL, roughness);
+        half V = V_SmithGGXCorrelatedFast(NoV, NoL, roughness);
     #else
-    half V = V_SmithGGXCorrelated(NoV, NoL, roughness);
-    #endif  
+        half V = V_SmithGGXCorrelated(NoV, NoL, roughness);
+    #endif
+
     half3 F = F_Schlick(f0, LoH);
    
     half3 directSpecular = max(0, (D * V) * F);
@@ -323,7 +321,7 @@ float3 tex2DFastBicubicLightmap(float2 uv)
     #endif
 }
 
-float3 getLightmap(float2 uv, half3 worldNormal)
+half3 getLightmap(float2 uv, float3 worldNormal)
 {
     float2 lightmapUV = uv * unity_LightmapST.xy + unity_LightmapST.zw;
 
@@ -334,7 +332,7 @@ float3 getLightmap(float2 uv, half3 worldNormal)
 #endif
 
 
-#ifdef DIRLIGHTMAP_COMBINED
+#if defined(DIRLIGHTMAP_COMBINED) && !defined(SHADER_API_MOBILE)
     half4 bakedDirTex = UNITY_SAMPLE_TEX2D_SAMPLER (unity_LightmapInd, unity_Lightmap, lightmapUV);
     lightMap = DecodeDirectionalLightmap(lightMap, bakedDirTex, worldNormal);
 #endif
@@ -346,23 +344,16 @@ return lightMap;
 float3 getLightDir(bool lightEnv, float3 worldPos)
 {
     //switch between using probes or actual light direction
-    half3 lightDir = lightEnv ? UnityWorldSpaceLightDir(worldPos) : unity_SHAr.xyz + unity_SHAg.xyz + unity_SHAb.xyz;
+    float3 lightDir = lightEnv ? UnityWorldSpaceLightDir(worldPos) : unity_SHAr.xyz + unity_SHAg.xyz + unity_SHAb.xyz;
 
     return normalize(lightDir);
 }
 
-float3 getLightCol(bool lightEnv, float3 lightColor, float3 indirectDominantColor)
+half3 getLightCol(bool lightEnv, half3 lightColor, half3 indirectDominantColor)
 {
-    float3 c = lightEnv ? lightColor : indirectDominantColor; 
+    half3 c = lightEnv ? lightColor : indirectDominantColor; 
     return c;
 }
-
-
-
-
-
-
-
 
 
 
