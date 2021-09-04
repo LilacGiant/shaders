@@ -291,6 +291,7 @@ Shader " Lit"
             #pragma shader_feature_local ENABLE_REFLECTIONS
             #pragma shader_feature_local ENABLE_PACKED_MODE
             #pragma shader_feature_local ENABLE_MATCAP
+            #pragma shader_feature_local ENABLE_REFRACTION
 
 
             #ifndef UNITY_PASS_FORWARDBASE

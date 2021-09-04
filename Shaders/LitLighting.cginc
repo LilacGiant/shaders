@@ -161,7 +161,7 @@ half3 getIndirectSpecular(half metallic, half roughness, float3 reflDir, float3 
     
     #if !defined(SHADER_API_MOBILE)
     
-        #if defined(UNITY_SPECCUBE_BLENDING)
+        #if defined(UNITY_SPECCUBE_BLENDING) && !defined(ENABLE_REFRACTION)
             half interpolator = unity_SpecCube0_BoxMin.w;
             UNITY_BRANCH
             if (interpolator < 0.99999)

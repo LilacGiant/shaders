@@ -189,13 +189,12 @@ half4 frag(v2f i) : SV_Target
             float3 reflViewDir = reflect(-viewDir, worldNormal);
             float3 reflWorldNormal = worldNormal;
 
-            #if !defined(SHADER_API_MOBILE)
+            #ifdef ENABLE_REFRACTION
+                reflViewDir = refract(-viewDir, worldNormal, _Refraction);
+                reflWorldNormal = 0;
+            #endif
 
-                #ifdef ENABLE_REFRACTION
-                    reflViewDir = refract(-viewDir, worldNormal, _Refraction);
-                    reflWorldNormal = 0;
-                #endif
-            
+             #if !defined(SHADER_API_MOBILE)
                 if(_Anisotropy != 0) reflViewDir = getAnisotropicReflectionVector(viewDir, bitangent, tangent, worldNormal, surface.perceptualRoughness, _Anisotropy);
             #endif
             
