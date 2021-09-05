@@ -2,7 +2,19 @@ fileFormatVersion: 2
 guid: a73e837bb2d7deb4eb9f7e47f2a0737d
 ShaderImporter:
   externalObjects: {}
-  defaultTextures: []
+  defaultTextures:
+  - _MainTex: {instanceID: 0}
+  - _MetallicGlossMap: {instanceID: 0}
+  - _SmoothnessMap: {instanceID: 0}
+  - _MetallicMap: {instanceID: 0}
+  - _OcclusionMap: {instanceID: 0}
+  - _BumpMap: {instanceID: 0}
+  - _EmissionMap: {instanceID: 0}
+  - _MatCap: {instanceID: 0}
+  - _ParallaxMap: {instanceID: 0}
+  - _DetailMap: {instanceID: 0}
+  - _AudioTexture: {fileID: 8600000, guid: f51fa799ef0abde489235f40fc0328ef, type: 2}
+  - _ALEmissionMap: {instanceID: 0}
   nonModifiableTextures: []
   userData: 
   assetBundleName: 

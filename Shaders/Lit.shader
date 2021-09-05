@@ -108,6 +108,14 @@ Shader " Lit"
         [Toggle(ENABLE_REFRACTION)] _EnableRefraction ("Fake Refraction", Float) = 0
         [PowerSlider(0.25)] _Refraction ("Refraction", Range(0.0, 1)) = 0.9
 
+        [Toggle(ENABLE_AUDIOLINK)] _EnableAudioLink ("Audio Link", Float) = 0
+        _AudioTexture ("Audio Link Render Texture", 2D) = "black" {}
+        _ALSmoothing ("Audio Link Smoothing", Range(0, 1)) = 0.5
+
+        [Enum(Bass, 0, Low Mids, 1, High Mids, 2, Treble, 3)] _ALEmissionBand ("Audio Link Emission Band", Int) = 0
+        [Enum(Disabled, 0, Gradient, 1, Path, 2, Intensity, 3)] _ALEmissionType ("Audio Link Emission Type", Int) = 0
+        _ALEmissionMap ("Audio Link Emission Path & Mask: Path(G), Mask(A)", 2D) = "white" {}
+
 
 
     }
@@ -153,6 +161,7 @@ Shader " Lit"
             #pragma shader_feature_local ENABLE_MATCAP
             #pragma shader_feature_local ENABLE_PARALLAX
             #pragma shader_feature_local ENABLE_REFRACTION
+            #pragma shader_feature_local ENABLE_AUDIOLINK
 
 
             #ifndef UNITY_PASS_FORWARDBASE
@@ -244,6 +253,8 @@ Shader " Lit"
 
             #pragma shader_feature_local ENABLE_PACKED_MODE
             #pragma shader_feature EDITOR_VISUALIZATION
+            #pragma shader_feature_local ENABLE_AUDIOLINK
+
 
             #ifndef UNITY_PASS_META
             #define UNITY_PASS_META

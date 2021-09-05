@@ -1,6 +1,7 @@
 #ifndef LITFRAG
 #define LITFRAG
 
+#if !defined(UNITY_PASS_SHADOWCASTER)
 half4 frag(v2f i) : SV_Target
 {
     UNITY_SETUP_INSTANCE_ID(i); 
@@ -154,7 +155,7 @@ half4 frag(v2f i) : SV_Target
     #endif
 
 
-    light.directDiffuse = surface.albedo.rgb * (1 - surface.metallic);
+    surface.diffuse = surface.albedo.rgb * (1 - surface.metallic);
     #if defined(LIGHTMAP_ON)
         half3 lightMap = getLightmap(uvs[1], worldNormal);
         #if defined(DYNAMICLIGHTMAP_ON) && !defined(SHADER_API_MOBILE)
@@ -198,7 +199,7 @@ half4 frag(v2f i) : SV_Target
                 if(_Anisotropy != 0) reflViewDir = getAnisotropicReflectionVector(viewDir, bitangent, tangent, worldNormal, surface.perceptualRoughness, _Anisotropy);
             #endif
             
-            light.indirectSpecular = getIndirectSpecular(surface.metallic, surface.perceptualRoughness, reflViewDir, i.worldPos, light.directDiffuse, reflWorldNormal);
+            light.indirectSpecular = getIndirectSpecular(surface.metallic, surface.perceptualRoughness, reflViewDir, i.worldPos, surface.diffuse, reflWorldNormal);
             light.indirectSpecular *= lerp(fresnel, f0, surface.perceptualRoughness);
         #endif
 
@@ -213,25 +214,57 @@ half4 frag(v2f i) : SV_Target
     #endif
 
 
-    #ifdef ENABLE_SPECULAR_HIGHLIGHTS
+    #if defined(ENABLE_SPECULAR_HIGHLIGHTS)
         half NoH = saturate(dot(worldNormal, light.halfVector));
         light.directSpecular = getDirectSpecular(surface.perceptualRoughness, NoH, NoV, light.NoL, light.LoH, f0, _Anisotropy, light.halfVector, tangent, bitangent) * light.finalLight;
     #endif
 
-
     
     #if defined(UNITY_PASS_FORWARDBASE) || defined(UNITY_PASS_META)
 
-        half3 emissionMap = 1;
+        half4 emissionMap = 1;
         #if defined(PROP_EMISSIONMAP)
-            emissionMap = _EmissionMap.Sample(sampler_MainTex, TRANSFORMTEX(uvs[_EmissionMapUV], _EmissionMap_ST, _MainTex_ST)).rgb;
+            emissionMap = _EmissionMap.Sample(sampler_MainTex, TRANSFORMTEX(uvs[_EmissionMapUV], _EmissionMap_ST, _MainTex_ST));
+        #endif
+
+        #if defined(ENABLE_AUDIOLINK) && !defined (SHADER_API_MOBILE)
+            float4 alEmissionMap = 1;
+            #if defined(PROP_ALEMISSIONMAP)
+                alEmissionMap = _ALEmissionMap.Sample(sampler_MainTex, TRANSFORMTEX(uvs[_EmissionMapUV], _EmissionMap_ST, _MainTex_ST));
+            #endif
+            
+            float alEmissionType = 0;
+            float alEmissionBand = _ALEmissionBand;
+            float alemissionMask = (GammaToLinearSpace(alEmissionMap.b) * 64 > 1 ) * alEmissionMap.a;
+            float alSmoothing = (1 - _ALSmoothing);
+
+            switch(_ALEmissionType)
+            {
+                case 1:
+                    alEmissionType = alSmoothing * 15;
+                    alEmissionBand += ALPASS_FILTEREDAUDIOLINK.y;
+                    alemissionMask = alEmissionMap.b;
+                    break;
+                case 2:
+                    alEmissionType = alEmissionMap.b * (128 * (1 - alSmoothing));
+                    break;
+                case 3:
+                    alEmissionType = alSmoothing * 15;
+                    alEmissionBand += ALPASS_FILTEREDAUDIOLINK.y;
+                    break;
+            }
+
+            float alEmissionSample = _ALEmissionType ? AudioLinkLerpMultiline(float2(alEmissionType , alEmissionBand)).r * alemissionMask : 1;
+            emissionMap *= alEmissionSample;
         #endif
 
         surface.emission = _EnableEmission ? emissionMap * pow(_EmissionColor.rgb, 2.2) : 0;
     #endif
 
+    
 
-    half3 finalColor = light.directDiffuse * ((light.indirectDiffuse * surface.occlusion) + light.finalLight) + light.directSpecular + light.indirectSpecular + surface.emission;
+
+    half3 finalColor = surface.diffuse * ((light.indirectDiffuse * surface.occlusion) + light.finalLight) + light.directSpecular + light.indirectSpecular + surface.emission;
 
 
     alpha -= mainTex.a * 0.00001; // fix main tex sampler without changing the color;
@@ -258,7 +291,9 @@ half4 frag(v2f i) : SV_Target
 
     return col;
 }
+#endif
 
+#if defined(UNITY_PASS_SHADOWCASTER)
 fixed4 ShadowCasterfrag(v2f i) : SV_Target
 {
     initUVs(i);
@@ -274,5 +309,5 @@ fixed4 ShadowCasterfrag(v2f i) : SV_Target
 
     SHADOW_CASTER_FRAGMENT(i);
 }
-
+#endif
 #endif

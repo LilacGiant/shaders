@@ -96,6 +96,15 @@ namespace Shaders.Lit
         protected MaterialProperty _EnableRefraction = null;
         protected MaterialProperty _Refraction = null;
 
+        protected MaterialProperty _EnableAudioLink = null;
+        protected MaterialProperty _ALSmoothing = null;
+        protected MaterialProperty _AudioTexture = null;
+
+        protected MaterialProperty _ALEmissionBand = null;
+        protected MaterialProperty _ALEmissionType = null;
+        protected MaterialProperty _ALEmissionMap = null;
+
+
 
 
         public void ShaderPropertiesGUI(Material material)
@@ -198,6 +207,17 @@ namespace Shaders.Lit
                             prop(_EmissionMapUV, false);
                         });
                         me.LightmapEmissionProperty();
+
+                        if(_EnableAudioLink.floatValue == 1)
+                        {
+                            Space();
+                            prop(_ALEmissionType);
+                            if(_ALEmissionType.floatValue != 0){
+                                prop(_ALEmissionBand);
+                                prop(_ALEmissionMap);
+                                Styles.sRGBWarning(_ALEmissionMap);
+                            }
+                        }
                     });
                 }
 
@@ -263,6 +283,18 @@ namespace Shaders.Lit
                 prop(_TonemappingMode, false);
                 if(_TonemappingMode.floatValue == 1) prop(_Contribution);
                 prop(_EnablePackedMode);
+
+
+                prop(_EnableAudioLink);
+                if(_EnableAudioLink.floatValue == 1){
+                    Styles.PropertyGroup(() => {
+                    prop(_AudioTexture);
+                    prop(_ALSmoothing);
+                    });
+                };
+
+
+
                 Space();
                 
                 prop(_Cull);
@@ -303,6 +335,7 @@ namespace Shaders.Lit
         public bool isLocked;
         Material material = null;
         MaterialProperty[] allProps;
+    
 
         public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] props)
         {

@@ -1,8 +1,6 @@
 #ifndef LITINPUTS
 #define LITINPUTS
 
-// ----------------- defines -----------------
-
 #if (PROP_MODE!=0) || !defined(OPTIMIZER_ENABLED)
 #define ENABLE_TRANSPARENCY
 #endif
@@ -19,13 +17,14 @@
     #define PROP_EMISSIONMAP
     #define PROP_METALLICGLOSSMAP
     #define PROP_DETAILMAP
+    #define PROP_ALEMISSIONMAP
 #endif
-
 
 
 #ifdef SHADER_API_MOBILE
     #undef ENABLE_PARALLAX
     #undef PROP_DETAILMAP
+    #undef ENABLE_AUDIOLINK
 #endif
 
 #if defined(PROP_DETAILMAP)
@@ -36,7 +35,22 @@
     #define USE_FOG
 #endif
 
-// ----------------- defines -----------------
+
+#if !defined(UNITY_PASS_FORWARDBASE) && !defined(UNITY_PASS_META)
+    #if defined(ENABLE_AUDIOLINK)
+        #undef ENABLE_AUDIOLINK
+    #endif
+#endif
+
+#if defined(ENABLE_AUDIOLINK)
+    uniform float _ALEmissionBand;
+    uniform float _ALEmissionType;
+    uniform float _ALSmoothing;
+    UNITY_DECLARE_TEX2D(_ALEmissionMap);
+    #include "AudioLink.cginc"  
+#endif
+
+
 
 
 uniform float2 uvs[4];
@@ -154,7 +168,6 @@ struct Lighting
     half attenuation;
     half3 indirectDominantColor;
     half3 finalLight;
-    half3 directDiffuse;
     half3 indirectDiffuse;
     half3 directSpecular;
     half3 indirectSpecular;
@@ -170,6 +183,7 @@ struct Surface
     half roughness;
     half occlusion;
     half3 emission;
+    half3 diffuse;
 };
 
 static Surface surface;
