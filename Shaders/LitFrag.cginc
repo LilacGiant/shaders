@@ -235,8 +235,9 @@ half4 frag(v2f i) : SV_Target
             
             float alEmissionType = 0;
             float alEmissionBand = _ALEmissionBand;
-            float alemissionMask = (GammaToLinearSpace(alEmissionMap.b) * 64 > 1 ) * alEmissionMap.a;
             float alSmoothing = (1 - _ALSmoothing);
+            float alemissionMask = ((alEmissionMap.b * 256) > 1 ) * alEmissionMap.a;
+            
 
             switch(_ALEmissionType)
             {
@@ -246,7 +247,7 @@ half4 frag(v2f i) : SV_Target
                     alemissionMask = alEmissionMap.b;
                     break;
                 case 2:
-                    alEmissionType = alEmissionMap.b * (128 * (1 - alSmoothing));
+                    alEmissionType = alEmissionMap.b * (128 *  (1 - alSmoothing));
                     break;
                 case 3:
                     alEmissionType = alSmoothing * 15;
