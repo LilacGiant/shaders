@@ -178,3 +178,10 @@ float3 AudioLinkCCtoRGB(float bin, float intensity, int rootNote)
     float val = intensity - 0.1;
     return AudioLinkHSVtoRGB(float3(fmod(hue, 1.0), 1.0, clamp(val, 0.0, 1.0)));
 }
+
+// ---------------
+
+uniform float _ALEmissionBand;
+uniform float _ALEmissionType;
+uniform float _ALSmoothing;
+UNITY_DECLARE_TEX2D(_ALEmissionMap);

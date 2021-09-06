@@ -1,124 +1,42 @@
-#ifndef LITFRAG
-#define LITFRAG
-
 #if !defined(UNITY_PASS_SHADOWCASTER)
 half4 frag(v2f i) : SV_Target
 {
     UNITY_SETUP_INSTANCE_ID(i); 
     initUVs(i);
 
-    float3 worldNormal = i.worldNormal;
-    #ifndef SHADER_API_MOBILE
-        worldNormal = normalize(worldNormal);
-    #endif
-    float3 viewDir = normalize(_WorldSpaceCameraPos - i.worldPos);
-    half NoV = abs(dot(worldNormal, viewDir)) + 1e-5;
-
-    
     half2 parallaxOffset = 0;
-    #if defined(ENABLE_PARALLAX) && !defined(SHADER_API_MOBILE) && !defined(UNITY_PASS_SHADOWCASTER)
-        float3 viewDirForParallax = CalculateTangentViewDir(i.viewDirForParallax);
-        parallaxOffset = ParallaxOffset(uvs[_MainTexUV], viewDirForParallax);
-    #endif
-
-    half4 mainTex = MAIN_TEX(_MainTex, sampler_MainTex, uvs[_MainTexUV], _MainTex_ST);
-
-    half mainTexDesaturated = dot(mainTex, grayscaleVec); // saturation
-    mainTex.rgb = lerp(mainTexDesaturated, mainTex.rgb, (_Saturation+1));
-
-    surface.albedo = mainTex * _Color;
-
-    half4 vertexColor = 1;
-    #ifdef ENABLE_VERTEXCOLOR
-        vertexColor = i.color;
-        surface.albedo.rgb *= _EnableVertexColor ? GammaToLinearSpace(vertexColor) : 1;
-    #endif
-    
     half alpha = 1;
-    #ifdef ENABLE_TRANSPARENCY
-        alpha = calcAlpha(_Cutoff,surface.albedo.a);
-        if(_Mode!=1 && _Mode!=0) surface.albedo.rgb *= _Color.a;
-    #endif
-
-    
-    half isRoughness = _GlossinessInvert;
     half4 maskMap = 1;
     half4 detailMap = 1;
     half metallicMap = 1;
     half smoothnessMap = 1;
     half occlusionMap = 1;
+    half4 mainTex = 1;
+
+
+    float3 worldNormal = normalize(i.worldNormal);
+    float3 viewDir = normalize(_WorldSpaceCameraPos - i.worldPos);
+    half NoV = abs(dot(worldNormal, viewDir)) + 1e-5;
+
     
-
-    #ifndef ENABLE_PACKED_MODE
-
-        #ifdef PROP_METALLICMAP
-            metallicMap = NOSAMPLER_TEX(_MetallicMap, uvs[_MetallicMapUV], _MetallicMap_ST, _MainTex_ST);
-        #endif
-
-        #ifdef PROP_SMOOTHNESSMAP
-            smoothnessMap = NOSAMPLER_TEX(_SmoothnessMap, uvs[_SmoothnessMapUV], _SmoothnessMap_ST, _MainTex_ST);
-        #endif
-
-        #ifdef PROP_OCCLUSIONMAP
-            occlusionMap = NOSAMPLER_TEX(_OcclusionMap, uvs[_OcclusionMapUV], _OcclusionMap_ST, _MainTex_ST);
-        #endif
-
-    #else
-
-        #ifdef PROP_METALLICGLOSSMAP
-            #define PROP_SMOOTHNESSMAP
-            #define PROP_OCCLUSIONMAP
-            #define PROP_METALLICMAP
-            maskMap = NOSAMPLER_TEX(_MetallicGlossMap, uvs[_MetallicGlossMapUV], _MetallicGlossMap_ST, _MainTex_ST);
-        #endif
-        
-        metallicMap = maskMap.r;
-        smoothnessMap = maskMap.a;
-        occlusionMap = maskMap.g;
-        isRoughness = 0;
+    #if defined(ENABLE_PARALLAX)
+        parallaxOffset = ParallaxOffset(uvs[_MainTexUV], i.viewDirForParallax);
     #endif
 
+    getMainTex(mainTex, parallaxOffset, i.color);
+
     
+    #ifdef ENABLE_TRANSPARENCY
+        alpha = calcAlpha(surface.albedo.a);
+    #endif
 
-    half smoothness = _Glossiness * smoothnessMap;
-    surface.perceptualRoughness = isRoughness ? smoothness : 1-smoothness;
-    surface.metallic = metallicMap * _Metallic * _Metallic;
-    surface.occlusion = lerp(1,occlusionMap , _Occlusion);
 
+    initSurfaceData(metallicMap, smoothnessMap, occlusionMap, maskMap, parallaxOffset);
 
     #if defined(PROP_DETAILMAP) && !defined(SHADER_API_MOBILE)
-        detailMap = _DetailMap.Sample(sampler_MainTex, TRANSFORM(uvs[_DetailMapUV], _DetailMap_ST));
-
-        float detailMask = maskMap.b;
-        float detailAlbedo = detailMap.r * 2.0 - 1.0;
-        float detailSmoothness = (detailMap.b * 2.0 - 1.0);
-
-        // Goal: we want the detail albedo map to be able to darken down to black and brighten up to white the surface albedo.
-        // The scale control the speed of the gradient. We simply remap detailAlbedo from [0..1] to [-1..1] then perform a lerp to black or white
-        // with a factor based on speed.
-        // For base color we interpolate in sRGB space (approximate here as square) as it get a nicer perceptual gradient
-
-        float albedoDetailSpeed = saturate(abs(detailAlbedo) * _DetailAlbedoScale);
-        float3 baseColorOverlay = lerp(sqrt(surface.albedo.rgb), (detailAlbedo < 0.0) ? float3(0.0, 0.0, 0.0) : float3(1.0, 1.0, 1.0), albedoDetailSpeed * albedoDetailSpeed);
-        baseColorOverlay *= baseColorOverlay;							   
-        // Lerp with details mask
-        surface.albedo.rgb = lerp(surface.albedo.rgb, saturate(baseColorOverlay), detailMask);
-
-        float perceptualSmoothness = (1 - surface.perceptualRoughness);
-        // See comment for baseColorOverlay
-        float smoothnessDetailSpeed = saturate(abs(detailSmoothness) * _DetailSmoothnessScale);
-        float smoothnessOverlay = lerp(perceptualSmoothness, (detailSmoothness < 0.0) ? 0.0 : 1.0, smoothnessDetailSpeed);
-        // Lerp with details mask
-        perceptualSmoothness = lerp(perceptualSmoothness, saturate(smoothnessOverlay), detailMask);
-
-        surface.perceptualRoughness = (1 - perceptualSmoothness);
-
+        detailMap = applyDetailMap(parallaxOffset, maskMap.a);
     #endif
 
-    
-
-    
-    
 
     #if defined(ENABLE_REFLECTIONS) || defined(ENABLE_SPECULAR_HIGHLIGHTS) || defined (PROP_BUMPMAP)
         half3 tangent = i.tangent;
@@ -134,57 +52,36 @@ half4 frag(v2f i) : SV_Target
         #endif
         initNormalMap(normalMap, bitangent, tangent, worldNormal, detailNormalMap);
     #endif
-
-
-
     
 
     #if !defined(LIGHTMAP_ON) || defined(USING_LIGHT_MULTI_COMPILE)
-        light.indirectDominantColor = half3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w);
-        light.direction = getLightDir(!_GetDominantLight, i.worldPos);
-        light.color = getLightCol(!_GetDominantLight, _LightColor0.rgb, light.indirectDominantColor) * 0.95;
-        light.halfVector = normalize(light.direction + viewDir);
-        light.NoL = saturate(dot(worldNormal, light.direction));
-        light.LoH = saturate(dot(light.direction, light.halfVector));
-        UNITY_LIGHT_ATTENUATION(attenuation, i, i.worldPos.xyz);
-        light.attenuation = attenuation;
-        light.finalLight = (light.NoL * light.attenuation * light.color);
-        #ifndef SHADER_API_MOBILE
-            light.finalLight *= Fd_Burley(surface.perceptualRoughness, NoV, light.NoL, light.LoH);
-        #endif
+        initLighting(i, worldNormal, viewDir, NoV);
     #endif
 
 
-    surface.diffuse = surface.albedo.rgb * (1 - surface.metallic);
-    #if defined(LIGHTMAP_ON)
-        half3 lightMap = getLightmap(uvs[1], worldNormal);
-        #if defined(DYNAMICLIGHTMAP_ON) && !defined(SHADER_API_MOBILE)
-            half3 realtimeLightMap = getRealtimeLightmap(uvs[2], worldNormal);
-            lightMap +=realtimeLightMap; 
-        #endif
-        light.indirectDiffuse = lightMap;
-        #else
-        light.indirectDiffuse = getIndirectDiffuse(worldNormal);
+    getIndirectDiffuse(worldNormal, parallaxOffset);
+
+    #if defined(ENABLE_GSAA) && !defined(SHADER_API_MOBILE)
+        surface.perceptualRoughness = GSAA_Filament(worldNormal, surface.perceptualRoughness);
     #endif
 
-    #if defined(ENABLE_REFLECTIONS) || defined(ENABLE_SPECULAR_HIGHLIGHTS)
-        half3 f0 = 0.16 * _Reflectance * _Reflectance * (1 - surface.metallic) + surface.albedo * surface.metallic;
+    #if defined(ENABLE_REFLECTIONS) || defined(ENABLE_SPECULAR_HIGHLIGHTS) || defined(UNITY_PASS_META)
+        half3 f0 = 0.16 * _Reflectance * _Reflectance * surface.oneMinusMetallic + surface.albedo * surface.metallic;
         half3 fresnel = F_Schlick(f0, NoV);
 
         #if !defined(SHADER_API_MOBILE)
-            fresnel = lerp(f0, fresnel , _FresnelColor.a); // kill fresnel
+            fresnel = lerp(f0, fresnel , _FresnelColor.a);
             fresnel *= _FresnelColor.rgb;
-            fresnel *= _SpecularOcclusion ? saturate(lerp(1, pow(length(light.indirectDiffuse), _SpecularOcclusion), _SpecularOcclusion * (1 - surface.metallic))) : 1; // lightmap surface.occlusion
-        
-            #if defined(ENABLE_GSAA)
-                surface.perceptualRoughness = GSAA_Filament(worldNormal, surface.perceptualRoughness);
-            #endif
+            fresnel *= _SpecularOcclusion ? saturate(lerp(1, pow(length(light.indirectDiffuse), _SpecularOcclusion), _SpecularOcclusion * surface.oneMinusMetallic)) : 1;
         #endif
-
     #endif
 
-
     #if defined(UNITY_PASS_FORWARDBASE)
+
+        #if defined(ENABLE_MATCAP)
+            light.indirectSpecular = lerp(0 , _MatCap.Sample(sampler_MainTex, mul((float3x3)UNITY_MATRIX_V, worldNormal).xy * 0.5 + 0.5).rgb, _MatCapReplace);
+            #undef ENABLE_REFLECTIONS
+        #endif
 
         #if defined(ENABLE_REFLECTIONS)
             float3 reflViewDir = reflect(-viewDir, worldNormal);
@@ -195,16 +92,11 @@ half4 frag(v2f i) : SV_Target
                 reflWorldNormal = 0;
             #endif
 
-             #if !defined(SHADER_API_MOBILE)
-                if(_Anisotropy != 0) reflViewDir = getAnisotropicReflectionVector(viewDir, bitangent, tangent, worldNormal, surface.perceptualRoughness, _Anisotropy);
+            #if !defined(SHADER_API_MOBILE)
+                if(_Anisotropy != 0) reflViewDir = getAnisotropicReflectionVector(viewDir, bitangent, tangent, worldNormal, surface.perceptualRoughness);
             #endif
-            
-            light.indirectSpecular = getIndirectSpecular(surface.metallic, surface.perceptualRoughness, reflViewDir, i.worldPos, surface.diffuse, reflWorldNormal);
-            light.indirectSpecular *= lerp(fresnel, f0, surface.perceptualRoughness);
-        #endif
-
-        #if defined(ENABLE_MATCAP)
-            light.indirectSpecular = lerp(light.indirectSpecular, _MatCap.Sample(sampler_MainTex, mul((float3x3)UNITY_MATRIX_V, worldNormal).xy * 0.5 + 0.5).rgb, _MatCapReplace);
+        
+            light.indirectSpecular = getIndirectSpecular(reflViewDir, i.worldPos, reflWorldNormal, fresnel, f0);
         #endif
 
         #if defined(PROP_OCCLUSIONMAP) && !defined(SHADER_API_MOBILE)
@@ -213,89 +105,33 @@ half4 frag(v2f i) : SV_Target
 
     #endif
 
-
-    #if defined(ENABLE_SPECULAR_HIGHLIGHTS)
-        half NoH = saturate(dot(worldNormal, light.halfVector));
-        light.directSpecular = getDirectSpecular(surface.perceptualRoughness, NoH, NoV, light.NoL, light.LoH, f0, _Anisotropy, light.halfVector, tangent, bitangent) * light.finalLight;
+    #if defined(ENABLE_SPECULAR_HIGHLIGHTS) || defined(UNITY_PASS_META)
+        light.directSpecular = getDirectSpecular(worldNormal, tangent, bitangent, f0, NoV);
     #endif
 
     
     #if defined(UNITY_PASS_FORWARDBASE) || defined(UNITY_PASS_META)
-
-        half4 emissionMap = 1;
-        #if defined(PROP_EMISSIONMAP)
-            emissionMap = _EmissionMap.Sample(sampler_MainTex, TRANSFORMTEX(uvs[_EmissionMapUV], _EmissionMap_ST, _MainTex_ST));
-        #endif
-
-        #if defined(ENABLE_AUDIOLINK) && !defined (SHADER_API_MOBILE)
-            float4 alEmissionMap = 1;
-            #if defined(PROP_ALEMISSIONMAP)
-                alEmissionMap = _ALEmissionMap.Sample(sampler_MainTex, TRANSFORMTEX(uvs[_EmissionMapUV], _EmissionMap_ST, _MainTex_ST));
-            #endif
-            
-            float alEmissionType = 0;
-            float alEmissionBand = _ALEmissionBand;
-            float alSmoothing = (1 - _ALSmoothing);
-            float alemissionMask = ((alEmissionMap.b * 256) > 1 ) * alEmissionMap.a;
-            
-
-            switch(_ALEmissionType)
-            {
-                case 1:
-                    alEmissionType = alSmoothing * 15;
-                    alEmissionBand += ALPASS_FILTEREDAUDIOLINK.y;
-                    alemissionMask = alEmissionMap.b;
-                    break;
-                case 2:
-                    alEmissionType = alEmissionMap.b * (128 *  (1 - alSmoothing));
-                    break;
-                case 3:
-                    alEmissionType = alSmoothing * 15;
-                    alEmissionBand += ALPASS_FILTEREDAUDIOLINK.y;
-                    break;
-            }
-
-            float alEmissionSample = _ALEmissionType ? AudioLinkLerpMultiline(float2(alEmissionType , alEmissionBand)).r * alemissionMask : 1;
-            emissionMap *= alEmissionSample;
-        #endif
-
-        surface.emission = _EnableEmission ? emissionMap * pow(_EmissionColor.rgb, 2.2) : 0;
+        applyEmission(parallaxOffset);
     #endif
-
     
-
-
-    half3 finalColor = surface.diffuse * ((light.indirectDiffuse * surface.occlusion) + light.finalLight) + light.directSpecular + light.indirectSpecular + surface.emission;
-
-
     alpha -= mainTex.a * 0.00001; // fix main tex sampler without changing the color;
 
+    half4 finalColor = half4( surface.albedo * surface.oneMinusMetallic * ((light.indirectDiffuse * surface.occlusion) + light.finalLight) + light.directSpecular + light.indirectSpecular + surface.emission, alpha);
 
     #ifdef UNITY_PASS_META
-        UnityMetaInput metaInput;
-        UNITY_INITIALIZE_OUTPUT(UnityMetaInput, metaInput);
-        metaInput.Emission = surface.emission;
-        metaInput.Albedo = surface.albedo;
-        metaInput.SpecularColor = light.directSpecular;
-        if(_Mode == 1) clip(alpha - _Cutoff);
-        return float4(UnityMetaFragment(metaInput).rgb, alpha);
+        return getMeta(surface, light, alpha);
     #endif
 
-
-    half4 col = half4(finalColor, alpha);
-    
     #ifdef USE_FOG
-        UNITY_APPLY_FOG(i.fogCoord, col);
+        UNITY_APPLY_FOG(i.fogCoord, finalColor);
     #endif
 
-    if(_TonemappingMode) col.rgb = lerp(col.rgb, ACESFilm(col.rgb), _Contribution); // aces
-
-    return col;
+    return finalColor;
 }
 #endif
 
 #if defined(UNITY_PASS_SHADOWCASTER)
-fixed4 ShadowCasterfrag(v2f i) : SV_Target
+half4 ShadowCasterfrag(v2f i) : SV_Target
 {
     initUVs(i);
     half2 parallaxOffset = 0;
@@ -303,12 +139,11 @@ fixed4 ShadowCasterfrag(v2f i) : SV_Target
 
     half alpha = mainTex.a * _Color.a;
 
-    #ifdef ENABLE_TRANSPARENCY
+    #ifdef ENABLE_TRANSPARENCY // todo dithering
         if(_Mode == 1) clip(alpha - _Cutoff);
         if(_Mode > 1) clip(alpha-0.5);
     #endif
 
     SHADOW_CASTER_FRAGMENT(i);
 }
-#endif
 #endif

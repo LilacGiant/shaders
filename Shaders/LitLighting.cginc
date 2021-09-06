@@ -1,8 +1,6 @@
 
 // https://github.com/Xiexe/Unity-Lit-Shader-Templates/blob/master/LICENSE
 // https://github.com/google/filament/blob/main/LICENSE
-#ifndef LITLIGHTING
-#define LITLIGHTING
 #define grayscaleVec float3(0.2125, 0.7154, 0.0721)
 
 float pow5(float x) {
@@ -112,24 +110,7 @@ float shEvaluateDiffuseL1Geomerics_local(float L0, float3 L1, float3 n)
     return R0 * (a + (1.0f - a) * (p + 1.0f) * pow(q, p));
 }
 
-half3 getIndirectDiffuse(half3 normal)
-{
-    half3 indirectDiffuse;
-    UNITY_BRANCH
-    if(_LightProbeMethod == 0)
-    {
-        indirectDiffuse = max(0, ShadeSH9(half4(normal, 1)));
-    }
-    else
-    {
-        half3 L0 = half3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w);
-        indirectDiffuse.r = shEvaluateDiffuseL1Geomerics_local(L0.r, unity_SHAr.xyz, normal);
-        indirectDiffuse.g = shEvaluateDiffuseL1Geomerics_local(L0.g, unity_SHAg.xyz, normal);
-        indirectDiffuse.b = shEvaluateDiffuseL1Geomerics_local(L0.b, unity_SHAb.xyz, normal);
-	indirectDiffuse = max(0, indirectDiffuse);
-    }
-    return indirectDiffuse;
-}
+
 
 float3 getBoxProjection (float3 direction, float3 position, float4 cubemapPosition, float3 boxMin, float3 boxMax)
 {
@@ -145,90 +126,24 @@ float3 getBoxProjection (float3 direction, float3 position, float4 cubemapPositi
     return direction;
 }
 
-half3 getIndirectSpecular(half metallic, half roughness, float3 reflDir, float3 worldPos, half3 lightmap, float3 normal)
-{
-    Unity_GlossyEnvironmentData envData;
-    envData.roughness = roughness;
-    envData.reflUVW = getBoxProjection(
-        reflDir, worldPos,
-        unity_SpecCube0_ProbePosition,
-        unity_SpecCube0_BoxMin, unity_SpecCube0_BoxMax
-    );
-
-    half3 probe0 = Unity_GlossyEnvironment(UNITY_PASS_TEXCUBE(unity_SpecCube0), unity_SpecCube0_HDR, envData);
-
-    half3 indirectSpecular = probe0;
-    
-    #if !defined(SHADER_API_MOBILE)
-    
-        #if defined(UNITY_SPECCUBE_BLENDING) && !defined(ENABLE_REFRACTION)
-            half interpolator = unity_SpecCube0_BoxMin.w;
-            UNITY_BRANCH
-            if (interpolator < 0.99999)
-            {
-                envData.reflUVW = getBoxProjection(
-                    reflDir, worldPos,
-                    unity_SpecCube1_ProbePosition,
-                    unity_SpecCube1_BoxMin, unity_SpecCube1_BoxMax
-                );
-                half3 probe1 = Unity_GlossyEnvironment(UNITY_PASS_TEXCUBE_SAMPLER(unity_SpecCube1, unity_SpecCube0), unity_SpecCube1_HDR, envData);
-                indirectSpecular = lerp(probe1, probe0, interpolator);
-            }
-        #endif
-
-        half horizon = min(1 + dot(reflDir, normal), 1);
-        indirectSpecular *= horizon * horizon;
-    #endif
-
-    return indirectSpecular;
-
-}
-
-half3 getDirectSpecular(half perceptualRoughness, half NoH, half NoV, half NoL, half LoH, half f0, half anisotropy, half3 halfVector, half3 tangent, half3 bitangent)
-{
-    half roughness = max(perceptualRoughness * perceptualRoughness, 0.002);
 
 
-    half D = D_GGX(NoH, roughness);
 
-    #if !defined(SHADER_API_MOBILE)
-        if(anisotropy != 0) {
-            anisotropy *= saturate(5.0 * perceptualRoughness);
-            half at = max(roughness * (1.0 + anisotropy), 0.001);
-            half ab = max(roughness * (1.0 - anisotropy), 0.001);
-            D = D_GGX_Anisotropic(NoH, halfVector, tangent, bitangent, at, ab);
-        }
-    #endif
-
-    #ifdef SHADER_API_MOBILE
-        half V = V_SmithGGXCorrelatedFast(NoV, NoL, roughness);
-    #else
-        half V = V_SmithGGXCorrelated(NoV, NoL, roughness);
-    #endif
-
-    half3 F = F_Schlick(f0, LoH);
-   
-    half3 directSpecular = max(0, (D * V) * F);
-
-    return directSpecular * UNITY_PI;
-}
-
-
-float3 getAnisotropicReflectionVector(float3 viewDir, float3 bitangent, float3 tangent, float3 normal, float roughness, float anisotropy)
+float3 getAnisotropicReflectionVector(float3 viewDir, float3 bitangent, float3 tangent, float3 normal, float roughness)
 {
     //_Anisotropy = lerp(-0.2, 0.2, sin(_Time.y / 20)); //This is pretty fun
-    float3 anisotropicDirection = anisotropy >= 0.0 ? bitangent : tangent;
+    float3 anisotropicDirection = _Anisotropy >= 0.0 ? bitangent : tangent;
     float3 anisotropicTangent = cross(anisotropicDirection, viewDir);
     float3 anisotropicNormal = cross(anisotropicTangent, anisotropicDirection);
-    float bendFactor = abs(anisotropy) * saturate(5.0 * roughness);
-    float3 bentNormal = normalize(lerp(normal, anisotropicNormal, anisotropy));
+    float bendFactor = abs(_Anisotropy) * saturate(5.0 * roughness);
+    float3 bentNormal = normalize(lerp(normal, anisotropicNormal, _Anisotropy));
     return reflect(-viewDir, bentNormal);
 }
 
 #ifdef DYNAMICLIGHTMAP_ON
-float3 getRealtimeLightmap(float2 uv, float3 worldNormal)
+float3 getRealtimeLightmap(float2 uv, float3 worldNormal, float2 parallaxOffset)
 {
-    float2 realtimeUV = uv * unity_DynamicLightmapST.xy + unity_DynamicLightmapST.zw;
+    float2 realtimeUV = uv * unity_DynamicLightmapST.xy + unity_DynamicLightmapST.zw + parallaxOffset;
     half4 bakedCol = UNITY_SAMPLE_TEX2D(unity_DynamicLightmap, realtimeUV);
     float3 realtimeLightmap = DecodeRealtimeLightmap(bakedCol);
 
@@ -326,23 +241,23 @@ float3 tex2DFastBicubicLightmap(float2 uv)
     #endif
 }
 
-half3 getLightmap(float2 uv, float3 worldNormal)
+half3 getLightmap(float2 uv, float3 worldNormal, float2 parallaxOffset)
 {
-    float2 lightmapUV = uv * unity_LightmapST.xy + unity_LightmapST.zw;
+    float2 lightmapUV = uv * unity_LightmapST.xy + unity_LightmapST.zw + parallaxOffset;
 
-#if defined(SHADER_API_MOBILE)
-    half3 lightMap = DecodeLightmap(UNITY_SAMPLE_TEX2D(unity_Lightmap, lightmapUV));
-#else
-    half3 lightMap = tex2DFastBicubicLightmap(lightmapUV) * (_LightmapMultiplier);
-#endif
+    #if defined(SHADER_API_MOBILE)
+        half3 lightMap = DecodeLightmap(UNITY_SAMPLE_TEX2D(unity_Lightmap, lightmapUV));
+    #else
+        half3 lightMap = tex2DFastBicubicLightmap(lightmapUV) * (_LightmapMultiplier);
+    #endif
 
 
-#if defined(DIRLIGHTMAP_COMBINED) && !defined(SHADER_API_MOBILE)
-    half4 bakedDirTex = UNITY_SAMPLE_TEX2D_SAMPLER (unity_LightmapInd, unity_Lightmap, lightmapUV);
-    lightMap = DecodeDirectionalLightmap(lightMap, bakedDirTex, worldNormal);
-#endif
+    #if defined(DIRLIGHTMAP_COMBINED) && !defined(SHADER_API_MOBILE)
+        half4 bakedDirTex = UNITY_SAMPLE_TEX2D_SAMPLER (unity_LightmapInd, unity_Lightmap, lightmapUV);
+        lightMap = DecodeDirectionalLightmap(lightMap, bakedDirTex, worldNormal);
+    #endif
 
-return lightMap;
+    return lightMap;
 }
 
 // Get the most intense light Dir from probes OR from a light source. Method developed by Xiexe / Merlin
@@ -453,11 +368,3 @@ float SSDirectionalShadowAA(float4 _ShadowCoord, sampler2D_float depthTex, float
     return a;
 }
 */
-
-
-
-
-
-
-
-#endif

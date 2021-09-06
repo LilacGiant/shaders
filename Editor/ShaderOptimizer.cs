@@ -446,7 +446,7 @@ namespace Shaders.Lit
             string shaderFilePath = AssetDatabase.GetAssetPath(shader);
             string materialFilePath = AssetDatabase.GetAssetPath(material);
             string materialFolder = Path.GetDirectoryName(materialFilePath);
-            string smallguid = Guid.NewGuid().ToString().Split('-')[0];
+            string smallguid = material.GetInstanceID().ToString();
             string newShaderName = "Hidden/" + shader.name + "/" + material.name + "-" + smallguid;
             string newShaderDirectory = materialFolder + "/OptimizedShaders/" + material.name + "-" + smallguid + "/";
 

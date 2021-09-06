@@ -49,7 +49,7 @@ Shader " Lit"
         
         [Enum(Default, 0, Light Probes, 1)] _GetDominantLight ("Dominant Light", Int) = 0
         _FresnelColor ("Sheen Color", Color) = (1,1,1,1)
-        _Reflectance ("Reflectance", Range(0,1)) = 0.40
+        _Reflectance ("Reflectance", Range(0,1)) = 0.5
         _Anisotropy ("Anisotropy", Range(-1,1)) = 0
 
 
@@ -72,17 +72,11 @@ Shader " Lit"
         [Toggle(ENABLE_BICUBIC_LIGHTMAP)] _BicubicLightmap ("Bicubic Lightmap Interpolation", Float) = 0
         [ToggleUI] _LightProbeMethod ("Non-linear Light Probe SH", Float) = 0
 
-        
-
 
         [Enum(UnityEngine.Rendering.BlendOp)] _BlendOp ("RGB Blend Op", Int) = 0
         [Enum(UnityEngine.Rendering.BlendOp)] _BlendOpAlpha ("Alpha Blend Op", Int) = 0
         [Enum(UnityEngine.Rendering.BlendMode)] _SrcBlend ("Source Blend", Int) = 1
         [Enum(UnityEngine.Rendering.BlendMode)] _DstBlend ("Destination Blend", Int) = 0
-
-        [Enum(None, 0, ACES, 1)] _TonemappingMode ("Tonemapping Mode", Int) = 0
-        _Contribution ("Contribution", Range(0, 1)) = 1
-
 
 
         [Toggle(ENABLE_PACKED_MODE)] _EnablePackedMode ("Packed Mode", Float) = 1       

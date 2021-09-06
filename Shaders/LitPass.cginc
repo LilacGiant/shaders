@@ -1,15 +1,11 @@
-﻿#ifndef LITPASS
-#define LITPASS
-
-#include "LitInputs.cginc"
+﻿#include "LitInputs.cginc"
 #include "UnityCG.cginc"
 #include "AutoLight.cginc"
-//#include "HLSLSupport.cginc"
 #include "Lighting.cginc"
-#include "LitHelpers.cginc"
 #include "LitLighting.cginc"
+
 #ifdef UNITY_PASS_META
-#include "UnityMetaPass.cginc"
+    #include "UnityMetaPass.cginc"
 #endif
 
 
@@ -25,11 +21,11 @@ struct appdata
 
     #if !defined(UNITY_PASS_SHADOWCASTER)
 
-        #if defined(ENABLE_REFLECTIONS) || defined(ENABLE_SPECULAR_HIGHLIGHTS) || defined (PROP_BUMPMAP) || defined(ENABLE_MATCAP)
+        #if defined(ENABLE_REFLECTIONS) || defined(ENABLE_SPECULAR_HIGHLIGHTS) || defined (PROP_BUMPMAP) || defined(ENABLE_MATCAP) || defined(ENABLE_PARALLAX)
             half4 tangent : TANGENT;
         #endif
     
-        #ifdef ENABLE_VERTEXCOLOR
+        #ifdef PROP_ENABLEVERTEXCOLOR
             half4 color : COLOR;
         #endif
     #endif
@@ -65,13 +61,11 @@ struct v2f
             float3 viewDirForParallax : TEXCOORD8;
         #endif
 
-        #ifdef ENABLE_VERTEXCOLOR
+        #ifdef PROP_ENABLEVERTEXCOLOR
             centroid half4 color : COLOR;
         #endif
 
     #endif
-    
-    
 
     UNITY_VERTEX_INPUT_INSTANCE_ID
 	UNITY_VERTEX_OUTPUT_STEREO
@@ -124,7 +118,7 @@ v2f vert(appdata v)
             o.viewDirForParallax = mul (rotation, ObjSpaceViewDir(v.vertex));
         #endif
 
-        #ifdef ENABLE_VERTEXCOLOR
+        #ifdef PROP_ENABLEVERTEXCOLOR
             o.color = v.color;
         #endif
 
@@ -143,9 +137,5 @@ void initUVs(v2f i)
     uvs[1] = i.texcoord0.zw;
     uvs[2] = i.texcoord1.xy;
 }
-
-
-
+#include "LitFunctions.cginc"
 #include "LitFrag.cginc"
-
-#endif

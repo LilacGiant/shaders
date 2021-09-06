@@ -1,12 +1,5 @@
-#ifndef LITINPUTS
-#define LITINPUTS
-
 #if (PROP_MODE!=0) || !defined(OPTIMIZER_ENABLED)
-#define ENABLE_TRANSPARENCY
-#endif
-
-#if (PROP_ENABLEVERTEXCOLOR==1) || (PROP_ENABLEVERTEXCOLORMASK==1) || !defined(OPTIMIZER_ENABLED)
-#define ENABLE_VERTEXCOLOR
+    #define ENABLE_TRANSPARENCY
 #endif
 
 #if !defined(OPTIMIZER_ENABLED) // defined if texture gets used
@@ -18,6 +11,7 @@
     #define PROP_METALLICGLOSSMAP
     #define PROP_DETAILMAP
     #define PROP_ALEMISSIONMAP
+    #define PROP_ENABLEVERTEXCOLOR
 #endif
 
 
@@ -43,12 +37,9 @@
 #endif
 
 #if defined(ENABLE_AUDIOLINK)
-    uniform float _ALEmissionBand;
-    uniform float _ALEmissionType;
-    uniform float _ALSmoothing;
-    UNITY_DECLARE_TEX2D(_ALEmissionMap);
     #include "AudioLink.cginc"  
 #endif
+
 
 
 
@@ -146,9 +137,6 @@ uniform half _DetailSmoothnessScale;
 
 uniform float _LightProbeMethod;
 
-uniform float _TonemappingMode;
-uniform half _Contribution;
-
 #ifdef ENABLE_REFRACTION
 uniform half _Refraction;
 #endif
@@ -172,25 +160,16 @@ struct Lighting
     half3 directSpecular;
     half3 indirectSpecular;
 };
-
 static Lighting light;
 
 struct Surface
 {
     half4 albedo;
     half metallic;
+    half oneMinusMetallic;
     half perceptualRoughness;
     half roughness;
     half occlusion;
     half3 emission;
-    half3 diffuse;
 };
-
 static Surface surface;
-
-
-
-
-
-
-#endif

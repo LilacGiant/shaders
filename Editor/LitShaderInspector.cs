@@ -64,8 +64,6 @@ namespace Shaders.Lit
         protected MaterialProperty _LightmapMultiplier = null;
         protected MaterialProperty _SpecularOcclusion = null;
         protected MaterialProperty _LightProbeMethod = null;
-        protected MaterialProperty _TonemappingMode = null;
-        protected MaterialProperty _Contribution = null;
         protected MaterialProperty _Anisotropy = null;
         protected MaterialProperty _EnableMatcap = null;
         protected MaterialProperty _MatCapReplace = null;
@@ -280,8 +278,6 @@ namespace Shaders.Lit
 
             md[material].ShowAdvanced = Foldout("Advanced", md[material].ShowAdvanced, ()=> {
                 prop(_GetDominantLight, false);
-                prop(_TonemappingMode, false);
-                if(_TonemappingMode.floatValue == 1) prop(_Contribution);
                 prop(_EnablePackedMode);
 
 
