@@ -183,7 +183,7 @@ namespace Shaders.Lit
                 {
                     if(mat != null)
                     {
-                        if(mat.shader.name.StartsWith("Hidden/" + ShaderEditor.litShaderName) || mat.GetTag("OriginalShader", false) == ShaderEditor.litShaderName)
+                        if(mat.shader.name.StartsWith("Hidden/" + ShaderEditor.litShaderName) || mat.GetTag("OriginalShader", false) == ShaderEditor.litShaderName || mat.GetTag("OriginalShader", false).StartsWith("Hidden/" + ShaderEditor.litShaderName))
                         {
                             if(!mats.Contains(mat)) mats.Add(mat);
                         }
@@ -205,8 +205,9 @@ namespace Shaders.Lit
         [MenuItem("Tools/Lit/Lock all materials")]
         public static void LockAllMaterials()
         {
-            AssetDatabase.StartAssetEditing();
             List<Material> mats = GetAllMaterials(ShaderEditor.litShaderName);
+            if(mats.Count > 0){
+            AssetDatabase.StartAssetEditing();
             List<Material> lockedMats = GetAllLockedMaterials();
             List<Material> allMaterials = new List<Material>();
             allMaterials.AddRange(mats);
@@ -344,6 +345,7 @@ namespace Shaders.Lit
                 LockApplyShader(mats[i]);
             }
             EditorUtility.ClearProgressBar();
+            }
         }
 
         public static List<Material> GetAllMaterials(string shaderName)
@@ -1539,7 +1541,7 @@ namespace Shaders.Lit
             }
 
             // Revert to original shader
-            string originalShaderName = material.GetTag("OriginalShader", false, "");
+            string originalShaderName = ShaderEditor.litShaderName;
             if (originalShaderName == "")
             {
                 Debug.LogError("[Kaj Shader Optimizer] Original shader not saved to material, could not unlock shader");
