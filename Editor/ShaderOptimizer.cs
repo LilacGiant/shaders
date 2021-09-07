@@ -922,16 +922,19 @@ namespace Shaders.Lit
                 string output = sb.ToString();
 
                 // Write output to file
-                (new FileInfo(newShaderDirectory + psf.filePath)).Directory.Create();
+                string[] filePath = psf.filePath.Split('/');
+                string newDirectory = filePath[filePath.Length-1];
+
+                new FileInfo(newShaderDirectory + newDirectory).Directory.Create();
                 try
                 {
-                    StreamWriter sw = new StreamWriter(newShaderDirectory + psf.filePath);
+                    StreamWriter sw = new StreamWriter(newShaderDirectory + newDirectory);
                     sw.Write(output);
                     sw.Close();
                 }
                 catch (IOException e)
                 {
-                    Debug.LogError("[Kaj Shader Optimizer] Processed shader file " + newShaderDirectory + psf.filePath + " could not be written.  " + e.ToString());
+                    Debug.LogError("[Kaj Shader Optimizer] Processed shader file " + newShaderDirectory + newDirectory + " could not be written.  " + e.ToString());
                     return false;
                 }
             }
