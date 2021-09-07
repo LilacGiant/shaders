@@ -20,7 +20,7 @@ half4 frag(v2f i) : SV_Target
 
     
     #if defined(ENABLE_PARALLAX)
-        parallaxOffset = ParallaxOffset(uvs[_MainTexUV], i.viewDirForParallax);
+        parallaxOffset = ParallaxOffset(i.viewDirForParallax);
     #endif
 
     getMainTex(mainTex, parallaxOffset, i.color);
@@ -38,7 +38,7 @@ half4 frag(v2f i) : SV_Target
     #endif
 
 
-    #if defined(ENABLE_REFLECTIONS) || defined(ENABLE_SPECULAR_HIGHLIGHTS) || defined (PROP_BUMPMAP)
+    #if defined(ENABLE_REFLECTIONS) || defined(ENABLE_SPECULAR_HIGHLIGHTS) || defined (PROP_BUMPMAP) || defined(UNITY_PASS_META)
         half3 tangent = i.tangent;
         half3 bitangent = i.bitangent;
     #endif

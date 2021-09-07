@@ -144,13 +144,13 @@ float2 ParallaxOffsetMultiStep(float surfaceHeight, float strength, float2 uv, f
     return uvOffset;
 }
 
-float2 ParallaxOffset (float2 texcoords, float3 viewDirForParallax)
+float2 ParallaxOffset (float3 viewDirForParallax)
 {
     viewDirForParallax = CalculateTangentViewDir(viewDirForParallax);
 
-    float h = _ParallaxMap.Sample(sampler_MainTex, (texcoords.xy * _MainTex_ST.xy + _MainTex_ST.zw)) + _ParallaxOffset;
+    float h = _ParallaxMap.Sample(sampler_MainTex, (uvs[_MainTexUV] * _MainTex_ST.xy + _MainTex_ST.zw)) + _ParallaxOffset;
     h = clamp(h, 0, 0.999);
-    float2 offset = ParallaxOffsetMultiStep(h, _Parallax, texcoords.xy, viewDirForParallax);
+    float2 offset = ParallaxOffsetMultiStep(h, _Parallax, uvs[_MainTexUV], viewDirForParallax);
 
 	return offset;
 }
@@ -334,8 +334,12 @@ float4 applyDetailMap(half2 parallaxOffset, float maskMapAlpha)
 
 void initSurfaceData(out half metallicMap, out half smoothnessMap, out half occlusionMap, out half4 maskMap, half2 parallaxOffset)
 {
-    bool isRoughness = _GlossinessInvert;
+    metallicMap = 1;
+    smoothnessMap = 1;
+    occlusionMap = 1;
     maskMap = 1;
+    bool isRoughness = _GlossinessInvert;
+    
     #ifndef ENABLE_PACKED_MODE
 
         #ifdef PROP_METALLICMAP

@@ -162,20 +162,18 @@ namespace Shaders.Lit
 
         private static string CurrentLightmode = "";
 
-        public static void LockMaterial(Material mat, bool applyLater)
+        public static void LockMaterial(Material mat, bool applyLater, Material sharedMaterial)
         {
 
             mat.SetFloat("_ShaderOptimizerEnabled", 1);
             MaterialProperty[] props = MaterialEditor.GetMaterialProperties(new UnityEngine.Object[] { mat });
-            if (!ShaderOptimizer.Lock(mat, props, applyLater)) // Error locking shader, revert property
+            if (!ShaderOptimizer.Lock(mat, props, applyLater, sharedMaterial)) // Error locking shader, revert property
                 mat.SetFloat("_ShaderOptimizerEnabled", 0);
         }
 
         [MenuItem("Tools/Lit/Unlock all materials")]
         public static void UnlockAllMaterials()
         {
-            AssetDatabase.StartAssetEditing();
-
             List<Material> mats = new List<Material>();
             var renderers = UnityEngine.Object.FindObjectsOfType<Renderer>();
 
@@ -185,7 +183,7 @@ namespace Shaders.Lit
                 {
                     if(mat != null)
                     {
-                        if(mat.shader.name.StartsWith("Hidden/" + ShaderEditor.litShaderName))
+                        if(mat.shader.name.StartsWith("Hidden/" + ShaderEditor.litShaderName) || mat.GetTag("OriginalShader", false) == ShaderEditor.litShaderName)
                         {
                             if(!mats.Contains(mat)) mats.Add(mat);
                         }
@@ -202,7 +200,6 @@ namespace Shaders.Lit
                 ShaderOptimizer.Unlock(m);
                 m.SetFloat("_ShaderOptimizerEnabled", 0);
             }
-            AssetDatabase.StopAssetEditing();
         }
         
         [MenuItem("Tools/Lit/Lock all materials")]
@@ -210,14 +207,133 @@ namespace Shaders.Lit
         {
             AssetDatabase.StartAssetEditing();
             List<Material> mats = GetAllMaterials(ShaderEditor.litShaderName);
+            List<Material> lockedMats = GetAllLockedMaterials();
+            List<Material> allMaterials = new List<Material>();
+            allMaterials.AddRange(mats);
+            allMaterials.AddRange(lockedMats);
             float progress = mats.Count;
+
+            List<String> shaderPropertyNames = new List<String>();
+
+            string originalShaderPath = AssetDatabase.GetAssetPath(mats[0].shader);
+
+            Shader shader = (Shader)AssetDatabase.LoadAssetAtPath( originalShaderPath, typeof( Shader ) );
+
+            int propCount = ShaderUtil.GetPropertyCount(shader);
+
+            for(int l=0; l<propCount; l++)
+            {
+                string st = ShaderUtil.GetPropertyName (shader, l);
+                shaderPropertyNames.Add(st);
+
+            }
+
+
+            
+
 
             
             for (int i=0; i<progress; i++)
             {
                 EditorUtility.DisplayCancelableProgressBar("Generating Shaders", mats[i].name, i/progress);
-                LockMaterial(mats[i], true);
+                MaterialProperty[] propsI = MaterialEditor.GetMaterialProperties(new UnityEngine.Object[] { mats[i] });
+                List<MaterialProperty> propsIclean = new List<MaterialProperty>();
+
+                Material sharedMaterial = null;
+                
+
+                foreach(MaterialProperty p in propsI)
+                {
+                    if(shaderPropertyNames.Contains(p.name)) propsIclean.Add(p);
+                }
+
+
+                for (int j=0; j<allMaterials.Count; j++)
+                {
+                    bool canShare = true;
+                    if(mats[i] == allMaterials[j]) canShare = false;
+                    else
+                    {
+                        MaterialProperty[] propsJ = MaterialEditor.GetMaterialProperties(new UnityEngine.Object[] { allMaterials[j] });
+                        List<MaterialProperty> propsJclean = new List<MaterialProperty>();
+
+                        foreach(MaterialProperty p in propsJ)
+                        {
+                            if(shaderPropertyNames.Contains(p.name)) propsJclean.Add(p);  
+                        }
+
+                
+
+                        for (int k=0; k<propCount; k++)
+                        {
+                            switch(propsIclean[k].type)
+                            {
+                                case MaterialProperty.PropType.Float:
+                                    if(propsIclean[k].name == "_ShaderOptimizerEnabled") break;
+                                    if(propsIclean[k].name == "_BlendOp") break;
+                                    if(propsIclean[k].name == "_BlendOpAlpha") break;
+                                    if(propsIclean[k].name == "_SrcBlend") break;
+                                    if(propsIclean[k].name == "_DstBlend") break;
+                                    if(propsIclean[k].name == "_ZWrite") break;
+                                    if(propsIclean[k].name == "_ZTest") break;
+                                    if(propsIclean[k].name == "_Cull") break;
+                                    if(propsIclean[k].floatValue != propsJclean[k].floatValue) canShare = false;
+                                    break;
+                                case MaterialProperty.PropType.Texture:
+                                    if(propsIclean[k].name == "_MainTex") break;
+                                    if(propsIclean[k].textureValue != null)
+                                    {
+                                        if(propsIclean[k].textureScaleAndOffset != propsJclean[k].textureScaleAndOffset) canShare = false;
+                                    }
+                                    else if(propsIclean[k].textureValue == null && propsJclean[k].textureValue == null) {}
+                                    else if(propsIclean[k].textureValue != null && propsJclean[k].textureValue != null) {}
+                                    else canShare = false;
+                                    break;
+                                case MaterialProperty.PropType.Color:
+                                    if(propsIclean[k].name == "_Color") break;
+                                    if(propsIclean[k].colorValue != propsJclean[k].colorValue) canShare = false;
+                                    break;
+                                case MaterialProperty.PropType.Range:
+                                    if(propsIclean[k].name == "_Glossiness") break;
+                                    if(propsIclean[k].name == "_Metallic") break;
+                                    if(propsIclean[k].name == "_Reflectance") break;
+                                    if(propsIclean[k].name == "_BumpScale") break;
+                                    if(propsIclean[k].floatValue != propsJclean[k].floatValue) canShare = false;
+                                    break;
+                                case MaterialProperty.PropType.Vector:
+                                    if(propsIclean[k].vectorValue != propsJclean[k].vectorValue) canShare = false;
+                                    break;
+                            }
+                            
+
+                        }
+
+
+                        if(canShare) sharedMaterial = allMaterials[j];
+                    }
+                    
+                    
+
+                }
+
+                if(sharedMaterial != null)
+                {
+                    for(int m=0; m<allMaterials.Count; m++)
+                        {
+                            if(mats[i] == allMaterials[m])
+                            {
+                                allMaterials[m] = sharedMaterial;
+                            }
+                        }
+                    //Debug.Log($"Share {mats[i]} with {sharedMaterial}");
+                }
+
+                //else Debug.Log($"Share {mats[i]} with None");
+
+
+                LockMaterial(mats[i], true, sharedMaterial);
             }
+            
             EditorUtility.ClearProgressBar();
             AssetDatabase.StopAssetEditing();
             AssetDatabase.Refresh();
@@ -240,6 +356,24 @@ namespace Shaders.Lit
                 if(rend != null) foreach (var mat in rend.sharedMaterials)
                 {
                     if(mat != null) if(mat.shader.name == shaderName)
+                    {
+                        if(!materials.Contains(mat)) materials.Add(mat);
+                    }
+                }
+            }
+            return materials;
+        }
+
+        public static List<Material> GetAllLockedMaterials()
+        {
+            List<Material> materials = new List<Material>();
+            var renderers = UnityEngine.Object.FindObjectsOfType<Renderer>();
+
+            if(renderers != null) foreach (var rend in renderers)
+            {
+                if(rend != null) foreach (var mat in rend.sharedMaterials)
+                {
+                    if(mat != null) if(mat.shader.name.StartsWith("Hidden/" + ShaderEditor.litShaderName))
                     {
                         if(!materials.Contains(mat)) materials.Add(mat);
                     }
@@ -435,22 +569,36 @@ namespace Shaders.Lit
 
         public static bool Lock(Material material, MaterialProperty[] props)
         {
-            Lock(material, props, false);
+            Lock(material, props, false, null);
             return true;
         }
 
-        public static bool Lock(Material material, MaterialProperty[] props, bool applyShaderLater)
+        public static bool Lock(Material material, MaterialProperty[] props, bool applyShaderLater, Material sharedMaterial)
         {
-            // File filepaths and names
+ 
             Shader shader = material.shader;
             string shaderFilePath = AssetDatabase.GetAssetPath(shader);
             string materialFilePath = AssetDatabase.GetAssetPath(material);
-            string materialFolder = Path.GetDirectoryName(materialFilePath);
+            //string materialFolder = Path.GetDirectoryName(materialFilePath);
             string smallguid = material.GetInstanceID().ToString();
-            string newShaderName = "Hidden/" + shader.name + "/" + material.name + "-" + smallguid;
-            string newShaderDirectory = materialFolder + "/OptimizedShaders/" + material.name + "-" + smallguid + "/";
+            string newShaderName = "Hidden/" + shader.name + "/" + smallguid;
+            string newShaderDirectory = "Assets/OptimizedShaders/" + smallguid + "/";
+            ApplyLater applyLater = new ApplyLater();
+            
+            
+            if(sharedMaterial != null)
+            {
+                applyLater.material = material;
+                applyLater.shader = sharedMaterial.shader;
+                applyLater.smallguid = sharedMaterial.GetInstanceID().ToString();
+                applyLater.newShaderName = "Hidden/" + shader.name + "/" + applyLater.smallguid;
+                applyStructsLater.Add(material, applyLater);
+                return true;
+
+            }
 
             
+
 
             // Get collection of all properties to replace
             // Simultaneously build a string of #defines for each CGPROGRAM
@@ -496,7 +644,15 @@ namespace Shaders.Lit
                         break;
                 }
 
-                if (prop.name.EndsWith(AnimatedPropertySuffix) || (material.GetTag(prop.name.ToString() + AnimatedPropertySuffix, false) == "" ? false : true))
+                if (
+                  prop.name.EndsWith(AnimatedPropertySuffix) ||
+                 (material.GetTag(prop.name.ToString() + AnimatedPropertySuffix, false) == "" ? false : true) ||
+                 (prop.name == "_Glossiness") ||
+                 (prop.name == "_Metallic") ||
+                 (prop.name == "_BumpScale") ||
+                 (prop.name == "_Reflectance") ||
+                 (prop.name == "_Color")
+                 )
                     continue;
                 else if (prop.name == UseInlineSamplerStatesPropertyName)
                 {
@@ -778,19 +934,6 @@ namespace Shaders.Lit
             }
             
 
-
-
-
-
-
-
-
-
-
-            
-                
-            // thx thry https://github.com/Thryrallo/ThryEditor/blob/b800a32d5e098b923db4d977277a05d53b985d76/Editor/ShaderOptimizer.cs#L762
-            ApplyLater applyLater = new ApplyLater();
             applyLater.material = material;
             applyLater.shader = shader;
             applyLater.smallguid = smallguid;
@@ -1447,8 +1590,8 @@ namespace Shaders.Lit
             else
             {
                 string materialFilePath = AssetDatabase.GetAssetPath(material);
-                string materialFolder = Path.GetDirectoryName(materialFilePath);
-                string newShaderDirectory = materialFolder + "/OptimizedShaders/" + shaderDirectory;
+                //string materialFolder = Path.GetDirectoryName(materialFilePath);
+                string newShaderDirectory = "Assets/OptimizedShaders/" + shaderDirectory;
                 // Both safe ways of removing the shader make the editor GUI throw an error, so just don't refresh the
                 // asset database immediately
                 //AssetDatabase.DeleteAsset(shaderFilePath);

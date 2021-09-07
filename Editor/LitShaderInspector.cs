@@ -570,7 +570,8 @@ namespace Shaders.Lit
             }
             EditorGUILayout.Space(4);
         }
-                public void FindProperties(MaterialProperty[] props)
+        
+        public void FindProperties(MaterialProperty[] props)
         {
             //Find all material properties listed in the script using reflection, and set them using a loop only if they're of type MaterialProperty.
             //This makes things a lot nicer to maintain and cleaner to look at.

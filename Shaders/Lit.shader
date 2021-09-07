@@ -11,6 +11,7 @@ Shader " Lit"
         _Cutoff ("Alpha Cuttoff", Range(0.001, 1)) = 0.5
 
         _MainTex ("Base Map", 2D) = "white" {}
+        [HideInInspector] _MainTex_STAnimated("_MainTex_ST", Int) = 1
         [HideInInspector] _Color ("Base Color", Color) = (1,1,1,1)
         [HideInInspector] _Saturation ("Saturation", Range(-1,1)) = 0
         [HideInInspector] [Enum(UV0, 0, UV1, 1, UV2, 2)] _MainTexUV ("UV", Int) = 0

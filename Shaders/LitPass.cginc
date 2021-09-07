@@ -21,7 +21,7 @@ struct appdata
 
     #if !defined(UNITY_PASS_SHADOWCASTER)
 
-        #if defined(ENABLE_REFLECTIONS) || defined(ENABLE_SPECULAR_HIGHLIGHTS) || defined (PROP_BUMPMAP) || defined(ENABLE_MATCAP) || defined(ENABLE_PARALLAX)
+        #if defined(ENABLE_REFLECTIONS) || defined(ENABLE_SPECULAR_HIGHLIGHTS) || defined (PROP_BUMPMAP) || defined(ENABLE_MATCAP) || defined(ENABLE_PARALLAX) || defined (UNITY_PASS_META)
             half4 tangent : TANGENT;
         #endif
     
@@ -43,7 +43,7 @@ struct v2f
 
     #if !defined(UNITY_PASS_SHADOWCASTER)
 
-        #if defined(ENABLE_REFLECTIONS) || defined(ENABLE_SPECULAR_HIGHLIGHTS) || defined (PROP_BUMPMAP) || defined(ENABLE_MATCAP)
+        #if defined(ENABLE_REFLECTIONS) || defined(ENABLE_SPECULAR_HIGHLIGHTS) || defined (PROP_BUMPMAP) || defined(ENABLE_MATCAP) || defined (UNITY_PASS_META)
             float3 bitangent : TEXCOORD2;
             float3 tangent : TEXCOORD3;
         #endif
