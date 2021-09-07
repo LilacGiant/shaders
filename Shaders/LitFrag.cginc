@@ -37,6 +37,8 @@ half4 frag(v2f i) : SV_Target
         detailMap = applyDetailMap(parallaxOffset, maskMap.a);
     #endif
 
+    applySaturation();
+
 
     #if defined(ENABLE_REFLECTIONS) || defined(ENABLE_SPECULAR_HIGHLIGHTS) || defined (PROP_BUMPMAP) || defined(UNITY_PASS_META)
         half3 tangent = i.tangent;
@@ -115,6 +117,12 @@ half4 frag(v2f i) : SV_Target
     #endif
     
     alpha -= mainTex.a * 0.00001; // fix main tex sampler without changing the color;
+    if(_Mode == 3)
+    {
+        surface.albedo.rgb *= alpha;
+        alpha = lerp(alpha, 1, surface.metallic);
+    }
+
 
     half4 finalColor = half4( surface.albedo * surface.oneMinusMetallic * ((light.indirectDiffuse * surface.occlusion) + light.finalLight) + light.directSpecular + light.indirectSpecular + surface.emission, alpha);
 

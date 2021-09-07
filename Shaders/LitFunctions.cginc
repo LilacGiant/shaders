@@ -20,8 +20,8 @@ half calcAlpha(half alpha)
     }
     if(_Mode == 3)
     {
-        alpha = lerp(alpha, 1, _Metallic);
-        surface.albedo.rgb *= alpha;
+        //alpha = lerp(alpha, 1, _Metallic * _Metallic);
+        //surface.albedo.rgb *= alpha;
     }
 
     return alpha;
@@ -332,6 +332,12 @@ float4 applyDetailMap(half2 parallaxOffset, float maskMapAlpha)
 }
 #endif
 
+void applySaturation()
+{
+    half desaturated = dot(surface.albedo.rgb, grayscaleVec); // saturation has to be applied after detail
+    surface.albedo.rgb = lerp(desaturated, surface.albedo.rgb, (_Saturation+1));
+}
+
 void initSurfaceData(out half metallicMap, out half smoothnessMap, out half occlusionMap, out half4 maskMap, half2 parallaxOffset)
 {
     metallicMap = 1;
@@ -377,8 +383,7 @@ void getMainTex(out half4 mainTex, half2 parallaxOffset, half4 vertexColor)
 {
     mainTex = MAIN_TEX(_MainTex, sampler_MainTex, uvs[_MainTexUV], _MainTex_ST);
 
-    half mainTexDesaturated = dot(mainTex, grayscaleVec); // saturation
-    mainTex.rgb = lerp(mainTexDesaturated, mainTex.rgb, (_Saturation+1));
+    
 
     surface.albedo = mainTex * _Color;
 
