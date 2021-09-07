@@ -206,145 +206,146 @@ namespace Shaders.Lit
         public static void LockAllMaterials()
         {
             List<Material> mats = GetAllMaterials(ShaderEditor.litShaderName);
-            if(mats.Count > 0){
-            AssetDatabase.StartAssetEditing();
-            List<Material> lockedMats = GetAllLockedMaterials();
-            List<Material> allMaterials = new List<Material>();
-            allMaterials.AddRange(mats);
-            allMaterials.AddRange(lockedMats);
-            float progress = mats.Count;
-
-            List<String> shaderPropertyNames = new List<String>();
-
-            string originalShaderPath = AssetDatabase.GetAssetPath(mats[0].shader);
-
-            Shader shader = (Shader)AssetDatabase.LoadAssetAtPath( originalShaderPath, typeof( Shader ) );
-
-            int propCount = ShaderUtil.GetPropertyCount(shader);
-
-            for(int l=0; l<propCount; l++)
+            if(mats.Count > 0)
             {
-                string st = ShaderUtil.GetPropertyName (shader, l);
-                shaderPropertyNames.Add(st);
+                AssetDatabase.StartAssetEditing();
+                List<Material> lockedMats = GetAllLockedMaterials();
+                List<Material> allMaterials = new List<Material>();
+                allMaterials.AddRange(mats);
+                allMaterials.AddRange(lockedMats);
+                float progress = mats.Count;
 
-            }
+                List<String> shaderPropertyNames = new List<String>();
 
+                string originalShaderPath = AssetDatabase.GetAssetPath(mats[0].shader);
 
-            
+                Shader shader = (Shader)AssetDatabase.LoadAssetAtPath( originalShaderPath, typeof( Shader ) );
 
+                int propCount = ShaderUtil.GetPropertyCount(shader);
 
-            
-            for (int i=0; i<progress; i++)
-            {
-                EditorUtility.DisplayCancelableProgressBar("Generating Shaders", mats[i].name, i/progress);
-                MaterialProperty[] propsI = MaterialEditor.GetMaterialProperties(new UnityEngine.Object[] { mats[i] });
-                List<MaterialProperty> propsIclean = new List<MaterialProperty>();
-
-                Material sharedMaterial = null;
-                
-
-                foreach(MaterialProperty p in propsI)
+                for(int l=0; l<propCount; l++)
                 {
-                    if(shaderPropertyNames.Contains(p.name)) propsIclean.Add(p);
+                    string st = ShaderUtil.GetPropertyName (shader, l);
+                    shaderPropertyNames.Add(st);
+
                 }
 
 
-                for (int j=0; j<allMaterials.Count; j++)
+                
+
+
+                
+                for (int i=0; i<progress; i++)
                 {
-                    bool canShare = true;
-                    if(mats[i] == allMaterials[j]) canShare = false;
-                    else
+                    EditorUtility.DisplayCancelableProgressBar("Generating Shaders", mats[i].name, i/progress);
+                    MaterialProperty[] propsI = MaterialEditor.GetMaterialProperties(new UnityEngine.Object[] { mats[i] });
+                    List<MaterialProperty> propsIclean = new List<MaterialProperty>();
+
+                    Material sharedMaterial = null;
+                    
+
+                    foreach(MaterialProperty p in propsI)
                     {
-                        MaterialProperty[] propsJ = MaterialEditor.GetMaterialProperties(new UnityEngine.Object[] { allMaterials[j] });
-                        List<MaterialProperty> propsJclean = new List<MaterialProperty>();
-
-                        foreach(MaterialProperty p in propsJ)
-                        {
-                            if(shaderPropertyNames.Contains(p.name)) propsJclean.Add(p);  
-                        }
-
-                
-
-                        for (int k=0; k<propCount; k++)
-                        {
-                            switch(propsIclean[k].type)
-                            {
-                                case MaterialProperty.PropType.Float:
-                                    if(propsIclean[k].name == "_ShaderOptimizerEnabled") break;
-                                    if(propsIclean[k].name == "_BlendOp") break;
-                                    if(propsIclean[k].name == "_BlendOpAlpha") break;
-                                    if(propsIclean[k].name == "_SrcBlend") break;
-                                    if(propsIclean[k].name == "_DstBlend") break;
-                                    if(propsIclean[k].name == "_ZWrite") break;
-                                    if(propsIclean[k].name == "_ZTest") break;
-                                    if(propsIclean[k].name == "_Cull") break;
-                                    if(propsIclean[k].floatValue != propsJclean[k].floatValue) canShare = false;
-                                    break;
-                                case MaterialProperty.PropType.Texture:
-                                    if(propsIclean[k].name == "_MainTex") break;
-                                    if(propsIclean[k].textureValue != null)
-                                    {
-                                        if(propsIclean[k].textureScaleAndOffset != propsJclean[k].textureScaleAndOffset) canShare = false;
-                                    }
-                                    else if(propsIclean[k].textureValue == null && propsJclean[k].textureValue == null) {}
-                                    else if(propsIclean[k].textureValue != null && propsJclean[k].textureValue != null) {}
-                                    else canShare = false;
-                                    break;
-                                case MaterialProperty.PropType.Color:
-                                    if(propsIclean[k].name == "_Color") break;
-                                    if(propsIclean[k].colorValue != propsJclean[k].colorValue) canShare = false;
-                                    break;
-                                case MaterialProperty.PropType.Range:
-                                    if(propsIclean[k].name == "_Glossiness") break;
-                                    if(propsIclean[k].name == "_Metallic") break;
-                                    if(propsIclean[k].name == "_Reflectance") break;
-                                    if(propsIclean[k].name == "_BumpScale") break;
-                                    if(propsIclean[k].floatValue != propsJclean[k].floatValue) canShare = false;
-                                    break;
-                                case MaterialProperty.PropType.Vector:
-                                    if(propsIclean[k].vectorValue != propsJclean[k].vectorValue) canShare = false;
-                                    break;
-                            }
-                            
-
-                        }
-
-
-                        if(canShare) sharedMaterial = allMaterials[j];
+                        if(shaderPropertyNames.Contains(p.name)) propsIclean.Add(p);
                     }
-                    
-                    
 
-                }
 
-                if(sharedMaterial != null)
-                {
-                    for(int m=0; m<allMaterials.Count; m++)
+                    for (int j=0; j<allMaterials.Count; j++)
+                    {
+                        bool canShare = true;
+                        if(mats[i] == allMaterials[j]) canShare = false;
+                        else
                         {
-                            if(mats[i] == allMaterials[m])
+                            MaterialProperty[] propsJ = MaterialEditor.GetMaterialProperties(new UnityEngine.Object[] { allMaterials[j] });
+                            List<MaterialProperty> propsJclean = new List<MaterialProperty>();
+
+                            foreach(MaterialProperty p in propsJ)
                             {
-                                allMaterials[m] = sharedMaterial;
+                                if(shaderPropertyNames.Contains(p.name)) propsJclean.Add(p);  
                             }
+
+                    
+
+                            for (int k=0; k<propCount; k++)
+                            {
+                                switch(propsIclean[k].type)
+                                {
+                                    case MaterialProperty.PropType.Float:
+                                        if(propsIclean[k].name == "_ShaderOptimizerEnabled") break;
+                                        if(propsIclean[k].name == "_BlendOp") break;
+                                        if(propsIclean[k].name == "_BlendOpAlpha") break;
+                                        if(propsIclean[k].name == "_SrcBlend") break;
+                                        if(propsIclean[k].name == "_DstBlend") break;
+                                        if(propsIclean[k].name == "_ZWrite") break;
+                                        if(propsIclean[k].name == "_ZTest") break;
+                                        if(propsIclean[k].name == "_Cull") break;
+                                        if(propsIclean[k].floatValue != propsJclean[k].floatValue) canShare = false;
+                                        break;
+                                    case MaterialProperty.PropType.Texture:
+                                        if(propsIclean[k].name == "_MainTex") break;
+                                        if(propsIclean[k].textureValue != null || propsJclean[k].textureValue != null)
+                                        {
+                                            if(propsIclean[k].textureScaleAndOffset != propsJclean[k].textureScaleAndOffset) canShare = false;
+                                        }
+                                        else if(propsIclean[k].textureValue == null && propsJclean[k].textureValue == null) {}
+                                        else if(propsIclean[k].textureValue != null && propsJclean[k].textureValue != null) {}
+                                        else canShare = false;
+                                        break;
+                                    case MaterialProperty.PropType.Color:
+                                        if(propsIclean[k].name == "_Color") break;
+                                        if(propsIclean[k].colorValue != propsJclean[k].colorValue) canShare = false;
+                                        break;
+                                    case MaterialProperty.PropType.Range:
+                                        if(propsIclean[k].name == "_Glossiness") break;
+                                        if(propsIclean[k].name == "_Metallic") break;
+                                        if(propsIclean[k].name == "_Reflectance") break;
+                                        if(propsIclean[k].name == "_BumpScale") break;
+                                        if(propsIclean[k].floatValue != propsJclean[k].floatValue) canShare = false;
+                                        break;
+                                    case MaterialProperty.PropType.Vector:
+                                        if(propsIclean[k].vectorValue != propsJclean[k].vectorValue) canShare = false;
+                                        break;
+                                }
+                                
+
+                            }
+
+
+                            if(canShare) sharedMaterial = allMaterials[j];
                         }
-                    //Debug.Log($"Share {mats[i]} with {sharedMaterial}");
+                        
+                        
+
+                    }
+
+                    if(sharedMaterial != null)
+                    {
+                        for(int m=0; m<allMaterials.Count; m++)
+                            {
+                                if(mats[i] == allMaterials[m])
+                                {
+                                    allMaterials[m] = sharedMaterial;
+                                }
+                            }
+                        //Debug.Log($"Share {mats[i]} with {sharedMaterial}");
+                    }
+
+                    //else Debug.Log($"Share {mats[i]} with None");
+
+
+                    LockMaterial(mats[i], true, sharedMaterial);
                 }
+                
+                EditorUtility.ClearProgressBar();
+                AssetDatabase.StopAssetEditing();
+                AssetDatabase.Refresh();
 
-                //else Debug.Log($"Share {mats[i]} with None");
-
-
-                LockMaterial(mats[i], true, sharedMaterial);
-            }
-            
-            EditorUtility.ClearProgressBar();
-            AssetDatabase.StopAssetEditing();
-            AssetDatabase.Refresh();
-
-            for (int i=0; i<progress; i++)
-            {
-                EditorUtility.DisplayCancelableProgressBar("Replacing Shaders", mats[i].name, i/progress);
-                LockApplyShader(mats[i]);
-            }
-            EditorUtility.ClearProgressBar();
+                for (int i=0; i<progress; i++)
+                {
+                    EditorUtility.DisplayCancelableProgressBar("Replacing Shaders", mats[i].name, i/progress);
+                    LockApplyShader(mats[i]);
+                }
+                EditorUtility.ClearProgressBar();
             }
         }
 
@@ -1016,9 +1017,11 @@ namespace Shaders.Lit
 
             // Actually switch the shader
             Shader newShader = Shader.Find(applyLater.newShaderName);
+            
             if (newShader == null)
             {
-                Debug.LogError("[Kaj Shader Optimizer] Generated shader " + applyLater.newShaderName + " could not be found");
+               // LockMaterial(applyLater.material, false, null);
+                Debug.LogError("[Kaj Shader Optimizer] Generated shader " + applyLater.newShaderName + " for " + applyLater.material +" could not be found ");
                 return false;
             }
             applyLater.material.shader = newShader;
@@ -1281,7 +1284,7 @@ namespace Shaders.Lit
                     // As long as textures are sampled in-order inside a single function, this method will work.
                     uniqueSampledTextures = new List<TextureProperty>();
                 }
-                else if (lineTrimmed.StartsWith("//KSODuplicateTextureCheck"))
+                else if (lineTrimmed.StartsWith("////KSODuplicateTextureCheck")) // not needed for this shader because of sharing locked shaders
                 {
                     // Each KSODuplicateTextureCheck line gets evaluated when the shader is optimized
                     // If the texture given has already been sampled as another texture (i.e. one texture is used in two slots)
