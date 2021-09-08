@@ -396,7 +396,7 @@ void getIndirectDiffuse(float3 worldNormal, float2 parallaxOffset)
 {
     #if defined(LIGHTMAP_ON)
 
-        half3 lightMap = getLightmap(uvs[1], worldNormal, parallaxOffset);
+        half3 lightMap = getLightmap(uvs[1], worldNormal, 0);
         #if defined(DYNAMICLIGHTMAP_ON) && !defined(SHADER_API_MOBILE)
             half3 realtimeLightMap = getRealtimeLightmap(uvs[2], worldNormal, parallaxOffset);
             lightMap += realtimeLightMap; 
