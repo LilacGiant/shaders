@@ -287,7 +287,7 @@ namespace Shaders.Lit
                                         {
                                             if(propsIclean[k].textureScaleAndOffset != propsJclean[k].textureScaleAndOffset) canShare = false;
                                         }
-                                        else if(propsIclean[k].textureValue == null && propsJclean[k].textureValue == null) {}
+                                        if(propsIclean[k].textureValue == null && propsJclean[k].textureValue == null) {}
                                         else if(propsIclean[k].textureValue != null && propsJclean[k].textureValue != null) {}
                                         else canShare = false;
                                         break;
