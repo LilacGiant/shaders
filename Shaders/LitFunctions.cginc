@@ -18,11 +18,6 @@ half calcAlpha(half alpha)
         }
 
     }
-    if(_Mode == 3)
-    {
-        //alpha = lerp(alpha, 1, _Metallic * _Metallic);
-        //surface.albedo.rgb *= alpha;
-    }
 
     return alpha;
 }
@@ -212,14 +207,13 @@ void applyEmission(half2 parallaxOffset)
 }
 
 
-half3 getDirectSpecular(float3 worldNormal, half3 tangent, half3 bitangent, half f0, half NoV)
+half3 getDirectSpecular(float3 worldNormal, half3 tangent, half3 bitangent, half3 f0, half NoV)
 {
     half NoH = saturate(dot(worldNormal, light.halfVector));
 
     half roughness = max(surface.perceptualRoughness * surface.perceptualRoughness, 0.002);
 
-
-    half D = D_GGX(NoH, roughness);
+    half D = GGXTerm (NoH, roughness);
 
     float anisotropy = _Anisotropy;
     #if !defined(SHADER_API_MOBILE)
@@ -231,17 +225,12 @@ half3 getDirectSpecular(float3 worldNormal, half3 tangent, half3 bitangent, half
         }
     #endif
 
-    #ifdef SHADER_API_MOBILE
-        half V = V_SmithGGXCorrelatedFast(NoV, light.NoL, roughness);
-    #else
-        half V = V_SmithGGXCorrelated(NoV, light.NoL, roughness);
-    #endif
+    half V = V_SmithGGXCorrelated ( NoV,light.NoL, roughness);
+    half3 F = F_Schlick(light.LoH, f0);
 
-    half3 F = F_Schlick(f0, light.LoH);
-   
-    half3 directSpecular = max(0, (D * V) * F);
+    half3 specularTerm = max(0, (D * V) * F);
 
-    return directSpecular * UNITY_PI * light.finalLight;
+    return specularTerm * UNITY_PI * light.finalLight;
 }
 
 half3 getIndirectSpecular(float3 reflDir, float3 worldPos, float3 reflWorldNormal, half3 fresnel, half3 f0)
@@ -288,7 +277,7 @@ void initLighting(v2f i, float3 worldNormal, float3 viewDir, half NoV)
     light.indirectDominantColor = half3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w);
     light.direction = getLightDir(!_GetDominantLight, i.worldPos);
     light.color = getLightCol(!_GetDominantLight, _LightColor0.rgb, light.indirectDominantColor) * 0.95;
-    light.halfVector = normalize(light.direction + viewDir);
+    light.halfVector = Unity_SafeNormalize(light.direction + viewDir);
     light.NoL = saturate(dot(worldNormal, light.direction));
     light.LoH = saturate(dot(light.direction, light.halfVector));
     UNITY_LIGHT_ATTENUATION(attenuation, i, i.worldPos.xyz);

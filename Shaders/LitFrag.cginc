@@ -69,7 +69,7 @@ half4 frag(v2f i) : SV_Target
 
     #if defined(ENABLE_REFLECTIONS) || defined(ENABLE_SPECULAR_HIGHLIGHTS) || defined(UNITY_PASS_META)
         half3 f0 = 0.16 * _Reflectance * _Reflectance * surface.oneMinusMetallic + surface.albedo * surface.metallic;
-        half3 fresnel = F_Schlick(f0, NoV);
+        half3 fresnel = F_Schlick(NoV, f0);
 
         #if !defined(SHADER_API_MOBILE)
             fresnel = lerp(f0, fresnel , _FresnelColor.a);
@@ -110,6 +110,7 @@ half4 frag(v2f i) : SV_Target
     #if defined(ENABLE_SPECULAR_HIGHLIGHTS) || defined(UNITY_PASS_META)
         light.directSpecular = getDirectSpecular(worldNormal, tangent, bitangent, f0, NoV);
     #endif
+
 
     
     #if defined(UNITY_PASS_FORWARDBASE) || defined(UNITY_PASS_META)
