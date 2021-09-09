@@ -111,7 +111,7 @@ float shEvaluateDiffuseL1Geomerics(float L0, float3 L1, float3 n)
         float3 L1z = nL1z * L0 * 2;
 
         float3 sh;
-    #if BAKERY_SHNONLINEAR
+    #ifdef BAKERY_SHNONLINEAR
         //sh.r = shEvaluateDiffuseL1Geomerics(L0.r, float3(L1x.r, L1y.r, L1z.r), normalWorld);
         //sh.g = shEvaluateDiffuseL1Geomerics(L0.g, float3(L1x.g, L1y.g, L1z.g), normalWorld);
         //sh.b = shEvaluateDiffuseL1Geomerics(L0.b, float3(L1x.b, L1y.b, L1z.b), normalWorld);
