@@ -1,8 +1,7 @@
-
 // https://github.com/Xiexe/Unity-Lit-Shader-Templates/blob/master/LICENSE
 // https://github.com/google/filament/blob/main/LICENSE
 #define grayscaleVec half3(0.2125, 0.7154, 0.0721)
-
+#define TAU 6.28318530718
 float pow5(float x) {
     float x2 = x * x;
     return x2 * x2 * x;

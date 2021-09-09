@@ -1,14 +1,4 @@
 ﻿#include "LitInputs.cginc"
-#include "UnityCG.cginc"
-#include "AutoLight.cginc"
-#include "Lighting.cginc"
-#include "LitLighting.cginc"
-
-#ifdef UNITY_PASS_META
-    #include "UnityMetaPass.cginc"
-#endif
-
-
 
 struct appdata
 {
@@ -21,7 +11,7 @@ struct appdata
 
     #if !defined(UNITY_PASS_SHADOWCASTER)
 
-        #if defined(ENABLE_REFLECTIONS) || defined(ENABLE_SPECULAR_HIGHLIGHTS) || defined (PROP_BUMPMAP) || defined(ENABLE_MATCAP) || defined(ENABLE_PARALLAX) || defined (UNITY_PASS_META)
+        #if defined(ENABLE_REFLECTIONS) || defined(ENABLE_SPECULAR_HIGHLIGHTS) || defined (PROP_BUMPMAP) || defined(ENABLE_MATCAP) || defined(ENABLE_PARALLAX) || defined (UNITY_PASS_META) || defined(BAKERY_INCLUDED)
             half4 tangent : TANGENT;
         #endif
     
@@ -57,7 +47,7 @@ struct v2f
             UNITY_FOG_COORDS(7)
         #endif
 
-        #ifdef ENABLE_PARALLAX
+        #if defined(ENABLE_PARALLAX) || defined(BAKERY_INCLUDED)
             float3 viewDirForParallax : TEXCOORD8;
         #endif
 
@@ -113,7 +103,7 @@ v2f vert(appdata v)
             UNITY_TRANSFER_FOG(o, o.pos);
         #endif
 
-        #ifdef ENABLE_PARALLAX
+         #if defined(ENABLE_PARALLAX) || defined(BAKERY_INCLUDED)
             TANGENT_SPACE_ROTATION;
             o.viewDirForParallax = mul (rotation, ObjSpaceViewDir(v.vertex));
         #endif

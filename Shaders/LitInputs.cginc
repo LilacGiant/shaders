@@ -1,3 +1,4 @@
+
 #if (PROP_MODE!=0) || !defined(OPTIMIZER_ENABLED)
     #define ENABLE_TRANSPARENCY
 #endif
@@ -39,6 +40,9 @@
 #if defined(ENABLE_AUDIOLINK)
     #include "AudioLink.cginc"  
 #endif
+
+
+
 
 
 
@@ -173,3 +177,28 @@ struct Surface
     half3 emission;
 };
 static Surface surface;
+
+#include "UnityCG.cginc"
+#include "AutoLight.cginc"
+#include "Lighting.cginc"
+#include "LitLighting.cginc"
+
+#ifdef UNITY_PASS_META
+    #include "UnityMetaPass.cginc"
+#endif
+
+#if defined(BAKERY_SH) || defined(BAKERY_RNM) || defined(BAKERY_LMSPEC)
+    #ifdef UNITY_PASS_FORWARDBASE
+        #ifndef SHADER_API_MOBILE
+            #include "Bakery.cginc"
+        #else
+        #undef BAKERY_SH
+        #undef BAKERY_RNM
+        #undef BAKERY_LMSPEC
+        #endif
+    #else
+    #undef BAKERY_SH
+    #undef BAKERY_RNM
+    #undef BAKERY_LMSPEC
+    #endif
+#endif

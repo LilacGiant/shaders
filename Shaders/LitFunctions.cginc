@@ -22,11 +22,11 @@ half calcAlpha(half alpha)
     return alpha;
 }
 
-void initNormalMap(half4 normalMap, inout half3 bitangent, inout half3 tangent, inout half3 normal, half4 detailNormalMap)
+void initNormalMap(half4 normalMap, inout half3 bitangent, inout half3 tangent, inout half3 normal, half4 detailNormalMap, inout float3 tangentNormal)
 {
-    normalMap.g = _NormalMapOrientation ? normalMap.g : 1-normalMap.g;
+    //normalMap.g = _NormalMapOrientation ? 1-normalMap.g : normalMap.g;
 
-    half3 tangentNormal = UnpackScaleNormal(normalMap, _BumpScale);
+    tangentNormal = UnpackScaleNormal(normalMap, _BumpScale);
 
     #if defined(PROP_DETAILMAP) && !defined(SHADER_API_MOBILE)
         detailNormalMap.g = 1-detailNormalMap.g;
@@ -34,12 +34,15 @@ void initNormalMap(half4 normalMap, inout half3 bitangent, inout half3 tangent, 
         tangentNormal = BlendNormals(tangentNormal, detailNormal);
     #endif
 
+    tangentNormal.g *= _NormalMapOrientation ? 1 : -1;
+
     half3 calcedNormal = normalize
     (
 		tangentNormal.x * tangent +
 		tangentNormal.y * bitangent +
 		tangentNormal.z * normal
     );
+
 
     normal = calcedNormal;
     tangent = cross(normal, bitangent);
@@ -230,11 +233,12 @@ half3 getDirectSpecular(float3 worldNormal, half3 tangent, half3 bitangent, half
 
     half3 specularTerm = max(0, (D * V) * F);
 
-    return specularTerm * UNITY_PI * light.finalLight;
+    return specularTerm * light.finalLight * UNITY_PI;
 }
 
 half3 getIndirectSpecular(float3 reflDir, float3 worldPos, float3 reflWorldNormal, half3 fresnel, half3 f0)
 {
+
     Unity_GlossyEnvironmentData envData;
     envData.roughness = surface.perceptualRoughness;
     envData.reflUVW = getBoxProjection(

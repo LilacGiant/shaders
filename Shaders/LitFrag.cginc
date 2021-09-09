@@ -12,6 +12,7 @@ half4 frag(v2f i) : SV_Target
     half smoothnessMap = 1;
     half occlusionMap = 1;
     half4 mainTex = 1;
+    float3 tangentNormal = 0.5;
 
 
     float3 worldNormal = normalize(i.worldNormal);
@@ -52,7 +53,7 @@ half4 frag(v2f i) : SV_Target
         #if defined(PROP_DETAILMAP) && !defined(SHADER_API_MOBILE)
             detailNormalMap = float4(detailMap.a, detailMap.g, 1, 1);
         #endif
-        initNormalMap(normalMap, bitangent, tangent, worldNormal, detailNormalMap);
+        initNormalMap(normalMap, bitangent, tangent, worldNormal, detailNormalMap, tangentNormal);
     #endif
     
 
@@ -67,7 +68,7 @@ half4 frag(v2f i) : SV_Target
         surface.perceptualRoughness = GSAA_Filament(worldNormal, surface.perceptualRoughness);
     #endif
 
-    #if defined(ENABLE_REFLECTIONS) || defined(ENABLE_SPECULAR_HIGHLIGHTS) || defined(UNITY_PASS_META)
+    #if defined(ENABLE_REFLECTIONS) || defined(ENABLE_SPECULAR_HIGHLIGHTS) || defined(UNITY_PASS_META) || defined(BAKERY_INCLUDED)
         half3 f0 = 0.16 * _Reflectance * _Reflectance * surface.oneMinusMetallic + surface.albedo * surface.metallic;
         half3 fresnel = F_Schlick(NoV, f0);
 
@@ -111,10 +112,34 @@ half4 frag(v2f i) : SV_Target
         light.directSpecular = getDirectSpecular(worldNormal, tangent, bitangent, f0, NoV);
     #endif
 
-
     
     #if defined(UNITY_PASS_FORWARDBASE) || defined(UNITY_PASS_META)
         applyEmission(parallaxOffset);
+    #endif
+
+    #if defined(BAKERY_RNM)
+        if (bakeryLightmapMode == BAKERYMODE_RNM)
+        {
+            float3 eyeVecT = 0;
+            #ifdef BAKERY_LMSPEC
+                eyeVecT = -normalize(i.viewDirForParallax);
+            #endif
+
+            float3 prevSpec = light.indirectSpecular;
+            BakeryRNM(light.indirectDiffuse, light.indirectSpecular, uvs[1], tangentNormal, surface.perceptualRoughness, eyeVecT);
+            light.indirectSpecular *= fresnel;
+            light.indirectSpecular += prevSpec;
+        }
+    #endif
+
+    #ifdef BAKERY_SH
+    if (bakeryLightmapMode == BAKERYMODE_SH)
+    {
+        float3 prevSpec = light.indirectSpecular;
+        BakerySH(light.indirectDiffuse, light.indirectSpecular, uvs[1], worldNormal, -viewDir, surface.perceptualRoughness);
+        light.indirectSpecular *= fresnel;
+        light.indirectSpecular += prevSpec;
+    }
     #endif
     
     alpha -= mainTex.a * 0.00001; // fix main tex sampler without changing the color;

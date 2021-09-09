@@ -11,12 +11,12 @@ Shader " Lit"
         _Cutoff ("Alpha Cuttoff", Range(0.001, 1)) = 0.5
 
         _MainTex ("Base Map", 2D) = "white" {}
-        [HideInInspector] _MainTex_STAnimated("_MainTex_ST", Int) = 1
-        [HideInInspector] _Color ("Base Color", Color) = (1,1,1,1)
-        [HideInInspector] _Saturation ("Saturation", Range(-1,1)) = 0
-        [HideInInspector] [Enum(UV0, 0, UV1, 1, UV2, 2)] _MainTexUV ("UV", Int) = 0
+        _MainTex_STAnimated("_MainTex_ST", Int) = 1
+        _Color ("Base Color", Color) = (1,1,1,1)
+        _Saturation ("Saturation", Range(-1,1)) = 0
+        [Enum(UV0, 0, UV1, 1, UV2, 2)] _MainTexUV ("UV", Int) = 0
         
-        [HideInInspector] [ToggleUI] _EnableVertexColor ("Vertex Colors Mulitply Base", Float) = 0
+        [ToggleUI] _EnableVertexColor ("Vertex Colors Mulitply Base", Float) = 0
                
         _Metallic ("Metallic", Range(0,1)) = 0
         _Glossiness ("Smoothness", Range(0,1)) = 0.5
@@ -24,28 +24,28 @@ Shader " Lit"
 
 
         _MetallicGlossMap ("Mask Map:Metallic(R), Occlusion(G), Detail Mask(B), Smoothness(A)", 2D) = "white" {}
-        [HideInInspector] [Enum(UV0, 0, UV1, 1, UV2, 2)] _MetallicGlossMapUV ("UV", Int) = 0
+        [Enum(UV0, 0, UV1, 1, UV2, 2)] _MetallicGlossMapUV ("UV", Int) = 0
 
 
         _SmoothnessMap ("Smoothness Map", 2D) = "white" {}
-        [HideInInspector] [Enum(UV0, 0, UV1, 1, UV2, 2)] _SmoothnessMapUV ("UV", Int) = 0
-        [HideInInspector] [ToggleUI] _GlossinessInvert ("Invert Smoothness", Float) = 0
+        [Enum(UV0, 0, UV1, 1, UV2, 2)] _SmoothnessMapUV ("UV", Int) = 0
+        [ToggleUI] _GlossinessInvert ("Invert Smoothness", Float) = 0
 
         _MetallicMap ("Metallic Map", 2D) = "white" {}
-        [HideInInspector] [Enum(UV0, 0, UV1, 1, UV2, 2)] _MetallicMapUV ("UV", Int) = 0
+        [Enum(UV0, 0, UV1, 1, UV2, 2)] _MetallicMapUV ("UV", Int) = 0
 
         _OcclusionMap ("Occlusion Map", 2D) = "white" {}
-        [HideInInspector] [Enum(UV0, 0, UV1, 1, UV2, 2)] _OcclusionMapUV ("UV", Int) = 0
+        [Enum(UV0, 0, UV1, 1, UV2, 2)] _OcclusionMapUV ("UV", Int) = 0
 
         [Normal] _BumpMap ("Normal Map", 2D) = "bump" {}
-        [HideInInspector] _BumpScale ("Bump Scale", Range(0,10)) = 0
-        [HideInInspector] [Enum(OpenGL, 0, Direct3D, 1)] _NormalMapOrientation ("Orientation", Int) = 0
-        [HideInInspector] [Enum(UV0, 0, UV1, 1, UV2, 2)] _BumpMapUV ("UV", Int) = 0
+        _BumpScale ("Bump Scale", Range(0,10)) = 0
+        [Enum(OpenGL, 0, Direct3D, 1)] _NormalMapOrientation ("Orientation", Int) = 0
+        [Enum(UV0, 0, UV1, 1, UV2, 2)] _BumpMapUV ("UV", Int) = 0
 
         [ToggleUI] _EnableEmission ("Emission", Float) = 0
         _EmissionMap ("Emission Map", 2D) = "white" {}
-        [HideInInspector] [HDR] _EmissionColor ("Emission Color", Color) = (0,0,0)
-        [HideInInspector] [Enum(UV0, 0, UV1, 1, UV2, 2)] _EmissionMapUV ("UV", Int) = 0
+        [HDR] _EmissionColor ("Emission Color", Color) = (0,0,0)
+        [Enum(UV0, 0, UV1, 1, UV2, 2)] _EmissionMapUV ("UV", Int) = 0
 
         
         [Enum(Default, 0, Light Probes, 1)] _GetDominantLight ("Dominant Light", Int) = 0
@@ -58,11 +58,11 @@ Shader " Lit"
         [Toggle(ENABLE_REFLECTIONS)] _GlossyReflections("Reflections", Float) = 1
 
 
-        [HideInInspector] [Toggle(ENABLE_GSAA)] _GSAA ("Geometric Specular AA", Float) = 0
+        [Toggle(ENABLE_GSAA)] _GSAA ("Geometric Specular AA", Float) = 0
         [PowerSlider(3)] _specularAntiAliasingVariance ("Variance", Range(0.0, 1.0)) = 0.15
         [PowerSlider(3)] _specularAntiAliasingThreshold ("Threshold", Range(0.0, 1.0)) = 0.1
         
-        [HideInInspector] [Toggle(ENABLE_MATCAP)] _EnableMatcap ("Matcap", Float) = 0
+        [Toggle(ENABLE_MATCAP)] _EnableMatcap ("Matcap", Float) = 0
         [NoScaleOffset] _MatCap ("Matcap", 2D) = "white" {}
         _MatCapReplace ("Intensity", Range(0.0, 1.0)) = 1
 
@@ -111,6 +111,15 @@ Shader " Lit"
         [Enum(Disabled, 0, Gradient, 1, Path, 2, Intensity, 3)] _ALEmissionType ("Audio Link Emission Type", Int) = 0
         _ALEmissionMap ("Audio Link Emission Path & Mask: Path(G), Mask(A)", 2D) = "white" {}
 
+        [Toggle(BAKERY_SH)] _BAKERY_SH ("Enable SH", Float) = 0
+        [Toggle(BAKERY_SHNONLINEAR)] _BAKERY_SHNONLINEAR ("SH non-linear mode", Float) = 1
+        [Toggle(BAKERY_RNM)] _BAKERY_RNM ("Enable RNM", Float) = 0
+        [Toggle(BAKERY_LMSPEC)] _BAKERY_LMSPEC ("Enable Lightmap Specular", Float) = 0
+
+        [Enum(BAKERYMODE_DEFAULT, 0, BAKERYMODE_VERTEXLM, 1, BAKERYMODE_RNM, 2, BAKERYMODE_SH, 3)] bakeryLightmapMode ("bakeryLightmapMode", Float) = 0
+        _RNM0("RNM0", 2D) = "black" {}
+        _RNM1("RNM1", 2D) = "black" {}
+        _RNM2("RNM2", 2D) = "black" {}
 
 
     }
@@ -157,6 +166,11 @@ Shader " Lit"
             #pragma shader_feature_local ENABLE_PARALLAX
             #pragma shader_feature_local ENABLE_REFRACTION
             #pragma shader_feature_local ENABLE_AUDIOLINK
+            #pragma shader_feature_local BAKERY_SHNONLINEAR
+
+            #pragma shader_feature_local BAKERY_SH
+            #pragma shader_feature_local BAKERY_RNM
+            #pragma shader_feature_local BAKERY_LMSPEC
 
 
             #ifndef UNITY_PASS_FORWARDBASE

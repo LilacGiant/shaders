@@ -101,6 +101,16 @@ namespace Shaders.Lit
         protected MaterialProperty _ALEmissionBand = null;
         protected MaterialProperty _ALEmissionType = null;
         protected MaterialProperty _ALEmissionMap = null;
+        
+        protected MaterialProperty _BAKERY_SH = null;
+        protected MaterialProperty _BAKERY_SHNONLINEAR = null;
+        protected MaterialProperty _BAKERY_RNM = null;
+        protected MaterialProperty _BAKERY_LMSPEC = null;
+
+        protected MaterialProperty bakeryLightmapMode = null;
+        protected MaterialProperty _RNM0 = null;
+        protected MaterialProperty _RNM1 = null;
+        protected MaterialProperty _RNM2 = null;
 
 
 
@@ -273,6 +283,16 @@ namespace Shaders.Lit
                 prop(_LightmapMultiplier);
                 prop(_BicubicLightmap, false);
                 prop(_LightProbeMethod, false);
+                #if BAKERY_INCLUDED
+                prop(_BAKERY_SH, false);
+                prop(_BAKERY_SHNONLINEAR, false);
+                prop(_BAKERY_RNM, false);
+                prop(_BAKERY_LMSPEC, false);
+                prop(bakeryLightmapMode, false);
+                prop(_RNM0, false);
+                prop(_RNM1, false);
+                prop(_RNM2, false);
+                #endif
             });
 
 
