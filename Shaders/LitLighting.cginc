@@ -235,10 +235,8 @@ float3 tex2DFastBicubicLightmap(float2 uv)
     #endif
 }
 
-half3 getLightmap(float2 uv, float3 worldNormal, float2 parallaxOffset)
+half3 getLightmap(float3 worldNormal, float2 parallaxOffset, float2 lightmapUV)
 {
-    float2 lightmapUV = uv * unity_LightmapST.xy + unity_LightmapST.zw + parallaxOffset;
-
     #if defined(SHADER_API_MOBILE)
         half3 lightMap = DecodeLightmap(UNITY_SAMPLE_TEX2D(unity_Lightmap, lightmapUV));
     #else

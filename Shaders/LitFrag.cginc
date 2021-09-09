@@ -13,6 +13,7 @@ half4 frag(v2f i) : SV_Target
     half occlusionMap = 1;
     half4 mainTex = 1;
     float3 tangentNormal = 0.5;
+    half2 lightmapUV = 0;
 
 
     float3 worldNormal = normalize(i.worldNormal);
@@ -61,8 +62,7 @@ half4 frag(v2f i) : SV_Target
         initLighting(i, worldNormal, viewDir, NoV);
     #endif
 
-
-    getIndirectDiffuse(worldNormal, parallaxOffset);
+    getIndirectDiffuse(worldNormal, parallaxOffset, lightmapUV);
 
     #if defined(ENABLE_GSAA) && !defined(SHADER_API_MOBILE)
         surface.perceptualRoughness = GSAA_Filament(worldNormal, surface.perceptualRoughness);
@@ -126,7 +126,7 @@ half4 frag(v2f i) : SV_Target
             #endif
 
             float3 prevSpec = light.indirectSpecular;
-            BakeryRNM(light.indirectDiffuse, light.indirectSpecular, uvs[1], tangentNormal, surface.perceptualRoughness, eyeVecT);
+            BakeryRNM(light.indirectDiffuse, light.indirectSpecular, lightmapUV, tangentNormal, surface.perceptualRoughness, eyeVecT);
             light.indirectSpecular *= fresnel;
             light.indirectSpecular += prevSpec;
         }
@@ -136,7 +136,7 @@ half4 frag(v2f i) : SV_Target
     if (bakeryLightmapMode == BAKERYMODE_SH)
     {
         float3 prevSpec = light.indirectSpecular;
-        BakerySH(light.indirectDiffuse, light.indirectSpecular, uvs[1], worldNormal, -viewDir, surface.perceptualRoughness);
+        BakerySH(light.indirectDiffuse, light.indirectSpecular, lightmapUV, worldNormal, -viewDir, surface.perceptualRoughness);
         light.indirectSpecular *= fresnel;
         light.indirectSpecular += prevSpec;
     }
