@@ -1,5 +1,25 @@
 /*
-https://github.com/DarthShader/Kaj-Unity-Shaders/blob/master/LICENSE
+MIT License
+
+Copyright (c) 2020 DarthShader
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 */
 
 using System.Collections;
@@ -39,7 +59,17 @@ namespace Shaders.Lit
             ShaderOptimizer.LockAllMaterials();
         }
     }
+#if BAKERY_INCLUDED
+    public class ActiveBuildTargetListener : IActiveBuildTargetChanged
+    {
+        public int callbackOrder { get { return 69; } }
 
+        public void OnActiveBuildTargetChanged(BuildTarget previousTarget, BuildTarget newTarget)
+        {
+            ShaderOptimizer.UnlockAllMaterials();
+        }
+    }
+#endif
 
 #if VRC_SDK_VRCSDK2 || VRC_SDK_VRCSDK3
     public class LockMaterialsOnVRCWorldUpload : IVRCSDKBuildRequestedCallback
@@ -174,6 +204,10 @@ namespace Shaders.Lit
         [MenuItem("Tools/Lit/Unlock all materials")]
         public static void UnlockAllMaterials()
         {
+            #if BAKERY_INCLUDED && (VRC_SDK_VRCSDK2 || VRC_SDK_VRCSDK3)
+            ftLightmapsStorage storage = ftRenderLightmap.FindRenderSettingsStorage();
+            if(storage.renderSettingsRenderDirMode == 3 || storage.renderSettingsRenderDirMode == 4) RevertHandleBakeryPropertyBlocks();
+            #endif
             List<Material> mats = new List<Material>();
             var renderers = UnityEngine.Object.FindObjectsOfType<Renderer>();
 
@@ -205,6 +239,11 @@ namespace Shaders.Lit
         [MenuItem("Tools/Lit/Lock all materials")]
         public static void LockAllMaterials()
         {
+            
+            #if BAKERY_INCLUDED && (VRC_SDK_VRCSDK2 || VRC_SDK_VRCSDK3) && !UNITY_ANDROID
+            ftLightmapsStorage storage = ftRenderLightmap.FindRenderSettingsStorage();
+            if(storage.renderSettingsRenderDirMode == 3 || storage.renderSettingsRenderDirMode == 4) HandleBakeryPropertyBlocks();
+            #endif
             List<Material> mats = GetAllMaterials(ShaderEditor.litShaderName);
             if(mats.Count > 0)
             {
@@ -384,6 +423,159 @@ namespace Shaders.Lit
             }
             return materials;
         }
+
+        /**
+        * MIT License
+        * 
+        * Copyright (c) 2019 Merlin
+        * 
+        * Permission is hereby granted, free of charge, to any person obtaining a copy
+        * of this software and associated documentation files (the "Software"), to deal
+        * in the Software without restriction, including without limitation the rights
+        * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+        * copies of the Software, and to permit persons to whom the Software is
+        * furnished to do so, subject to the following conditions:
+        * 
+        * The above copyright notice and this permission notice shall be included in all
+        * copies or substantial portions of the Software.
+        * 
+        * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+        * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+        * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+        * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+        * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+        * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+        * SOFTWARE.
+        */
+
+        [MenuItem("Tools/Lit/HandleBakeryPropertyBlocks")]
+        public static void HandleBakeryPropertyBlocks()
+        {
+            const string newMaterialPath = "Assets/GeneratedMaterials/";
+            if (!Directory.Exists(newMaterialPath)) Directory.CreateDirectory(newMaterialPath);
+
+            MeshRenderer[] renderers = UnityEngine.Object.FindObjectsOfType<MeshRenderer>();
+            Dictionary<string, Material> generatedMaterialList = new Dictionary<string, Material>();
+
+            foreach(MeshRenderer mr in renderers)
+            {
+                MaterialPropertyBlock propertyBlock = new MaterialPropertyBlock();
+                mr.GetPropertyBlock(propertyBlock);
+                Texture RNM0 = propertyBlock.GetTexture("_RNM0");
+                Texture RNM1 = propertyBlock.GetTexture("_RNM1");
+                Texture RNM2 = propertyBlock.GetTexture("_RNM2");
+                int propertyLightmapMode = (int)propertyBlock.GetFloat("bakeryLightmapMode");
+
+                if(RNM0 && RNM1 && RNM2 && propertyLightmapMode != 0)
+                {
+                    Material[] newSharedMaterials = new Material[mr.sharedMaterials.Length];
+
+                    for (int j = 0; j < mr.sharedMaterials.Length; j++)
+                    {
+                        Material material = mr.sharedMaterials[j];
+                        if  (material != null && 
+                            (material.shader.name.Contains(ShaderEditor.litShaderName) || material.shader.name.StartsWith("Hidden/" + ShaderEditor.litShaderName)) &&
+                            material.GetTag("OriginalMaterialID", false) == "")
+                        {
+                            string materialID = material.GetInstanceID().ToString();
+                            string textureName = AssetDatabase.GetAssetPath(RNM0) + "_" + AssetDatabase.GetAssetPath(RNM1) + "_" + AssetDatabase.GetAssetPath(RNM2);
+                            string matTexHash = ComputeMD5(materialID + textureName);
+
+
+                            Material newMaterial = null;
+
+                            generatedMaterialList.TryGetValue(matTexHash, out newMaterial);
+                            if (newMaterial == null)
+                            {
+                                newMaterial = new Material(material);
+                                newMaterial.name = matTexHash;
+                                newMaterial.SetTexture("_RNM0", RNM0);
+                                newMaterial.SetTexture("_RNM1", RNM1);
+                                newMaterial.SetTexture("_RNM2", RNM2);
+                                newMaterial.SetInt("bakeryLightmapMode", propertyLightmapMode);
+                                newMaterial.SetOverrideTag("OriginalMaterialID", materialID);
+                                generatedMaterialList.Add(matTexHash, newMaterial);
+
+                                
+                                try
+                                {
+                                    AssetDatabase.CreateAsset(newMaterial, newMaterialPath + matTexHash + ".mat");
+                                }
+                                catch(Exception e)
+                                {
+                                    Debug.LogError($"Unable to create new material {newMaterial.name} for {mr} {e}");
+                                }
+
+                                Debug.Log($"Created new material for {mr} named {newMaterial.name}");
+
+                            }
+
+                            newSharedMaterials[j] = newMaterial;
+
+                        }
+                        else if (material != null)
+                        {
+                            newSharedMaterials[j] = material;
+                        }
+                    }
+
+                    mr.sharedMaterials = newSharedMaterials;
+                }
+            }
+
+            AssetDatabase.Refresh();
+        }
+        
+        [MenuItem("Tools/Lit/RevertBakeryPropertyBlocks")]
+        public static void RevertHandleBakeryPropertyBlocks()
+        {
+            var renderers = UnityEngine.Object.FindObjectsOfType<MeshRenderer>();
+
+            if(renderers != null) foreach (var rend in renderers)
+            {
+                Material[] oldMaterials = new Material[rend.sharedMaterials.Length];
+
+                if(rend != null)
+                {
+                    for (int i = 0; i < rend.sharedMaterials.Length; i++)
+                    {
+
+                        if( rend.sharedMaterials[i] != null)
+                        {
+                            string originalMatID = rend.sharedMaterials[i].GetTag("OriginalMaterialID", false, "");
+                            if(originalMatID != "")
+                            {
+                                try
+                                {
+                                    oldMaterials[i] = EditorUtility.InstanceIDToObject(Int32.Parse(originalMatID)) as Material;
+                                    //Debug.Log($"Found {oldMaterials[i].name} for {rend.sharedMaterials[i]} for {rend}");
+                                }
+                                catch
+                                {
+                                    Debug.LogError($"Unable to find original material {Int32.Parse(originalMatID)} for {rend.sharedMaterials[i]} for {rend}");
+                                    oldMaterials[i] = rend.sharedMaterials[i];
+                                }
+                            }
+                            else
+                            {
+                                oldMaterials[i] = rend.sharedMaterials[i];
+                            }
+                        }
+                        rend.sharedMaterials = oldMaterials;
+                    }
+                }
+            }
+        }
+
+        // https://forum.unity.com/threads/hash-function-for-game.452779/
+        private static string ComputeMD5(string str)
+        {
+            System.Text.ASCIIEncoding encoding = new System.Text.ASCIIEncoding();
+            byte[] bytes = encoding.GetBytes(str);
+            var sha = new System.Security.Cryptography.MD5CryptoServiceProvider();
+            return BitConverter.ToString(sha.ComputeHash(bytes)).Replace("-", "").ToLower();
+        }
+
 
         // In-order list of inline sampler state names that will be replaced by InlineSamplerState() lines
         public static readonly string[] InlineSamplerStateNames = new string[]
