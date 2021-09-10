@@ -982,7 +982,7 @@ namespace Shaders.Lit
             // Parse shader and cginc files, also gets preprocessor macros
             List<ParsedShaderFile> shaderFiles = new List<ParsedShaderFile>();
             List<Macro> macros = new List<Macro>();
-            if (!ParseShaderFilesRecursive(shaderFiles, newShaderDirectory, shaderFilePath, macros))
+            if (!ParseShaderFilesRecursive(shaderFiles, newShaderDirectory, shaderFilePath, macros, material))
                 return false;
             
 
@@ -1231,13 +1231,12 @@ namespace Shaders.Lit
             return true;
         }
 
-        
 
         // Preprocess each file for macros and includes
         // Save each file as string[], parse each macro with //KSOEvaluateMacro
         // Only editing done is replacing #include "X" filepaths where necessary
         // most of these args could be private static members of the class
-        private static bool ParseShaderFilesRecursive(List<ParsedShaderFile> filesParsed, string newTopLevelDirectory, string filePath, List<Macro> macros)
+        private static bool ParseShaderFilesRecursive(List<ParsedShaderFile> filesParsed, string newTopLevelDirectory, string filePath, List<Macro> macros, Material mat)
         {
             // Infinite recursion check
             if (filesParsed.Exists(x => x.filePath == filePath)) return true;
@@ -1271,8 +1270,28 @@ namespace Shaders.Lit
             for (int i=0; i<fileLines.Length; i++)
             {
                 string lineParsed = fileLines[i].TrimStart();
+
+                // Skip the cginc
+                if (lineParsed.StartsWith("//#if") && mat != null)
+                {
+                    string[] materialProperties = Regex.Split(lineParsed.Replace("//#if", ""), ",");
+                    try
+                    {
+                        if(!materialProperties.Any(x => Convert.ToBoolean(mat.GetFloat(x))))
+                        {
+                            i++;
+                            fileLines[i] = fileLines[i].Insert(0, "//");
+                            continue;
+                        }
+                    }
+                    catch
+                    {
+                        Debug.LogError($"Property at line {i} not found on {mat}");
+                    }
+                }
+
                 // Specifically requires no whitespace between # and include, as it should be
-                if (lineParsed.StartsWith("#include"))
+                else if (lineParsed.StartsWith("#include"))
                 {
                     int firstQuotation = lineParsed.IndexOf('\"',0);
                     int lastQuotation = lineParsed.IndexOf('\"',firstQuotation+1);
@@ -1285,7 +1304,7 @@ namespace Shaders.Lit
                     // cginclude filepath is either absolute or relative
                     if (includeFilename.StartsWith("Assets/"))
                     {
-                        if (!ParseShaderFilesRecursive(filesParsed, newTopLevelDirectory, includeFilename, macros))
+                        if (!ParseShaderFilesRecursive(filesParsed, newTopLevelDirectory, includeFilename, macros, mat))
                             return false;
                         // Only absolute filepaths need to be renampped in-file
                         fileLines[i] = fileLines[i].Replace(includeFilename, newTopLevelDirectory + includeFilename);
@@ -1293,7 +1312,7 @@ namespace Shaders.Lit
                     else
                     {
                         string includeFullpath = GetFullPath(includeFilename, Path.GetDirectoryName(filePath));
-                        if (!ParseShaderFilesRecursive(filesParsed, newTopLevelDirectory, includeFullpath, macros))
+                        if (!ParseShaderFilesRecursive(filesParsed, newTopLevelDirectory, includeFullpath, macros, mat))
                             return false;
                     }
                 }

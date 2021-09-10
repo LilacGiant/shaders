@@ -38,6 +38,7 @@
 #endif
 
 #if defined(ENABLE_AUDIOLINK)
+//#if_EnableAudioLink
     #include "AudioLink.cginc"  
 #endif
 
@@ -187,6 +188,7 @@ static Surface surface;
 #if defined(BAKERY_SH) || defined(BAKERY_RNM) || defined(BAKERY_LMSPEC)
     #ifdef UNITY_PASS_FORWARDBASE
         #ifndef SHADER_API_MOBILE
+//#if_BAKERY_SH,_BAKERY_RNM,_BAKERY_LMSPEC
             #include "Bakery.cginc"
         #else
         #undef BAKERY_SH
