@@ -1210,7 +1210,7 @@ namespace Shaders.Lit
             // Write original shader to override tag
             applyLater.material.SetOverrideTag("OriginalShader", applyLater.shader.name);
             // Write the new shader folder name in an override tag so it will be deleted 
-            applyLater.material.SetOverrideTag("OptimizedShaderFolder", applyLater.material.name + "-" + applyLater.smallguid);
+            applyLater.material.SetOverrideTag("OptimizedShaderFolder", applyLater.smallguid);
 
             
 
@@ -1791,7 +1791,11 @@ namespace Shaders.Lit
                         break;
                 }
             }
+            return true;
+        }
 
+        public static void CleanUpLockedShaders(Material material)
+        {
             // Delete the variants folder and all files in it, as to not orhpan files and inflate Unity project
             string shaderDirectory = material.GetTag("OptimizedShaderFolder", false, "");
             if (shaderDirectory == "")
@@ -1808,8 +1812,6 @@ namespace Shaders.Lit
                 FileUtil.DeleteFileOrDirectory(newShaderDirectory + ".meta");
                 //AssetDatabase.Refresh();
             }
-
-            return true;
         }
     }
 }
