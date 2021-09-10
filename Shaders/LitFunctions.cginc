@@ -388,7 +388,7 @@ void getMainTex(out half4 mainTex, half2 parallaxOffset, half4 vertexColor)
 void getIndirectDiffuse(float3 worldNormal, float2 parallaxOffset, out half2 lightmapUV)
 {
     #if defined(LIGHTMAP_ON)
-        lightmapUV = uvs[1] * unity_LightmapST.xy + unity_LightmapST.zw + parallaxOffset;
+        lightmapUV = uvs[1] * unity_LightmapST.xy + unity_LightmapST.zw + 0;
         half3 lightMap = getLightmap(worldNormal, parallaxOffset, lightmapUV);
         #if defined(DYNAMICLIGHTMAP_ON) && !defined(SHADER_API_MOBILE)
             half3 realtimeLightMap = getRealtimeLightmap(uvs[2], worldNormal, parallaxOffset);
