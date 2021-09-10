@@ -285,13 +285,18 @@ namespace Shaders.Lit
                 prop(_LightProbeMethod, false);
                 #if BAKERY_INCLUDED
                 prop(_BAKERY_SH, false);
-                prop(_BAKERY_SHNONLINEAR, false);
+                if(_BAKERY_SH.floatValue == 1) prop(_BAKERY_SHNONLINEAR, false);
                 prop(_BAKERY_RNM, false);
                 prop(_BAKERY_LMSPEC, false);
-                prop(bakeryLightmapMode, false);
-                prop(_RNM0, false);
-                prop(_RNM1, false);
-                prop(_RNM2, false);
+                EditorGUI.BeginDisabledGroup(true);
+                if(_BAKERY_SH.floatValue == 1 || _BAKERY_RNM.floatValue == 1 || _BAKERY_LMSPEC.floatValue == 1)
+                {
+                    prop(bakeryLightmapMode, false);
+                    prop(_RNM0, false);
+                    prop(_RNM1, false);
+                    prop(_RNM2, false);
+                }
+                EditorGUI.EndDisabledGroup();
                 #endif
             });
 

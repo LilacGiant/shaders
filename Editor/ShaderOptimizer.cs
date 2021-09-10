@@ -34,6 +34,7 @@ using System.Globalization;
 using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
 using UnityEditor.Rendering;
+using System.Linq;
 
 #if VRC_SDK_VRCSDK3
 using VRC.SDKBase;
@@ -477,9 +478,9 @@ namespace Shaders.Lit
                             (material.shader.name.Contains(ShaderEditor.litShaderName) || material.shader.name.StartsWith("Hidden/" + ShaderEditor.litShaderName)) &&
                             material.GetTag("OriginalMaterialID", false) == "")
                         {
-                            string materialID = material.GetInstanceID().ToString();
+                            string materialPath = AssetDatabase.GetAssetPath(material);
                             string textureName = AssetDatabase.GetAssetPath(RNM0) + "_" + AssetDatabase.GetAssetPath(RNM1) + "_" + AssetDatabase.GetAssetPath(RNM2);
-                            string matTexHash = ComputeMD5(materialID + textureName);
+                            string matTexHash = ComputeMD5(materialPath + textureName);
 
 
                             Material newMaterial = null;
@@ -493,7 +494,7 @@ namespace Shaders.Lit
                                 newMaterial.SetTexture("_RNM1", RNM1);
                                 newMaterial.SetTexture("_RNM2", RNM2);
                                 newMaterial.SetInt("bakeryLightmapMode", propertyLightmapMode);
-                                newMaterial.SetOverrideTag("OriginalMaterialID", materialID);
+                                newMaterial.SetOverrideTag("OriginalMaterialPath", materialPath);
                                 generatedMaterialList.Add(matTexHash, newMaterial);
 
                                 
@@ -506,7 +507,7 @@ namespace Shaders.Lit
                                     Debug.LogError($"Unable to create new material {newMaterial.name} for {mr} {e}");
                                 }
 
-                                Debug.Log($"Created new material for {mr} named {newMaterial.name}");
+                                //Debug.Log($"Created new material for {mr} named {newMaterial.name}");
 
                             }
 
@@ -542,17 +543,23 @@ namespace Shaders.Lit
 
                         if( rend.sharedMaterials[i] != null)
                         {
-                            string originalMatID = rend.sharedMaterials[i].GetTag("OriginalMaterialID", false, "");
-                            if(originalMatID != "")
+                            string originalMatPath = rend.sharedMaterials[i].GetTag("OriginalMaterialPath", false, "");
+                            if(originalMatPath != "")
                             {
                                 try
                                 {
-                                    oldMaterials[i] = EditorUtility.InstanceIDToObject(Int32.Parse(originalMatID)) as Material;
-                                    //Debug.Log($"Found {oldMaterials[i].name} for {rend.sharedMaterials[i]} for {rend}");
+                                    Material oldMat = (Material)AssetDatabase.LoadAssetAtPath(originalMatPath, typeof(Material));
+                                    if (oldMaterials != null) oldMaterials[i] = oldMat;
+                                    else
+                                    {
+                                        string oldMatName = Regex.Split(originalMatPath, "/").Last();
+                                        string[] foundMaterials = AssetDatabase.FindAssets("t:material " + oldMatName);
+                                        oldMaterials[i] = (Material)AssetDatabase.LoadAssetAtPath( AssetDatabase.GUIDToAssetPath(foundMaterials[0]), typeof(Material));
+                                    }
                                 }
                                 catch
                                 {
-                                    Debug.LogError($"Unable to find original material {Int32.Parse(originalMatID)} for {rend.sharedMaterials[i]} for {rend}");
+                                    Debug.LogError($"Unable to find original material  at {originalMatPath} for {rend.sharedMaterials[i]} for {rend}");
                                     oldMaterials[i] = rend.sharedMaterials[i];
                                 }
                             }
@@ -775,7 +782,7 @@ namespace Shaders.Lit
             string shaderFilePath = AssetDatabase.GetAssetPath(shader);
             string materialFilePath = AssetDatabase.GetAssetPath(material);
             //string materialFolder = Path.GetDirectoryName(materialFilePath);
-            string smallguid = material.GetInstanceID().ToString();
+            string smallguid = ComputeMD5(AssetDatabase.GetAssetPath(material));
             string newShaderName = "Hidden/" + shader.name + "/" + smallguid;
             string newShaderDirectory = "Assets/OptimizedShaders/" + smallguid + "/";
             ApplyLater applyLater = new ApplyLater();
@@ -785,7 +792,7 @@ namespace Shaders.Lit
             {
                 applyLater.material = material;
                 applyLater.shader = sharedMaterial.shader;
-                applyLater.smallguid = sharedMaterial.GetInstanceID().ToString();
+                applyLater.smallguid = ComputeMD5(AssetDatabase.GetAssetPath(sharedMaterial));
                 applyLater.newShaderName = "Hidden/" + shader.name + "/" + applyLater.smallguid;
                 applyStructsLater.Add(material, applyLater);
                 return true;
@@ -1117,8 +1124,7 @@ namespace Shaders.Lit
                 string output = sb.ToString();
 
                 // Write output to file
-                string[] filePath = psf.filePath.Split('/');
-                string newDirectory = filePath[filePath.Length-1];
+                string newDirectory = psf.filePath.Split('/').Last();
 
                 new FileInfo(newShaderDirectory + newDirectory).Directory.Create();
                 try
