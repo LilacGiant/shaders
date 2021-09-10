@@ -216,7 +216,13 @@ half3 getDirectSpecular(float3 worldNormal, half3 tangent, half3 bitangent, half
 
     half roughness = max(surface.perceptualRoughness * surface.perceptualRoughness, 0.002);
 
+    #if !defined(SHADER_API_MOBILE)
     half D = GGXTerm (NoH, roughness);
+    half V = V_SmithGGXCorrelated ( NoV,light.NoL, roughness);
+    #else
+    half D = D_GGX (NoH, roughness);
+    half V = V_SmithGGXCorrelatedFast ( NoV,light.NoL, roughness);
+    #endif
 
     float anisotropy = _Anisotropy;
     #if !defined(SHADER_API_MOBILE)
@@ -228,7 +234,7 @@ half3 getDirectSpecular(float3 worldNormal, half3 tangent, half3 bitangent, half
         }
     #endif
 
-    half V = V_SmithGGXCorrelated ( NoV,light.NoL, roughness);
+    
     half3 F = F_Schlick(light.LoH, f0);
 
     half3 specularTerm = max(0, (D * V) * F);
