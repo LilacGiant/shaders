@@ -476,7 +476,7 @@ namespace Shaders.Lit
                         Material material = mr.sharedMaterials[j];
                         if  (material != null && 
                             (material.shader.name.Contains(ShaderEditor.litShaderName) || material.shader.name.StartsWith("Hidden/" + ShaderEditor.litShaderName)) &&
-                            material.GetTag("OriginalMaterialID", false) == "")
+                            material.GetTag("OriginalMaterialPath", false) == "")
                         {
                             string materialPath = AssetDatabase.GetAssetPath(material);
                             string textureName = AssetDatabase.GetAssetPath(RNM0) + "_" + AssetDatabase.GetAssetPath(RNM1) + "_" + AssetDatabase.GetAssetPath(RNM2);
