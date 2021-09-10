@@ -845,6 +845,9 @@ namespace Shaders.Lit
                  (prop.name == "_Glossiness") ||
                  (prop.name == "_Metallic") ||
                  (prop.name == "_BumpScale") ||
+                 #if UNITY_ANDROID
+                 (prop.name == "bakeryLightmapMode") ||
+                 #endif
                  (prop.name == "_Reflectance") ||
                  (prop.name == "_Color")
                  )
