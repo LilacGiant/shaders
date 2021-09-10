@@ -1,7 +1,11 @@
 #if !defined(UNITY_PASS_SHADOWCASTER)
 half4 frag(v2f i) : SV_Target
 {
-    UNITY_SETUP_INSTANCE_ID(i); 
+    UNITY_SETUP_INSTANCE_ID(i);
+    #if defined(LOD_FADE_CROSSFADE)
+		UnityApplyDitherCrossFade(i.pos);
+	#endif
+
     initUVs(i);
 
     half2 parallaxOffset = 0;
@@ -167,6 +171,10 @@ half4 frag(v2f i) : SV_Target
 #if defined(UNITY_PASS_SHADOWCASTER)
 half4 ShadowCasterfrag(v2f i) : SV_Target
 {
+    #if defined(LOD_FADE_CROSSFADE)
+		UnityApplyDitherCrossFade(i.pos);
+	#endif
+    
     initUVs(i);
     half2 parallaxOffset = 0;
     half4 mainTex = MAIN_TEX(_MainTex, sampler_MainTex, uvs[_MainTexUV], _MainTex_ST);

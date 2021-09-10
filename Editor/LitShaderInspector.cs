@@ -113,6 +113,8 @@ namespace Shaders.Lit
         protected MaterialProperty _RNM1 = null;
         protected MaterialProperty _RNM2 = null;
 
+        protected MaterialProperty _LodCrossFade = null;
+
 
 
 
@@ -304,6 +306,7 @@ namespace Shaders.Lit
 
             md[material].ShowAdvanced = Foldout("Advanced", md[material].ShowAdvanced, ()=> {
                 prop(_GetDominantLight, false);
+                prop(_LodCrossFade);
                 prop(_EnablePackedMode);
 
 

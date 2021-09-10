@@ -202,3 +202,9 @@ static Surface surface;
     #undef BAKERY_LMSPEC
     #endif
 #endif
+
+#if defined(LOD_FADE_CROSSFADE)
+    #if defined(SHADER_API_MOBILE) || defined(UNITY_PASS_META)
+        #undef LOD_FADE_CROSSFADE
+    #endif
+#endif

@@ -115,11 +115,13 @@ Shader " Lit"
         [Toggle(BAKERY_SHNONLINEAR)] _BAKERY_SHNONLINEAR ("SH non-linear mode", Float) = 1
         [Toggle(BAKERY_RNM)] _BAKERY_RNM ("Enable RNM", Float) = 0
         [Toggle(BAKERY_LMSPEC)] _BAKERY_LMSPEC ("Enable Lightmap Specular", Float) = 0
-
+        
         [Enum(BAKERYMODE_DEFAULT, 0, BAKERYMODE_VERTEXLM, 1, BAKERYMODE_RNM, 2, BAKERYMODE_SH, 3)] bakeryLightmapMode ("bakeryLightmapMode", Float) = 0
         _RNM0("RNM0", 2D) = "black" {}
         _RNM1("RNM1", 2D) = "black" {}
         _RNM2("RNM2", 2D) = "black" {}
+
+        [Toggle(LOD_FADE_CROSSFADE)] _LodCrossFade ("Dithered LOD Cross-Fade", Float) = 0
 
 
     }
@@ -167,6 +169,7 @@ Shader " Lit"
             #pragma shader_feature_local ENABLE_REFRACTION
             #pragma shader_feature_local ENABLE_AUDIOLINK
             #pragma shader_feature_local BAKERY_SHNONLINEAR
+            #pragma shader_feature_local LOD_FADE_CROSSFADE
 
             #pragma shader_feature_local BAKERY_SH
             #pragma shader_feature_local BAKERY_RNM
@@ -208,7 +211,8 @@ Shader " Lit"
             #pragma shader_feature_local ENABLE_SPECULAR_HIGHLIGHTS
             #pragma shader_feature_local ENABLE_PACKED_MODE
             #pragma shader_feature_local ENABLE_PARALLAX
-
+            #pragma shader_feature_local LOD_FADE_CROSSFADE
+            
 
             #ifndef UNITY_PASS_FORWARDADD
             #define UNITY_PASS_FORWARDADD
@@ -238,6 +242,8 @@ Shader " Lit"
             #pragma exclude_renderers gles3
             #pragma multi_compile_shadowcaster
             #pragma multi_compile_instancing
+
+            #pragma shader_feature_local LOD_FADE_CROSSFADE
             
             #pragma skip_variants FOG_LINEAR FOG_EXP FOG_EXP2
 
