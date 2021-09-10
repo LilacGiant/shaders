@@ -204,7 +204,7 @@ namespace Shaders.Lit
         [MenuItem("Tools/Lit/Unlock all materials")]
         public static void UnlockAllMaterials()
         {
-            #if BAKERY_INCLUDED && (VRC_SDK_VRCSDK2 || VRC_SDK_VRCSDK3)
+            #if BAKERY_INCLUDED
             ftLightmapsStorage storage = ftRenderLightmap.FindRenderSettingsStorage();
             if(storage.renderSettingsRenderDirMode == 3 || storage.renderSettingsRenderDirMode == 4) RevertHandleBakeryPropertyBlocks();
             #endif
@@ -240,7 +240,7 @@ namespace Shaders.Lit
         public static void LockAllMaterials()
         {
             
-            #if BAKERY_INCLUDED && (VRC_SDK_VRCSDK2 || VRC_SDK_VRCSDK3) && !UNITY_ANDROID
+            #if BAKERY_INCLUDED && !UNITY_ANDROID
             ftLightmapsStorage storage = ftRenderLightmap.FindRenderSettingsStorage();
             if(storage.renderSettingsRenderDirMode == 3 || storage.renderSettingsRenderDirMode == 4) HandleBakeryPropertyBlocks();
             #endif
@@ -561,8 +561,8 @@ namespace Shaders.Lit
                                 oldMaterials[i] = rend.sharedMaterials[i];
                             }
                         }
-                        rend.sharedMaterials = oldMaterials;
                     }
+                    rend.sharedMaterials = oldMaterials;
                 }
             }
         }
@@ -845,6 +845,9 @@ namespace Shaders.Lit
                  (prop.name == "_Glossiness") ||
                  (prop.name == "_Metallic") ||
                  (prop.name == "_BumpScale") ||
+                 #if UNITY_ANDROID
+                 (prop.name == "bakeryLightmapMode") ||
+                 #endif
                  (prop.name == "_Reflectance") ||
                  (prop.name == "_Color")
                  )
