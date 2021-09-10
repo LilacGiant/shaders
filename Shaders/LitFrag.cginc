@@ -85,11 +85,6 @@ half4 frag(v2f i) : SV_Target
 
     #if defined(UNITY_PASS_FORWARDBASE)
 
-        #if defined(ENABLE_MATCAP)
-            light.indirectSpecular = lerp(0 , _MatCap.Sample(sampler_MainTex, mul((float3x3)UNITY_MATRIX_V, worldNormal).xy * 0.5 + 0.5).rgb, _MatCapReplace);
-            #undef ENABLE_REFLECTIONS
-        #endif
-
         #if defined(ENABLE_REFLECTIONS)
             float3 reflViewDir = reflect(-viewDir, worldNormal);
             float3 reflWorldNormal = worldNormal;
@@ -153,6 +148,7 @@ half4 frag(v2f i) : SV_Target
         alpha = lerp(alpha, 1, surface.metallic);
     }
 
+    if(_FlatShading) light.finalLight = saturate(light.color) * light.attenuation;
 
     half4 finalColor = half4( surface.albedo * surface.oneMinusMetallic * ((light.indirectDiffuse * surface.occlusion) + light.finalLight) + light.directSpecular + light.indirectSpecular + surface.emission, alpha);
 

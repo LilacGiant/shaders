@@ -66,9 +66,6 @@ namespace Shaders.Lit
         protected MaterialProperty _SpecularOcclusion = null;
         protected MaterialProperty _LightProbeMethod = null;
         protected MaterialProperty _Anisotropy = null;
-        protected MaterialProperty _EnableMatcap = null;
-        protected MaterialProperty _MatCapReplace = null;
-        protected MaterialProperty _MatCap = null;
         protected MaterialProperty _Cull = null;
 
         protected MaterialProperty _EnablePackedMode = null;
@@ -114,6 +111,7 @@ namespace Shaders.Lit
         protected MaterialProperty _RNM2 = null;
 
         protected MaterialProperty _LodCrossFade = null;
+        protected MaterialProperty _FlatShading = null;
 
 
 
@@ -144,14 +142,14 @@ namespace Shaders.Lit
                 });
 
             
-                
-                prop(_Metallic);
-                prop(_Glossiness);
-
-                if (_MetallicGlossMap.textureValue || _EnablePackedMode.floatValue == 0) prop(_Occlusion);
-
                 if(_EnablePackedMode.floatValue == 1)
                 {
+                    prop(_Metallic);
+                    prop(_Glossiness);
+
+                    if (_MetallicGlossMap.textureValue || _EnablePackedMode.floatValue == 0) prop(_Occlusion);
+
+                
                     prop(_MetallicGlossMap);
                     md[material].Show_MetallicGlossMap = TriangleFoldout(md[material].Show_MetallicGlossMap, ()=> {
                         propTileOffset(_MetallicGlossMap);
@@ -161,14 +159,14 @@ namespace Shaders.Lit
                 }
                 else
                 {
-                    prop(_MetallicMap);
+                    prop(_MetallicMap, _Metallic);
                     md[material].Show_MetallicMap = TriangleFoldout(md[material].Show_MetallicMap, ()=> {
                         propTileOffset(_MetallicMap);
                         prop(_MetallicMapUV, false);
                     });
                     Styles.sRGBWarning(_MetallicMap);
                     
-                    prop(_SmoothnessMap);
+                    prop(_SmoothnessMap, _Glossiness);
                     md[material].Show_SmoothnessMap = TriangleFoldout(md[material].Show_SmoothnessMap, ()=> {
                         propTileOffset(_SmoothnessMap);
                         prop(_SmoothnessMapUV, false);
@@ -176,7 +174,7 @@ namespace Shaders.Lit
                     });
                     Styles.sRGBWarning(_SmoothnessMap);
                     
-                    prop(_OcclusionMap);
+                    prop(_OcclusionMap, _Occlusion);
                     md[material].Show_OcclusionMap = TriangleFoldout(md[material].Show_OcclusionMap, ()=> {
                         propTileOffset(_OcclusionMap);
                         prop(_OcclusionMapUV, false);
@@ -205,6 +203,24 @@ namespace Shaders.Lit
                     prop(_DetailSmoothnessScale);
                 });
 
+
+                
+
+
+            });
+
+            md[material].ShowShaderFeatures = Foldout("Shader Features", md[material].ShowShaderFeatures, ()=> {
+                prop(_GlossyReflections, false);
+                prop(_SpecularHighlights, false);
+
+                if(_GlossyReflections.floatValue == 1 || _SpecularHighlights.floatValue == 1)
+                {
+                    Styles.PropertyGroup(() => {
+                    prop(_FresnelColor);
+                    prop(_Reflectance);
+                    prop(_Anisotropy);
+                    });
+                }
 
                 prop(_EnableEmission, false);
 
@@ -243,30 +259,13 @@ namespace Shaders.Lit
                         prop(_ParallaxSteps, false);
                     });
                 }
-
-
-            });
-
-
-            md[material].ShowSpecular = Foldout("Specular Reflections", md[material].ShowSpecular, ()=> {
-                prop(_FresnelColor);
-                prop(_SpecularOcclusion);
-                prop(_Reflectance);
-                prop(_Anisotropy);
+                
 
                 prop(_GSAA, false);
                 if(_GSAA.floatValue == 1){
                     Styles.PropertyGroup(() => {
                         prop(_specularAntiAliasingVariance);
                         prop(_specularAntiAliasingThreshold);
-                    });
-                };
-
-                prop(_EnableMatcap, false);
-                if(_EnableMatcap.floatValue == 1){
-                    Styles.PropertyGroup(() => {
-                    prop(_MatCap);
-                    prop(_MatCapReplace);
                     });
                 };
 
@@ -277,39 +276,6 @@ namespace Shaders.Lit
                     });
                 };
 
-                Space();
-                prop(_GlossyReflections, false);
-                prop(_SpecularHighlights, false);
-            });
-
-            md[material].ShowBakedLight = Foldout("Baked Light", md[material].ShowBakedLight, ()=> {
-                prop(_LightmapMultiplier);
-                prop(_BicubicLightmap, false);
-                prop(_LightProbeMethod, false);
-                #if BAKERY_INCLUDED
-                prop(_BAKERY_SH, false);
-                if(_BAKERY_SH.floatValue == 1) prop(_BAKERY_SHNONLINEAR, false);
-                prop(_BAKERY_RNM, false);
-                prop(_BAKERY_LMSPEC, false);
-                EditorGUI.BeginDisabledGroup(true);
-                if(_BAKERY_SH.floatValue == 1 || _BAKERY_RNM.floatValue == 1 || _BAKERY_LMSPEC.floatValue == 1)
-                {
-                    prop(bakeryLightmapMode, false);
-                    prop(_RNM0, false);
-                    prop(_RNM1, false);
-                    prop(_RNM2, false);
-                }
-                EditorGUI.EndDisabledGroup();
-                #endif
-            });
-
-
-            md[material].ShowAdvanced = Foldout("Advanced", md[material].ShowAdvanced, ()=> {
-                prop(_GetDominantLight, false);
-                prop(_LodCrossFade);
-                prop(_EnablePackedMode);
-
-
                 prop(_EnableAudioLink);
                 if(_EnableAudioLink.floatValue == 1){
                     Styles.PropertyGroup(() => {
@@ -318,17 +284,53 @@ namespace Shaders.Lit
                     });
                 };
 
+                prop(_LodCrossFade);
+                prop(_FlatShading);
 
+            });
+
+            md[material].ShowBakedLight = Foldout("Baked Light", md[material].ShowBakedLight, ()=> {
+                prop(_SpecularOcclusion);
+                prop(_LightmapMultiplier);
+                prop(_LightProbeMethod, false);
+                prop(_BicubicLightmap, false);
+                
+                #if BAKERY_INCLUDED
+                Space();
+                Styles.PropertyGroup(() => {
+                    EditorGUILayout.LabelField("Bakery", EditorStyles.boldLabel);
+                    prop(_BAKERY_SH, false);
+                    if(_BAKERY_SH.floatValue == 1) prop(_BAKERY_SHNONLINEAR, false);
+                    prop(_BAKERY_RNM, false);
+                    prop(_BAKERY_LMSPEC, false);
+                    EditorGUI.BeginDisabledGroup(true);
+                    if(_BAKERY_SH.floatValue == 1 || _BAKERY_RNM.floatValue == 1 || _BAKERY_LMSPEC.floatValue == 1)
+                    {
+                        prop(bakeryLightmapMode, false);
+                        prop(_RNM0, false);
+                        prop(_RNM1, false);
+                        prop(_RNM2, false);
+                    }
+                    EditorGUI.EndDisabledGroup();
+                });
+                #endif
+            });
+
+
+            md[material].ShowAdvanced = Foldout("Advanced", md[material].ShowAdvanced, ()=> {
+                prop(_GetDominantLight, false);
+                prop(_EnablePackedMode);
 
                 Space();
-                
-                prop(_Cull);
-                me.EnableInstancingField();
                 me.DoubleSidedGIField();
+                me.EnableInstancingField();
                 me.RenderQueueField();
+                prop(_Cull);
                 Space();
                 ListAnimatedProps();
             });
+
+            
 
             
 

@@ -62,13 +62,9 @@ Shader " Lit"
         [PowerSlider(3)] _specularAntiAliasingVariance ("Variance", Range(0.0, 1.0)) = 0.15
         [PowerSlider(3)] _specularAntiAliasingThreshold ("Threshold", Range(0.0, 1.0)) = 0.1
         
-        [Toggle(ENABLE_MATCAP)] _EnableMatcap ("Matcap", Float) = 0
-        [NoScaleOffset] _MatCap ("Matcap", 2D) = "white" {}
-        _MatCapReplace ("Intensity", Range(0.0, 1.0)) = 1
-
         
         _LightmapMultiplier ("Lightmap Multiplier", Range(0, 2)) = 1
-        _SpecularOcclusion ("Specular Occlusion", Range(0, 1)) = 0
+        _SpecularOcclusion ("Lightmap Specular Occlusion", Range(0, 1)) = 0
 
         [Toggle(ENABLE_BICUBIC_LIGHTMAP)] _BicubicLightmap ("Bicubic Lightmap Interpolation", Float) = 0
         [ToggleUI] _LightProbeMethod ("Non-linear Light Probe SH", Float) = 0
@@ -122,6 +118,7 @@ Shader " Lit"
         _RNM2("RNM2", 2D) = "black" {}
 
         [Toggle(LOD_FADE_CROSSFADE)] _LodCrossFade ("Dithered LOD Cross-Fade", Float) = 0
+        [ToggleUI] _FlatShading ("Flat Shading", Float) = 0
 
 
     }
@@ -164,7 +161,6 @@ Shader " Lit"
             #pragma shader_feature_local ENABLE_REFLECTIONS
             #pragma shader_feature_local ENABLE_PACKED_MODE
             #pragma shader_feature_local ENABLE_BICUBIC_LIGHTMAP
-            #pragma shader_feature_local ENABLE_MATCAP
             #pragma shader_feature_local ENABLE_PARALLAX
             #pragma shader_feature_local ENABLE_REFRACTION
             #pragma shader_feature_local ENABLE_AUDIOLINK
@@ -212,7 +208,7 @@ Shader " Lit"
             #pragma shader_feature_local ENABLE_PACKED_MODE
             #pragma shader_feature_local ENABLE_PARALLAX
             #pragma shader_feature_local LOD_FADE_CROSSFADE
-            
+
 
             #ifndef UNITY_PASS_FORWARDADD
             #define UNITY_PASS_FORWARDADD
@@ -316,7 +312,6 @@ Shader " Lit"
             #pragma shader_feature_local ENABLE_SPECULAR_HIGHLIGHTS
             #pragma shader_feature_local ENABLE_REFLECTIONS
             #pragma shader_feature_local ENABLE_PACKED_MODE
-            #pragma shader_feature_local ENABLE_MATCAP
             #pragma shader_feature_local ENABLE_REFRACTION
 
 

@@ -403,6 +403,7 @@ void getIndirectDiffuse(float3 worldNormal, float2 parallaxOffset, out half2 lig
         light.indirectDiffuse = lightMap;
 
     #else
+        if(_FlatShading) worldNormal = half3(0,0,0);
         lightmapUV = 0;
         UNITY_BRANCH
         if(_LightProbeMethod == 0)
