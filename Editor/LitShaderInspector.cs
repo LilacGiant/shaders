@@ -16,6 +16,7 @@ namespace Shaders.Lit
         public bool ShowSpecular = false;
         public bool ShowAdvanced = false;
         public bool ShowBakedLight = false;
+        public bool ShowShaderFeatures = false;
 
         public bool Show_MainTex = false;
         public bool Show_MetallicGlossMap = false;

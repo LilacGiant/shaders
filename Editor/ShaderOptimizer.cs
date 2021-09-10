@@ -494,7 +494,7 @@ namespace Shaders.Lit
                                 newMaterial.SetTexture("_RNM1", RNM1);
                                 newMaterial.SetTexture("_RNM2", RNM2);
                                 newMaterial.SetInt("bakeryLightmapMode", propertyLightmapMode);
-                                newMaterial.SetOverrideTag("OriginalMaterialPath", materialPath);
+                                newMaterial.SetOverrideTag("OriginalMaterialPath", AssetDatabase.AssetPathToGUID(materialPath));
                                 generatedMaterialList.Add(matTexHash, newMaterial);
 
                                 
@@ -548,14 +548,8 @@ namespace Shaders.Lit
                             {
                                 try
                                 {
-                                    Material oldMat = (Material)AssetDatabase.LoadAssetAtPath(originalMatPath, typeof(Material));
-                                    if (oldMaterials != null) oldMaterials[i] = oldMat;
-                                    else
-                                    {
-                                        string oldMatName = Regex.Split(originalMatPath, "/").Last();
-                                        string[] foundMaterials = AssetDatabase.FindAssets("t:material " + oldMatName);
-                                        oldMaterials[i] = (Material)AssetDatabase.LoadAssetAtPath( AssetDatabase.GUIDToAssetPath(foundMaterials[0]), typeof(Material));
-                                    }
+                                    Material oldMat = (Material)AssetDatabase.LoadAssetAtPath(AssetDatabase.GUIDToAssetPath(originalMatPath), typeof(Material));
+                                    oldMaterials[i] = oldMat;
                                 }
                                 catch
                                 {
@@ -780,9 +774,7 @@ namespace Shaders.Lit
  
             Shader shader = material.shader;
             string shaderFilePath = AssetDatabase.GetAssetPath(shader);
-            string materialFilePath = AssetDatabase.GetAssetPath(material);
-            //string materialFolder = Path.GetDirectoryName(materialFilePath);
-            string smallguid = ComputeMD5(AssetDatabase.GetAssetPath(material));
+            string smallguid = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(material));
             string newShaderName = "Hidden/" + shader.name + "/" + smallguid;
             string newShaderDirectory = "Assets/OptimizedShaders/" + smallguid + "/";
             ApplyLater applyLater = new ApplyLater();
@@ -792,7 +784,7 @@ namespace Shaders.Lit
             {
                 applyLater.material = material;
                 applyLater.shader = sharedMaterial.shader;
-                applyLater.smallguid = ComputeMD5(AssetDatabase.GetAssetPath(sharedMaterial));
+                applyLater.smallguid = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(sharedMaterial));
                 applyLater.newShaderName = "Hidden/" + shader.name + "/" + applyLater.smallguid;
                 applyStructsLater.Add(material, applyLater);
                 return true;
