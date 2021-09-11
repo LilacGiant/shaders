@@ -49,7 +49,7 @@ using VRC.SDKBase.Editor.BuildPipeline;
 
 // v11
 
-namespace Shaders.Lit
+namespace z3y
 {
     
     class AutoLockOnBuild : IPreprocessBuildWithReport
@@ -92,7 +92,8 @@ namespace Shaders.Lit
         public void OnProcessShader(Shader shader, ShaderSnippetData snippet, IList<ShaderCompilerData> data)
         {
             bool shouldStrip = false;
-            if (shader.name == ShaderEditor.litShaderName) shouldStrip = true; // make your shader pink if you dont lock it :>
+            
+            if (ShaderUtil.GetPropertyName(shader, 0) == ShaderOptimizer.ShaderOptimizerEnabled && !shader.name.StartsWith("Hidden/")) shouldStrip = true; // make your shader pink if you dont lock it :>
 
             for (int i = data.Count - 1; i >= 0; --i)
             {
@@ -138,6 +139,9 @@ namespace Shaders.Lit
         // Material property suffix that controls whether the property of the same name gets baked into the optimized shader
         // e.g. if _Color exists and _ColorAnimated = 1, _Color will not be baked in
         public static readonly string AnimatedPropertySuffix = "Animated";
+
+        public static readonly string OriginalShaderTag = "OriginalShaderTag";
+        public static readonly string ShaderOptimizerEnabled = "_IsMaterialLocked";
 
         // Currently, Material.SetShaderPassEnabled doesn't work on "ShadowCaster" lightmodes,
         // and doesn't let "ForwardAdd" lights get turned into vertex lights if "ForwardAdd" is simply disabled
@@ -196,48 +200,30 @@ namespace Shaders.Lit
         public static void LockMaterial(Material mat, bool applyLater, Material sharedMaterial)
         {
 
-            mat.SetFloat("_ShaderOptimizerEnabled", 1);
+            mat.SetFloat(ShaderOptimizerEnabled, 1);
             MaterialProperty[] props = MaterialEditor.GetMaterialProperties(new UnityEngine.Object[] { mat });
             if (!ShaderOptimizer.Lock(mat, props, applyLater, sharedMaterial)) // Error locking shader, revert property
-                mat.SetFloat("_ShaderOptimizerEnabled", 0);
+                mat.SetFloat(ShaderOptimizerEnabled, 0);
         }
 
-        [MenuItem("Tools/Lit/Unlock all materials")]
+        [MenuItem("Tools/Shader Optimizer/Unlock All Shaders")]
         public static void UnlockAllMaterials()
         {
             #if BAKERY_INCLUDED
-            ftLightmapsStorage storage = ftRenderLightmap.FindRenderSettingsStorage();
-            if(storage.renderSettingsRenderDirMode == 3 || storage.renderSettingsRenderDirMode == 4) RevertHandleBakeryPropertyBlocks();
+                ftLightmapsStorage storage = ftRenderLightmap.FindRenderSettingsStorage();
+                if(storage.renderSettingsRenderDirMode == 3 || storage.renderSettingsRenderDirMode == 4) RevertHandleBakeryPropertyBlocks();
             #endif
-            List<Material> mats = new List<Material>();
-            var renderers = UnityEngine.Object.FindObjectsOfType<Renderer>();
 
-            if(renderers != null) foreach (var rend in renderers)
-            {
-                if(rend != null) foreach (var mat in rend.sharedMaterials)
-                {
-                    if(mat != null)
-                    {
-                        if(mat.shader.name.StartsWith("Hidden/" + ShaderEditor.litShaderName) || mat.GetTag("OriginalShader", false) == ShaderEditor.litShaderName || mat.GetTag("OriginalShader", false).StartsWith("Hidden/" + ShaderEditor.litShaderName))
-                        {
-                            if(!mats.Contains(mat)) mats.Add(mat);
-                        }
-                        else if (mat.shader.name == ShaderEditor.litShaderName)
-                        {
-                            mat.SetFloat("_ShaderOptimizerEnabled", 0);
-                        }
-                    }
-                }
-            }
+            List<Material> mats = GetMaterialsUsingOptimizer(true);
 
             foreach (Material m in mats)
             {
-                ShaderOptimizer.Unlock(m);
-                m.SetFloat("_ShaderOptimizerEnabled", 0);
+                Unlock(m);
+                m.SetFloat(ShaderOptimizerEnabled, 0);
             }
         }
         
-        [MenuItem("Tools/Lit/Lock all materials")]
+        [MenuItem("Tools/Shader Optimizer/Lock All Shaders")]
         public static void LockAllMaterials()
         {
             
@@ -245,11 +231,11 @@ namespace Shaders.Lit
             ftLightmapsStorage storage = ftRenderLightmap.FindRenderSettingsStorage();
             if(storage.renderSettingsRenderDirMode == 3 || storage.renderSettingsRenderDirMode == 4) HandleBakeryPropertyBlocks();
             #endif
-            List<Material> mats = GetAllMaterials(ShaderEditor.litShaderName);
+            List<Material> mats = GetMaterialsUsingOptimizer(false);
             if(mats.Count > 0)
             {
                 AssetDatabase.StartAssetEditing();
-                List<Material> lockedMats = GetAllLockedMaterials();
+                List<Material> lockedMats = GetMaterialsUsingOptimizer(true);
                 List<Material> allMaterials = new List<Material>();
                 allMaterials.AddRange(mats);
                 allMaterials.AddRange(lockedMats);
@@ -259,7 +245,7 @@ namespace Shaders.Lit
 
                 string originalShaderPath = AssetDatabase.GetAssetPath(mats[0].shader);
 
-                Shader shader = (Shader)AssetDatabase.LoadAssetAtPath( originalShaderPath, typeof( Shader ) );
+                Shader shader = (Shader)AssetDatabase.LoadAssetAtPath(originalShaderPath, typeof(Shader));
 
                 int propCount = ShaderUtil.GetPropertyCount(shader);
 
@@ -269,10 +255,6 @@ namespace Shaders.Lit
                     shaderPropertyNames.Add(st);
 
                 }
-
-
-                
-
 
                 
                 for (int i=0; i<progress; i++)
@@ -311,7 +293,7 @@ namespace Shaders.Lit
                                 switch(propsIclean[k].type)
                                 {
                                     case MaterialProperty.PropType.Float:
-                                        if(propsIclean[k].name == "_ShaderOptimizerEnabled") break;
+                                        if(propsIclean[k].name == ShaderOptimizerEnabled) break;
                                         if(propsIclean[k].name == "_BlendOp") break;
                                         if(propsIclean[k].name == "_BlendOpAlpha") break;
                                         if(propsIclean[k].name == "_SrcBlend") break;
@@ -367,12 +349,7 @@ namespace Shaders.Lit
                                     allMaterials[m] = sharedMaterial;
                                 }
                             }
-                        //Debug.Log($"Share {mats[i]} with {sharedMaterial}");
                     }
-
-                    //else Debug.Log($"Share {mats[i]} with None");
-
-
                     LockMaterial(mats[i], true, sharedMaterial);
                 }
                 
@@ -389,7 +366,7 @@ namespace Shaders.Lit
             }
         }
 
-        public static List<Material> GetAllMaterials(string shaderName)
+        public static List<Material> GetAllMaterialsWithShader(string shaderName)
         {
             List<Material> materials = new List<Material>();
             var renderers = UnityEngine.Object.FindObjectsOfType<Renderer>();
@@ -407,7 +384,7 @@ namespace Shaders.Lit
             return materials;
         }
 
-        public static List<Material> GetAllLockedMaterials()
+        public static List<Material> GetMaterialsUsingOptimizer(bool isLocked)
         {
             List<Material> materials = new List<Material>();
             var renderers = UnityEngine.Object.FindObjectsOfType<Renderer>();
@@ -416,9 +393,20 @@ namespace Shaders.Lit
             {
                 if(rend != null) foreach (var mat in rend.sharedMaterials)
                 {
-                    if(mat != null) if(mat.shader.name.StartsWith("Hidden/" + ShaderEditor.litShaderName))
+                    if(mat != null)
                     {
-                        if(!materials.Contains(mat)) materials.Add(mat);
+                        if(mat.shader.name != "Hidden/InternalErrorShader")
+                        {
+                            if(!materials.Contains(mat) && ShaderUtil.GetPropertyName(mat.shader, 0) == ShaderOptimizerEnabled)
+                                if(mat.GetFloat(ShaderOptimizerEnabled) == (isLocked ? 1 : 0))
+                                    materials.Add(mat);
+                        }
+                        else
+                        {
+                            if(!materials.Contains(mat) && mat.GetTag(OriginalShaderTag, false) != "")
+                                if(isLocked)
+                                    materials.Add(mat);
+                        }
                     }
                 }
             }
@@ -449,7 +437,7 @@ namespace Shaders.Lit
         * SOFTWARE.
         */
 
-        [MenuItem("Tools/Lit/HandleBakeryPropertyBlocks")]
+        [MenuItem("Tools/Shader Optimizer/HandleBakeryPropertyBlocks")]
         public static void HandleBakeryPropertyBlocks()
         {
             const string newMaterialPath = "Assets/GeneratedMaterials/";
@@ -474,9 +462,8 @@ namespace Shaders.Lit
                     for (int j = 0; j < mr.sharedMaterials.Length; j++)
                     {
                         Material material = mr.sharedMaterials[j];
-                        if  (material != null && 
-                            (material.shader.name.Contains(ShaderEditor.litShaderName) || material.shader.name.StartsWith("Hidden/" + ShaderEditor.litShaderName)) &&
-                            material.GetTag("OriginalMaterialPath", false) == "")
+                        
+                        if  (material != null && ShaderUtil.GetPropertyName(material.shader, 0) == ShaderOptimizerEnabled && material.GetTag("OriginalMaterialPath", false) == "")
                         {
                             string materialPath = AssetDatabase.GetAssetPath(material);
                             string textureName = AssetDatabase.GetAssetPath(RNM0) + "_" + AssetDatabase.GetAssetPath(RNM1) + "_" + AssetDatabase.GetAssetPath(RNM2);
@@ -527,7 +514,7 @@ namespace Shaders.Lit
             AssetDatabase.Refresh();
         }
         
-        [MenuItem("Tools/Lit/RevertBakeryPropertyBlocks")]
+        [MenuItem("Tools/Shader Optimizer/RevertBakeryPropertyBlocks")]
         public static void RevertHandleBakeryPropertyBlocks()
         {
             var renderers = UnityEngine.Object.FindObjectsOfType<MeshRenderer>();
@@ -844,9 +831,6 @@ namespace Shaders.Lit
                  (prop.name == "_Glossiness") ||
                  (prop.name == "_Metallic") ||
                  (prop.name == "_BumpScale") ||
-                 #if UNITY_ANDROID
-                 (prop.name == "bakeryLightmapMode") ||
-                 #endif
                  (prop.name == "_Reflectance") ||
                  (prop.name == "_Color")
                  )
@@ -1146,35 +1130,7 @@ namespace Shaders.Lit
 
             AssetDatabase.Refresh();
 
-            // Loop through animated properties and set new properties to current property values
-            /*
-            if (ReplaceAnimatedParameters)
-                foreach (string animatedPropName in animatedProps)
-                {
-                    MaterialProperty mpa = MaterialEditor.GetMaterialProperty(new UnityEngine.Object[] { material }, animatedPropName + material.GetTag("AnimatedParametersSuffix", false, ""));
-                    MaterialProperty propOriginal = Array.Find(props, x => x.name == animatedPropName);
-                    switch (mpa.type)
-                    {
-                        case MaterialProperty.PropType.Color:
-                            mpa.colorValue = propOriginal.colorValue;
-                            break;
-                        case MaterialProperty.PropType.Vector:
-                            mpa.vectorValue = propOriginal.vectorValue;
-                            break;
-                        case MaterialProperty.PropType.Float:
-                        case MaterialProperty.PropType.Range:
-                            mpa.floatValue = propOriginal.floatValue;
-                            break;
-                        case MaterialProperty.PropType.Texture:
-                            mpa.textureValue = propOriginal.textureValue;
-                            break;
-                    }
-                }
-                */
-
-            
-
-                return ReplaceShader(applyLater);
+            return ReplaceShader(applyLater);
         }
 
         private static Dictionary<Material, ApplyLater> applyStructsLater = new Dictionary<Material, ApplyLater>();
@@ -1200,11 +1156,9 @@ namespace Shaders.Lit
         {
 
             // Write original shader to override tag
-            applyLater.material.SetOverrideTag("OriginalShader", applyLater.shader.name);
+            applyLater.material.SetOverrideTag(OriginalShaderTag, applyLater.shader.name);
             // Write the new shader folder name in an override tag so it will be deleted 
             applyLater.material.SetOverrideTag("OptimizedShaderFolder", applyLater.smallguid);
-
-            
 
             // For some reason when shaders are swapped on a material the RenderType override tag gets completely deleted and render queue set back to -1
             // So these are saved as temp values and reassigned after switching shaders
@@ -1277,7 +1231,7 @@ namespace Shaders.Lit
                     string[] materialProperties = Regex.Split(lineParsed.Replace("//#if", ""), ",");
                     try
                     {
-                        if(!materialProperties.Any(x => Convert.ToBoolean(mat.GetFloat(x))))
+                        if(!materialProperties.Any(x => mat.GetFloat(x) != 0))
                         {
                             i++;
                             fileLines[i] = fileLines[i].Insert(0, "//");
@@ -1759,7 +1713,7 @@ namespace Shaders.Lit
             }
 
             // Revert to original shader
-            string originalShaderName = ShaderEditor.litShaderName;
+            string originalShaderName = material.GetTag(OriginalShaderTag, false, "");
             if (originalShaderName == "")
             {
                 Debug.LogError("[Kaj Shader Optimizer] Original shader not saved to material, could not unlock shader");

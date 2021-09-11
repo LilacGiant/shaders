@@ -1,9 +1,9 @@
-Shader " Lit"
+Shader "Lit/Lit"
 {
 
     Properties
     {
-        _ShaderOptimizerEnabled ("", Float) = 0
+        _IsMaterialLocked ("", Float) = 0 // has to be property index 0
 
         [Enum(Opaque, 0, Cutout, 1, Fade, 2, Transparent, 3)] _Mode("Rendering Mode", Int) = 0
         
@@ -126,7 +126,6 @@ Shader " Lit"
     SubShader //pc shader
     {
 
-
         Tags
         {
             "RenderType" = "Opaque" "Queue" = "Geometry"
@@ -151,7 +150,6 @@ Shader " Lit"
             #pragma target 5.0
             #pragma vertex vert
             #pragma fragment frag
-            #pragma exclude_renderers gles3
             #pragma multi_compile_fwdbase
             #pragma multi_compile_instancing
             #pragma multi_compile_fog
@@ -173,7 +171,7 @@ Shader " Lit"
 
 
             #ifndef UNITY_PASS_FORWARDBASE
-            #define UNITY_PASS_FORWARDBASE
+                #define UNITY_PASS_FORWARDBASE
             #endif
 
             #include "LitPass.cginc"
@@ -199,7 +197,6 @@ Shader " Lit"
             #pragma target 5.0
             #pragma vertex vert
             #pragma fragment frag
-            #pragma exclude_renderers gles3
             #pragma multi_compile_fwdadd_fullshadows
             #pragma multi_compile_instancing
             #pragma multi_compile_fog
@@ -211,7 +208,7 @@ Shader " Lit"
 
 
             #ifndef UNITY_PASS_FORWARDADD
-            #define UNITY_PASS_FORWARDADD
+                #define UNITY_PASS_FORWARDADD
             #endif
 
             #include "LitPass.cginc"
@@ -235,7 +232,6 @@ Shader " Lit"
             #pragma target 5.0
             #pragma vertex vert
             #pragma fragment ShadowCasterfrag
-            #pragma exclude_renderers gles3
             #pragma multi_compile_shadowcaster
             #pragma multi_compile_instancing
 
@@ -244,7 +240,7 @@ Shader " Lit"
             #pragma skip_variants FOG_LINEAR FOG_EXP FOG_EXP2
 
             #ifndef UNITY_PASS_SHADOWCASTER
-            #define UNITY_PASS_SHADOWCASTER
+                #define UNITY_PASS_SHADOWCASTER
             #endif
 
             #include "LitPass.cginc"
@@ -268,7 +264,7 @@ Shader " Lit"
 
 
             #ifndef UNITY_PASS_META
-            #define UNITY_PASS_META
+                #define UNITY_PASS_META
             #endif
 
             #include "LitPass.cginc"
@@ -276,122 +272,7 @@ Shader " Lit"
         }
 
     }
-
-    SubShader // quest shader
-    {
-        Tags
-        {
-            "RenderType" = "Opaque" "Queue" = "Geometry"
-        }
-
-        Pass
-        {
-            Name "FORWARD"
-            Tags
-            {
-                "LightMode"="ForwardBase"
-            }
-            
-            ZWrite [_ZWrite]
-            Cull [_Cull]
-            ZTest [_ZTest]
-            
-            BlendOp [_BlendOp], [_BlendOpAlpha]
-            Blend [_SrcBlend] [_DstBlend]
-            AlphaToMask [_AlphaToMask]
-
-            CGPROGRAM
-            #pragma target 3.0
-            #pragma vertex vert
-            #pragma fragment frag
-            #pragma only_renderers gles3
-            #pragma multi_compile_fwdbase
-            #pragma multi_compile_instancing
-            #pragma multi_compile_fog
-
-            #pragma shader_feature_local ENABLE_SPECULAR_HIGHLIGHTS
-            #pragma shader_feature_local ENABLE_REFLECTIONS
-            #pragma shader_feature_local ENABLE_PACKED_MODE
-            #pragma shader_feature_local ENABLE_REFRACTION
-
-
-            #ifndef UNITY_PASS_FORWARDBASE
-            #define UNITY_PASS_FORWARDBASE
-            #endif
-
-            #include "LitPass.cginc"
-            ENDCG
-        }
-
-        Pass
-        {
-            Name "FWDADD"
-            Tags
-            {
-                "LightMode"="ForwardAdd"
-            }
-            ZWrite Off
-            BlendOp [_BlendOp], [_BlendOpAlpha]
-            Blend One One
-            Cull [_Cull]
-            ZTest [_ZTest]
-            AlphaToMask [_AlphaToMask]
-
-
-            CGPROGRAM
-            #pragma target 3.0
-            #pragma vertex vert
-            #pragma fragment frag
-            #pragma only_renderers gles3
-            #pragma multi_compile_fwdadd_fullshadows
-            #pragma multi_compile_instancing
-            #pragma multi_compile_fog
-
-            #pragma shader_feature_local ENABLE_SPECULAR_HIGHLIGHTS
-            #pragma shader_feature_local ENABLE_PACKED_MODE
-
-
-            #ifndef UNITY_PASS_FORWARDADD
-            #define UNITY_PASS_FORWARDADD
-            #endif
-
-            #include "LitPass.cginc"
-            ENDCG
-        }
-
-        Pass
-        {
-            Name "ShadowCaster"
-            Tags
-            {
-                "LightMode"="ShadowCaster"
-            }
-            AlphaToMask Off
-            ZWrite On
-            Cull [_Cull]
-            ZTest LEqual
-
-
-            CGPROGRAM
-            #pragma target 3.0
-            #pragma vertex vert
-            #pragma fragment ShadowCasterfrag
-            #pragma only_renderers gles3
-            #pragma multi_compile_shadowcaster
-            #pragma multi_compile_instancing
-
-            #pragma skip_variants FOG_LINEAR FOG_EXP FOG_EXP2
-
-            #ifndef UNITY_PASS_SHADOWCASTER
-            #define UNITY_PASS_SHADOWCASTER
-            #endif
-
-            #include "LitPass.cginc"
-            ENDCG
-        }
-
-    }
-
+    
     FallBack "Diffuse"
-    CustomEditor "Shaders.Lit.ShaderEditor"
+    CustomEditor "z3y.LitShaderEditor"
 }
