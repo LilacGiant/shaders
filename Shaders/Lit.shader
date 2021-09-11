@@ -1,4 +1,4 @@
-Shader "Lit/Lit"
+Shader "Lit/lit"
 {
 
     Properties

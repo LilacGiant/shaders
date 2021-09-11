@@ -20,12 +20,12 @@ namespace z3y
             {
                 if(previousTarget != newTarget && newTarget == BuildTarget.Android)
                 {
-                    QuestShaderSwitch.SwitchToQuestShaders();
+                    QuestShaderSwitch.TogglePlatformShaders();
                     Debug.Log("[QuestShaderSwitch] Switched to Quest Shaders");
                 }
                 else if(previousTarget != newTarget && previousTarget == BuildTarget.Android)
                 {
-                    QuestShaderSwitch.SwitchToPCShaders();
+                    QuestShaderSwitch.TogglePlatformShaders();
                     Debug.Log("[QuestShaderSwitch] Switched to PC Shaders");
                 }
             }
@@ -35,38 +35,17 @@ namespace z3y
 
     public class QuestShaderSwitch : Editor
     {
-        const string MaterialTagPC = "QuestShaderSwitch.PC";
-        const string MaterialTagQuest = "QuestShaderSwitch.Quest";
+        const string MaterialTag = "QuestShaderSwitch.Shader";
         private static readonly string[] allMaterialPaths = AssetDatabase.GetAllAssetPaths().Where(x => x.EndsWith(".mat")).ToArray();
 
-        public static void SwitchToQuestShaders()
-        {
-            SetPreviousPlatformShaderTag(true);
-            SwitchShaders(true);
-        }
-
-        public static void SwitchToPCShaders()
-        {
-            SetPreviousPlatformShaderTag(false);
-            SwitchShaders(false);
-        }
-
-        private static void SetPreviousPlatformShaderTag(bool isQuest)
+        public static void TogglePlatformShaders()
         {
             for (int i = 0; i < allMaterialPaths.Length; i++)
             {
                 Material material = AssetDatabase.LoadAssetAtPath(allMaterialPaths[i], typeof(Material)) as Material;
-                material.SetOverrideTag(!isQuest ? MaterialTagQuest : MaterialTagPC, material.shader.name);
-            }
+                string oldShaderName = material.GetTag(MaterialTag, false);
+                material.SetOverrideTag(MaterialTag, material.shader.name);
 
-        }
-
-        private static void SwitchShaders(bool isQuest)
-        {
-            for (int i = 0; i < allMaterialPaths.Length; i++)
-            {
-                Material material = AssetDatabase.LoadAssetAtPath(allMaterialPaths[i], typeof(Material)) as Material;
-                string oldShaderName = material.GetTag(isQuest ? MaterialTagQuest : MaterialTagPC, false);
                 if(oldShaderName != "")
                 {
                     Shader shader = Shader.Find(oldShaderName);
@@ -74,40 +53,69 @@ namespace z3y
                     {
                         Debug.LogError($"[QuestShaderSwitch] Original shader {oldShaderName} for material {material.name} not found");
                     }
-                    else
-                    {
-                        if(material.shader.name != oldShaderName) material.shader = shader;
-                    }
+                    if(material.shader.name != oldShaderName) material.shader = shader;
                 }
+            }
+        }
+
+        public static void ClearAllData()
+        {
+            for (int i = 0; i < allMaterialPaths.Length; i++)
+            {
+                Material material = AssetDatabase.LoadAssetAtPath(allMaterialPaths[i], typeof(Material)) as Material;
+                material.SetOverrideTag(MaterialTag, "");
             }
         }
     }
 
     public class QuestShaderSwitchEditorWindow : EditorWindow
     {
-        [MenuItem("Window/Quest Shader Switch")]
+        [MenuItem("Window/Quest Shader Switch", false, 100)]
         public static void ShowWindow()
         {
             GetWindow<QuestShaderSwitchEditorWindow>("Quest Shader Switch");
         }
         public QuestShaderSwitchSettings settingsData;
         bool firstTime = true;
-        void OnGUI()
+        private bool toggleShadersSwitch;
+        bool isQuest;
+
+        private void OnGUI()
         {
             if (firstTime)
             {
+                isQuest = Application.platform == RuntimePlatform.Android;
                 settingsData = DataManager.Load();
                 firstTime = false;
             }
             EditorGUI.BeginChangeCheck();
 
-            settingsData.isEnabled = GUILayout.Toggle(settingsData.isEnabled, "Enable Shader Switch");
+            settingsData.isEnabled = EditorGUILayout.ToggleLeft("Enable Shader Switch On Platform Change", settingsData.isEnabled);
+            EditorGUI.BeginDisabledGroup(!settingsData.isEnabled);
 
+
+            if(toggleShadersSwitch = EditorGUILayout.ToggleLeft("Preview " + (isQuest ? "PC" : "Quest") + " Shaders", toggleShadersSwitch))
+            {
+                QuestShaderSwitch.TogglePlatformShaders();
+            }
+
+            EditorGUILayout.Space(20);
+
+            if(GUILayout.Button("Clear All Data"))
+            {
+                if(EditorUtility.DisplayDialog("Clear All Data", "Clear all fallback shaders for materials in project and keep current ones", "Clear" ,"NO"))
+                {
+                    QuestShaderSwitch.ClearAllData();
+                }
+            }
+            
+
+
+            EditorGUI.EndDisabledGroup();
             if (EditorGUI.EndChangeCheck())
             {
                 DataManager.Save(settingsData);
             }
-
         }
 
     }
@@ -115,7 +123,7 @@ namespace z3y
     [System.Serializable]
     public class QuestShaderSwitchSettings
     {
-        public bool isEnabled;
+        public bool isEnabled = false;
     }
 
     public static class DataManager
