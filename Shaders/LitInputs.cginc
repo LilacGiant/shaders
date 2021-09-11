@@ -16,12 +16,6 @@
 #endif
 
 
-#ifdef SHADER_API_MOBILE
-    #undef ENABLE_PARALLAX
-    #undef PROP_DETAILMAP
-    #undef ENABLE_AUDIOLINK
-#endif
-
 #if defined(PROP_DETAILMAP)
     #define PROP_BUMPMAP
 #endif
@@ -44,11 +38,6 @@
 
 
 
-
-
-
-
-
 uniform float2 uvs[4];
 uniform half _Cutoff;
 uniform half _Mode;
@@ -62,7 +51,6 @@ uniform half _Saturation;
 uniform half _EnableVertexColor;
 
 
-uniform float _EnableNormalMap;
 uniform float _NormalMapOrientation;
 UNITY_DECLARE_TEX2D(_BumpMap);
 uniform float _BumpMapUV;
@@ -98,19 +86,14 @@ uniform half _Occlusion;
 UNITY_DECLARE_TEX2D_NOSAMPLER(_MetallicGlossMap);
 uniform float _MetallicGlossMapUV;
 uniform float4 _MetallicGlossMap_ST;
-uniform half _EnableVertexColorMask;
-
 
 uniform half _specularAntiAliasingVariance;
 uniform half _specularAntiAliasingThreshold;
 uniform half4 _FresnelColor;
-uniform half _AngularGlossiness;
 uniform half _GetDominantLight;
 
 uniform half _Reflectance;
-uniform half _ExposureOcclusion;
 uniform half _Anisotropy;
-
 
 uniform half _LightmapMultiplier;
 uniform half _SpecularOcclusion;
@@ -187,14 +170,8 @@ static Surface surface;
 
 #if defined(BAKERY_SH) || defined(BAKERY_RNM) || defined(BAKERY_LMSPEC)
     #ifdef UNITY_PASS_FORWARDBASE
-        #ifndef SHADER_API_MOBILE
 //#if_BAKERY_SH,_BAKERY_RNM,_BAKERY_LMSPEC
-            #include "Bakery.cginc"
-        #else
-        #undef BAKERY_SH
-        #undef BAKERY_RNM
-        #undef BAKERY_LMSPEC
-        #endif
+        #include "Bakery.cginc"
     #else
     #undef BAKERY_SH
     #undef BAKERY_RNM
@@ -203,7 +180,7 @@ static Surface surface;
 #endif
 
 #if defined(LOD_FADE_CROSSFADE)
-    #if defined(SHADER_API_MOBILE) || defined(UNITY_PASS_META)
+    #if defined(UNITY_PASS_META)
         #undef LOD_FADE_CROSSFADE
     #endif
 #endif

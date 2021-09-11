@@ -39,7 +39,7 @@ half4 frag(v2f i) : SV_Target
 
     initSurfaceData(metallicMap, smoothnessMap, occlusionMap, maskMap, parallaxOffset);
 
-    #if defined(PROP_DETAILMAP) && !defined(SHADER_API_MOBILE)
+    #if defined(PROP_DETAILMAP)
         detailMap = applyDetailMap(parallaxOffset, maskMap.a);
     #endif
 
@@ -55,7 +55,7 @@ half4 frag(v2f i) : SV_Target
     #ifdef PROP_BUMPMAP
         half4 normalMap = _BumpMap.Sample(sampler_BumpMap, TRANSFORMTEX(uvs[_BumpMapUV], _BumpMap_ST, _MainTex_ST));
         float4 detailNormalMap = float4(0.5, 0.5, 1, 1);
-        #if defined(PROP_DETAILMAP) && !defined(SHADER_API_MOBILE)
+        #if defined(PROP_DETAILMAP)
             detailNormalMap = float4(detailMap.a, detailMap.g, 1, 1);
         #endif
         initNormalMap(normalMap, bitangent, tangent, worldNormal, detailNormalMap, tangentNormal);
@@ -68,7 +68,7 @@ half4 frag(v2f i) : SV_Target
 
     getIndirectDiffuse(worldNormal, parallaxOffset, lightmapUV);
 
-    #if defined(ENABLE_GSAA) && !defined(SHADER_API_MOBILE)
+    #if defined(ENABLE_GSAA)
         surface.perceptualRoughness = GSAA_Filament(worldNormal, surface.perceptualRoughness);
     #endif
 
@@ -76,11 +76,9 @@ half4 frag(v2f i) : SV_Target
         half3 f0 = 0.16 * _Reflectance * _Reflectance * surface.oneMinusMetallic + surface.albedo * surface.metallic;
         half3 fresnel = F_Schlick(NoV, f0);
 
-        #if !defined(SHADER_API_MOBILE)
-            fresnel = lerp(f0, fresnel , _FresnelColor.a);
-            fresnel *= _FresnelColor.rgb;
-            fresnel *= _SpecularOcclusion ? saturate(lerp(1, pow(length(light.indirectDiffuse), _SpecularOcclusion), _SpecularOcclusion * surface.oneMinusMetallic)) : 1;
-        #endif
+        fresnel = lerp(f0, fresnel , _FresnelColor.a);
+        fresnel *= _FresnelColor.rgb;
+        fresnel *= _SpecularOcclusion ? saturate(lerp(1, pow(length(light.indirectDiffuse), _SpecularOcclusion), _SpecularOcclusion * surface.oneMinusMetallic)) : 1;
     #endif
 
     #if defined(UNITY_PASS_FORWARDBASE)
@@ -94,17 +92,11 @@ half4 frag(v2f i) : SV_Target
                 reflWorldNormal = 0;
             #endif
 
-            #if !defined(SHADER_API_MOBILE)
-                if(_Anisotropy != 0) reflViewDir = getAnisotropicReflectionVector(viewDir, bitangent, tangent, worldNormal, surface.perceptualRoughness);
-            #endif
-        
+            if(_Anisotropy != 0) reflViewDir = getAnisotropicReflectionVector(viewDir, bitangent, tangent, worldNormal, surface.perceptualRoughness);
             light.indirectSpecular = getIndirectSpecular(reflViewDir, i.worldPos, reflWorldNormal, fresnel, f0);
         #endif
 
-        #if defined(PROP_OCCLUSIONMAP) && !defined(SHADER_API_MOBILE)
-            light.indirectSpecular *= computeSpecularAO(NoV, surface.occlusion, surface.perceptualRoughness * surface.perceptualRoughness);
-        #endif
-
+        light.indirectSpecular *= computeSpecularAO(NoV, surface.occlusion, surface.perceptualRoughness * surface.perceptualRoughness);
     #endif
 
     #if defined(ENABLE_SPECULAR_HIGHLIGHTS) || defined(UNITY_PASS_META)

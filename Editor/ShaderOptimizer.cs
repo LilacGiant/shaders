@@ -61,7 +61,7 @@ namespace z3y
         }
     }
 #if BAKERY_INCLUDED
-    public class ActiveBuildTargetListener : IActiveBuildTargetChanged
+    public class UnlockShadersOnPlatformSwitch : IActiveBuildTargetChanged
     {
         public int callbackOrder { get { return 69; } }
 
@@ -222,6 +222,7 @@ namespace z3y
                 m.SetFloat(ShaderOptimizerEnabled, 0);
             }
         }
+        
         
         [MenuItem("Tools/Shader Optimizer/Lock All Shaders")]
         public static void LockAllMaterials()
