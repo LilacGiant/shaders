@@ -155,6 +155,15 @@ struct Surface
 };
 static Surface surface;
 
+#if defined(VERTEXLIGHT_ON) && defined(UNITY_PASS_FORWARDBASE)
+struct VertexLightInformation {
+    float3 Direction[4];
+    float3 ColorFalloff[4];
+    float Attenuation[4];
+};
+static VertexLightInformation vertexLightInformation;
+#endif
+
 #include "UnityCG.cginc"
 #include "AutoLight.cginc"
 #include "Lighting.cginc"
