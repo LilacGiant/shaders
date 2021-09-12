@@ -122,7 +122,17 @@ namespace z3y
 
                 EditorGUI.BeginChangeCheck();
                 prop(_Mode, false);
-                if (EditorGUI.EndChangeCheck()) Func.SetupMaterialWithBlendMode(material, _Mode);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    if(me.targets.Length > 1)
+                        foreach(Material m in me.targets)
+                        {
+                            Func.SetupMaterialWithBlendMode(m, _Mode.floatValue);
+                        }
+                    else
+                        Func.SetupMaterialWithBlendMode(material, _Mode.floatValue);
+                }
+
 
                 if(_Mode.floatValue == 1){
                     prop(_AlphaToMask);
@@ -412,6 +422,7 @@ namespace z3y
             for (int i=0; i<progress; i++)
             {
                 EditorUtility.DisplayCancelableProgressBar("Replacing Shaders", mats[i].name, i/progress);
+                Func.SetupMaterialWithBlendMode(mats[i], mats[i].GetFloat("_Mode"));
                 mats[i].shader = lit;
             }
             EditorUtility.ClearProgressBar();

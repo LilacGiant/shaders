@@ -32,7 +32,7 @@ half4 frag(v2f i) : SV_Target
     getMainTex(mainTex, parallaxOffset, i.color);
 
     
-    #ifdef ENABLE_TRANSPARENCY
+    #if defined(_ALPHATEST_ON) || defined(_ALPHABLEND_ON) || defined(_ALPHAPREMULTIPLY_ON)
         alpha = calcAlpha(surface.albedo.a);
     #endif
 
@@ -129,11 +129,11 @@ half4 frag(v2f i) : SV_Target
     #endif
     
     alpha -= mainTex.a * 0.00001; // fix main tex sampler without changing the color;
-    if(_Mode == 3)
-    {
+
+    #ifdef _ALPHAPREMULTIPLY_ON
         surface.albedo.rgb *= alpha;
         alpha = lerp(alpha, 1, surface.metallic);
-    }
+    #endif
 
     if(_FlatShading) light.finalLight = saturate(light.color) * light.attenuation;
 
@@ -164,9 +164,12 @@ half4 ShadowCasterfrag(v2f i) : SV_Target
 
     half alpha = mainTex.a * _Color.a;
 
-    #ifdef ENABLE_TRANSPARENCY // todo dithering
-        if(_Mode == 1) clip(alpha - _Cutoff);
-        if(_Mode > 1) clip(alpha-0.5);
+    #ifdef _ALPHATEST_ON // todo dithering
+        clip(alpha - _Cutoff);
+    #endif
+
+    #if defined(_ALPHAPREMULTIPLY_ON) || defined(_ALPHAPREMULTIPLY_ON)
+        clip(alpha-0.5);
     #endif
 
     SHADOW_CASTER_FRAGMENT(i);

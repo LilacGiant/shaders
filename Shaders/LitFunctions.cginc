@@ -1,8 +1,6 @@
 half calcAlpha(half alpha)
 {
-    UNITY_BRANCH
-    if(_Mode == 1)
-    {
+    #ifdef _ALPHATEST_ON
         switch(_AlphaToMask)
         {
             case 0:
@@ -16,15 +14,13 @@ half calcAlpha(half alpha)
                 clip(alpha - 0.01);
                 break;
         }
-
-    }
+    #endif
 
     return alpha;
 }
 
 void initNormalMap(half4 normalMap, inout half3 bitangent, inout half3 tangent, inout half3 normal, half4 detailNormalMap, inout float3 tangentNormal)
 {
-    //normalMap.g = _NormalMapOrientation ? 1-normalMap.g : normalMap.g;
 
     tangentNormal = UnpackScaleNormal(normalMap, _BumpScale);
 
@@ -162,7 +158,9 @@ float4 getMeta(Surface surface, Lighting light, float alpha)
     metaInput.Emission = surface.emission;
     metaInput.Albedo = surface.albedo;
     metaInput.SpecularColor = light.directSpecular;
-    if(_Mode == 1) clip(alpha - _Cutoff);
+        #ifdef _ALPHATEST_ON
+            clip(alpha - _Cutoff);
+        #endif
     return float4(UnityMetaFragment(metaInput).rgb, alpha);
 }
 #endif

@@ -1,8 +1,4 @@
 
-#if (PROP_MODE!=0) || !defined(OPTIMIZER_ENABLED)
-    #define ENABLE_TRANSPARENCY
-#endif
-
 #if !defined(OPTIMIZER_ENABLED) // defined if texture gets used
     #define PROP_BUMPMAP
     #define PROP_METALLICMAP
@@ -40,7 +36,6 @@
 
 uniform float2 uvs[4];
 uniform half _Cutoff;
-uniform half _Mode;
 uniform half _AlphaToMask;
 
 UNITY_DECLARE_TEX2D(_MainTex);
