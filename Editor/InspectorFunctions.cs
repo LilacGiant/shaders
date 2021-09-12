@@ -244,43 +244,27 @@ namespace z3y
             if (shaderOptimizer.hasMixedValue)
             {
                 EditorGUI.BeginChangeCheck();
-                GUILayout.Button("Lock in Optimized Shaders (" + materialEditor.targets.Length + " materials)");
+                GUILayout.Button("Lock All Materials");
                 if (EditorGUI.EndChangeCheck())
-                    foreach (Material m in materialEditor.targets)
-                    {
-                        m.SetFloat(shaderOptimizer.name, 1);
-                        MaterialProperty[] props = MaterialEditor.GetMaterialProperties(new UnityEngine.Object[] { m });
-                        if (!ShaderOptimizer.Lock(m, props)) // Error locking shader, revert property
-                            m.SetFloat(shaderOptimizer.name, 0);
-                    }
+                    ShaderOptimizer.LockAllMaterials();
             }
             else
             {
                 EditorGUI.BeginChangeCheck();
                 if (shaderOptimizer.floatValue == 0)
                 {
-                    if (materialEditor.targets.Length == 1)
-                        GUILayout.Button("Lock In Optimized Shader");
-                    else GUILayout.Button("Lock in Optimized Shaders (" + materialEditor.targets.Length + " materials)");
+                    GUILayout.Button("Lock All Materials");
                 }
-                else GUILayout.Button("Unlock Shader");
+                else GUILayout.Button("Unlock All Materials");
                 if (EditorGUI.EndChangeCheck())
                 {
-                    shaderOptimizer.floatValue = shaderOptimizer.floatValue == 1 ? 0 : 1;
-                    if (shaderOptimizer.floatValue == 1)
+                    if (shaderOptimizer.floatValue == 0)
                     {
-                        foreach (Material m in materialEditor.targets)
-                        {
-                            MaterialProperty[] props = MaterialEditor.GetMaterialProperties(new UnityEngine.Object[] { m });
-                            if (!ShaderOptimizer.Lock(m, props))
-                                m.SetFloat(shaderOptimizer.name, 0);
-                        }
+                        ShaderOptimizer.LockAllMaterials();
                     }
                     else
                     {
-                        foreach (Material m in materialEditor.targets)
-                            if (!ShaderOptimizer.Unlock(m))
-                                m.SetFloat(shaderOptimizer.name, 1);
+                        ShaderOptimizer.UnlockAllMaterials();
                     }
                 }
             }

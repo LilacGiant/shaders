@@ -87,11 +87,6 @@ half4 frag(v2f i) : SV_Target
             float3 reflViewDir = reflect(-viewDir, worldNormal);
             float3 reflWorldNormal = worldNormal;
 
-            #ifdef ENABLE_REFRACTION
-                reflViewDir = refract(-viewDir, worldNormal, _Refraction);
-                reflWorldNormal = 0;
-            #endif
-
             if(_Anisotropy != 0) reflViewDir = getAnisotropicReflectionVector(viewDir, bitangent, tangent, worldNormal, surface.perceptualRoughness);
             light.indirectSpecular = getIndirectSpecular(reflViewDir, i.worldPos, reflWorldNormal, fresnel, f0);
         #endif

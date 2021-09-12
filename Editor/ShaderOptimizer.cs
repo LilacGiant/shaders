@@ -227,36 +227,29 @@ namespace z3y
         [MenuItem("Tools/Shader Optimizer/Lock All Shaders")]
         public static void LockAllMaterials()
         {
-            
-            #if BAKERY_INCLUDED && !UNITY_ANDROID
-            ftLightmapsStorage storage = ftRenderLightmap.FindRenderSettingsStorage();
-            if(storage.renderSettingsRenderDirMode == 3 || storage.renderSettingsRenderDirMode == 4) HandleBakeryPropertyBlocks();
+            #if BAKERY_INCLUDED
+                ftLightmapsStorage storage = ftRenderLightmap.FindRenderSettingsStorage();
+                if(storage.renderSettingsRenderDirMode == 3 || storage.renderSettingsRenderDirMode == 4) HandleBakeryPropertyBlocks();
             #endif
             List<Material> mats = GetMaterialsUsingOptimizer(false);
             if(mats.Count > 0)
             {
                 AssetDatabase.StartAssetEditing();
-                List<Material> lockedMats = GetMaterialsUsingOptimizer(true);
                 List<Material> allMaterials = new List<Material>();
                 allMaterials.AddRange(mats);
-                allMaterials.AddRange(lockedMats);
                 float progress = mats.Count;
 
                 List<String> shaderPropertyNames = new List<String>();
 
                 string originalShaderPath = AssetDatabase.GetAssetPath(mats[0].shader);
-
                 Shader shader = (Shader)AssetDatabase.LoadAssetAtPath(originalShaderPath, typeof(Shader));
-
                 int propCount = ShaderUtil.GetPropertyCount(shader);
 
                 for(int l=0; l<propCount; l++)
                 {
                     string st = ShaderUtil.GetPropertyName (shader, l);
                     shaderPropertyNames.Add(st);
-
                 }
-
                 
                 for (int i=0; i<progress; i++)
                 {
@@ -266,12 +259,10 @@ namespace z3y
 
                     Material sharedMaterial = null;
                     
-
                     foreach(MaterialProperty p in propsI)
                     {
                         if(shaderPropertyNames.Contains(p.name)) propsIclean.Add(p);
                     }
-
 
                     for (int j=0; j<allMaterials.Count; j++)
                     {
@@ -286,8 +277,6 @@ namespace z3y
                             {
                                 if(shaderPropertyNames.Contains(p.name)) propsJclean.Add(p);  
                             }
-
-                    
 
                             for (int k=0; k<propCount; k++)
                             {
@@ -304,6 +293,7 @@ namespace z3y
                                         if(propsIclean[k].name == "_Cull") break;
                                         if(propsIclean[k].floatValue != propsJclean[k].floatValue) canShare = false;
                                         break;
+
                                     case MaterialProperty.PropType.Texture:
                                         if(propsIclean[k].name == "_MainTex") break;
                                         if(propsIclean[k].textureValue != null || propsJclean[k].textureValue != null)
@@ -314,31 +304,23 @@ namespace z3y
                                         else if(propsIclean[k].textureValue != null && propsJclean[k].textureValue != null) {}
                                         else canShare = false;
                                         break;
+
                                     case MaterialProperty.PropType.Color:
-                                        if(propsIclean[k].name == "_Color") break;
                                         if(propsIclean[k].colorValue != propsJclean[k].colorValue) canShare = false;
                                         break;
+
                                     case MaterialProperty.PropType.Range:
-                                        if(propsIclean[k].name == "_Glossiness") break;
-                                        if(propsIclean[k].name == "_Metallic") break;
-                                        if(propsIclean[k].name == "_Reflectance") break;
-                                        if(propsIclean[k].name == "_BumpScale") break;
                                         if(propsIclean[k].floatValue != propsJclean[k].floatValue) canShare = false;
                                         break;
+
                                     case MaterialProperty.PropType.Vector:
                                         if(propsIclean[k].vectorValue != propsJclean[k].vectorValue) canShare = false;
                                         break;
                                 }
-                                
-
                             }
-
 
                             if(canShare) sharedMaterial = allMaterials[j];
                         }
-                        
-                        
-
                     }
 
                     if(sharedMaterial != null)
@@ -404,7 +386,7 @@ namespace z3y
                         }
                         else
                         {
-                            if(!materials.Contains(mat) && mat.GetTag(OriginalShaderTag, false) != "")
+                            if(!materials.Contains(mat) && mat.GetTag(OriginalShaderTag, false) != String.Empty)
                                 if(isLocked)
                                     materials.Add(mat);
                         }
@@ -444,13 +426,15 @@ namespace z3y
             const string newMaterialPath = "Assets/GeneratedMaterials/";
             if (!Directory.Exists(newMaterialPath)) Directory.CreateDirectory(newMaterialPath);
 
-            MeshRenderer[] renderers = UnityEngine.Object.FindObjectsOfType<MeshRenderer>();
+            MeshRenderer[] mr = UnityEngine.Object.FindObjectsOfType<MeshRenderer>();
             Dictionary<string, Material> generatedMaterialList = new Dictionary<string, Material>();
+            
 
-            foreach(MeshRenderer mr in renderers)
+            for (int i = 0; i < mr.Length; i++)
             {
+                EditorUtility.DisplayCancelableProgressBar("Generating Materials", mr[i].name, (float)i/mr.Length);
                 MaterialPropertyBlock propertyBlock = new MaterialPropertyBlock();
-                mr.GetPropertyBlock(propertyBlock);
+                mr[i].GetPropertyBlock(propertyBlock);
                 Texture RNM0 = propertyBlock.GetTexture("_RNM0");
                 Texture RNM1 = propertyBlock.GetTexture("_RNM1");
                 Texture RNM2 = propertyBlock.GetTexture("_RNM2");
@@ -458,13 +442,13 @@ namespace z3y
 
                 if(RNM0 && RNM1 && RNM2 && propertyLightmapMode != 0)
                 {
-                    Material[] newSharedMaterials = new Material[mr.sharedMaterials.Length];
+                    Material[] newSharedMaterials = new Material[mr[i].sharedMaterials.Length];
 
-                    for (int j = 0; j < mr.sharedMaterials.Length; j++)
+                    for (int j = 0; j < mr[i].sharedMaterials.Length; j++)
                     {
-                        Material material = mr.sharedMaterials[j];
+                        Material material = mr[i].sharedMaterials[j];
                         
-                        if  (material != null && ShaderUtil.GetPropertyName(material.shader, 0) == ShaderOptimizerEnabled && material.GetTag("OriginalMaterialPath", false) == "")
+                        if  (material != null && ShaderUtil.GetPropertyName(material.shader, 0) == ShaderOptimizerEnabled && material.GetTag("OriginalMaterialPath", false) == String.Empty)
                         {
                             string materialPath = AssetDatabase.GetAssetPath(material);
                             string textureName = AssetDatabase.GetAssetPath(RNM0) + "_" + AssetDatabase.GetAssetPath(RNM1) + "_" + AssetDatabase.GetAssetPath(RNM2);
@@ -508,9 +492,10 @@ namespace z3y
                         }
                     }
 
-                    mr.sharedMaterials = newSharedMaterials;
+                    mr[i].sharedMaterials = newSharedMaterials;
                 }
             }
+            EditorUtility.ClearProgressBar();
 
             AssetDatabase.Refresh();
         }
@@ -531,7 +516,7 @@ namespace z3y
 
                         if( rend.sharedMaterials[i] != null)
                         {
-                            string originalMatPath = rend.sharedMaterials[i].GetTag("OriginalMaterialPath", false, "");
+                            string originalMatPath = rend.sharedMaterials[i].GetTag("OriginalMaterialPath", false, String.Empty);
                             if(originalMatPath != "")
                             {
                                 try
@@ -828,13 +813,7 @@ namespace z3y
 
                 if (
                   prop.name.EndsWith(AnimatedPropertySuffix) ||
-                 (material.GetTag(prop.name.ToString() + AnimatedPropertySuffix, false) == "" ? false : true) ||
-                 (prop.name == "_Glossiness") ||
-                 (prop.name == "_Metallic") ||
-                 (prop.name == "_BumpScale") ||
-                 (prop.name == "_Reflectance") ||
-                 (prop.name == "_Color")
-                 )
+                 (material.GetTag(prop.name.ToString() + AnimatedPropertySuffix, false) == String.Empty ? false : true))
                     continue;
                 else if (prop.name == UseInlineSamplerStatesPropertyName)
                 {
@@ -874,7 +853,7 @@ namespace z3y
                     {
                         // Add a tag to the material so animation clip referenced parameters 
                         // will stay consistent across material locking/unlocking
-                        string animatedParameterSuffix = material.GetTag("AnimatedParametersSuffix", false, "");
+                        string animatedParameterSuffix = material.GetTag("AnimatedParametersSuffix", false, String.Empty);
                         if (animatedParameterSuffix == "")
                             material.SetOverrideTag("AnimatedParametersSuffix", Guid.NewGuid().ToString().Split('-')[0]);
                     }
@@ -1082,7 +1061,7 @@ namespace z3y
                                 char charLeft = trimmedLine[parameterIndex-1];
                                 char charRight = trimmedLine[parameterIndex + animatedPropName.Length];
                                 if (Array.Exists(ValidSeparators, x => x == charLeft) && Array.Exists(ValidSeparators, x => x == charRight))
-                                    psf.lines[i] = psf.lines[i].Replace(animatedPropName, animatedPropName + material.GetTag("AnimatedParametersSuffix", false, ""));
+                                    psf.lines[i] = psf.lines[i].Replace(animatedPropName, animatedPropName + material.GetTag("AnimatedParametersSuffix", false, String.Empty));
                             }
                         }
                     }
@@ -1163,7 +1142,7 @@ namespace z3y
 
             // For some reason when shaders are swapped on a material the RenderType override tag gets completely deleted and render queue set back to -1
             // So these are saved as temp values and reassigned after switching shaders
-            string renderType = applyLater.material.GetTag("RenderType", false, "");
+            string renderType = applyLater.material.GetTag("RenderType", false, String.Empty);
             int renderQueue = applyLater.material.renderQueue;
 
             // Actually switch the shader
@@ -1690,7 +1669,7 @@ namespace z3y
                             
                             StringBuilder sb = new StringBuilder(lines[i].Length * 2);
                             sb.Append(lines[i], 0, nameIndex);
-                            sb.Append(animPropName + "_" + material.GetTag("AnimatedParametersSuffix", false, ""));
+                            sb.Append(animPropName + "_" + material.GetTag("AnimatedParametersSuffix", false, String.Empty));
                             sb.Append(lines[i], nameIndex+animPropName.Length, lines[i].Length-nameIndex-animPropName.Length);
                             lines[i] = sb.ToString();
                         }
@@ -1708,13 +1687,13 @@ namespace z3y
             string animatedParameterSuffix = "";
             if (useUniquePropertyNames != null && useUniquePropertyNames.floatValue == 1)
             {
-                animatedParameterSuffix = material.GetTag("AnimatedParametersSuffix", false, "");
+                animatedParameterSuffix = material.GetTag("AnimatedParametersSuffix", false, String.Empty);
                 foreach (MaterialProperty mp in propsLocked)
                     if (mp.name.EndsWith(animatedParameterSuffix)) animProps.Add(mp);
             }
 
             // Revert to original shader
-            string originalShaderName = material.GetTag(OriginalShaderTag, false, "");
+            string originalShaderName = material.GetTag(OriginalShaderTag, false, String.Empty);
             if (originalShaderName == "")
             {
                 Debug.LogError("[Kaj Shader Optimizer] Original shader not saved to material, could not unlock shader");
@@ -1729,7 +1708,7 @@ namespace z3y
 
             // For some reason when shaders are swapped on a material the RenderType override tag gets completely deleted and render queue set back to -1
             // So these are saved as temp values and reassigned after switching shaders
-            string renderType = material.GetTag("RenderType", false, "");
+            string renderType = material.GetTag("RenderType", false, String.Empty);
             int renderQueue = material.renderQueue;
             material.shader = orignalShader;
             material.SetOverrideTag("RenderType", renderType);
@@ -1763,7 +1742,7 @@ namespace z3y
         public static void CleanUpLockedShaders(Material material)
         {
             // Delete the variants folder and all files in it, as to not orhpan files and inflate Unity project
-            string shaderDirectory = material.GetTag("OptimizedShaderFolder", false, "");
+            string shaderDirectory = material.GetTag("OptimizedShaderFolder", false, String.Empty);
             if (shaderDirectory == "")
                 Debug.LogWarning("[Kaj Shader Optimizer] Optimized shader folder could not be found, not deleting anything");
             else

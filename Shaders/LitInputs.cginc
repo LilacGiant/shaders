@@ -125,10 +125,6 @@ uniform half _DetailSmoothnessScale;
 
 uniform float _LightProbeMethod;
 
-#ifdef ENABLE_REFRACTION
-uniform half _Refraction;
-#endif
-
 uniform float _FlatShading;
 
 struct Lighting

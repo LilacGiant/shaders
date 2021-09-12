@@ -87,9 +87,6 @@ namespace z3y
         protected MaterialProperty _DetailNormalScale = null;
         protected MaterialProperty _DetailSmoothnessScale = null;
 
-        protected MaterialProperty _EnableRefraction = null;
-        protected MaterialProperty _Refraction = null;
-
         protected MaterialProperty _EnableAudioLink = null;
         protected MaterialProperty _ALSmoothing = null;
         protected MaterialProperty _AudioTexture = null;
@@ -212,8 +209,7 @@ namespace z3y
             md[material].ShowShaderFeatures = Foldout("Shader Features", md[material].ShowShaderFeatures, ()=> {
                 prop(_GlossyReflections, false);
                 prop(_SpecularHighlights, false);
-
-                if(_GlossyReflections.floatValue == 1 || _SpecularHighlights.floatValue == 1)
+                if(_GlossyReflections.floatValue == 1 || _SpecularHighlights.floatValue == 1 || _BAKERY_SH.floatValue == 1 || _BAKERY_RNM.floatValue == 1 || _BAKERY_LMSPEC.floatValue == 1)
                 {
                     Func.PropertyGroup(() => {
                     prop(_FresnelColor);
@@ -266,13 +262,6 @@ namespace z3y
                     Func.PropertyGroup(() => {
                         prop(_specularAntiAliasingVariance);
                         prop(_specularAntiAliasingThreshold);
-                    });
-                };
-
-                prop(_EnableRefraction, false);
-                if(_EnableRefraction.floatValue == 1){
-                    Func.PropertyGroup(() => {
-                        prop(_Refraction);
                     });
                 };
 
@@ -410,7 +399,7 @@ namespace z3y
                 }
             }
         }
-        public static string litShaderName = "Lit/lit";
+        public static string litShaderName = "z3y/lit";
 
         [MenuItem("Tools/Lit/Standard -> Lit")]
         public static void SwitchToLit()

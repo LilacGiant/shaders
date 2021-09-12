@@ -1,4 +1,4 @@
-Shader "Lit/lit"
+Shader "z3y/lit"
 {
 
     Properties
@@ -96,9 +96,6 @@ Shader "Lit/lit"
         _DetailSmoothnessScale ("Smoothness Scale", Range(0.0, 2.0)) = 1
         
         
-        [Toggle(ENABLE_REFRACTION)] _EnableRefraction ("Fake Refraction", Float) = 0
-        [PowerSlider(0.25)] _Refraction ("Refraction", Range(0.0, 1)) = 0.9
-
         [Toggle(ENABLE_AUDIOLINK)] _EnableAudioLink ("Audio Link", Float) = 0
         _AudioTexture ("Audio Link Render Texture", 2D) = "black" {}
         _ALSmoothing ("Audio Link Smoothing", Range(0, 1)) = 0.5
@@ -123,7 +120,7 @@ Shader "Lit/lit"
 
     }
 
-    SubShader //pc shader
+    SubShader
     {
 
         Tags
@@ -160,7 +157,6 @@ Shader "Lit/lit"
             #pragma shader_feature_local ENABLE_PACKED_MODE
             #pragma shader_feature_local ENABLE_BICUBIC_LIGHTMAP
             #pragma shader_feature_local ENABLE_PARALLAX
-            #pragma shader_feature_local ENABLE_REFRACTION
             #pragma shader_feature_local ENABLE_AUDIOLINK
             #pragma shader_feature_local BAKERY_SHNONLINEAR
             #pragma shader_feature_local LOD_FADE_CROSSFADE
