@@ -413,7 +413,7 @@ void initVertexLights(float3 worldPos, float3 worldNormal, inout float3 vLight, 
     [unroll(4)]
     for(int i = 0; i < 4; i++)
     {
-        vertexLightData += saturate(dot(vertexLightInformation.Direction[i], worldNormal) * vertexLightInformation.ColorFalloff[i]);
+        vertexLightData += saturate(dot(vertexLightInformation.Direction[i], worldNormal)) * vertexLightInformation.ColorFalloff[i];
     }
     vLight = vertexLightData;
 }
