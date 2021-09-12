@@ -150,7 +150,6 @@ Shader "z3y/lit"
             #pragma multi_compile_fwdbase
             #pragma multi_compile_instancing
             #pragma multi_compile_fog
-            #pragma multi_compile _ VERTEXLIGHT_ON
 
             #pragma shader_feature_local ENABLE_GSAA
             #pragma shader_feature_local ENABLE_SPECULAR_HIGHLIGHTS

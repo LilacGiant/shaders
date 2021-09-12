@@ -7,7 +7,7 @@ half4 frag(v2f i) : SV_Target
 	#endif
 
     initUVs(i);
-    float3 worldPos = i.worldPos;
+
     half2 parallaxOffset = 0;
     half alpha = 1;
     half4 maskMap = 1;
@@ -18,9 +18,6 @@ half4 frag(v2f i) : SV_Target
     half4 mainTex = 1;
     float3 tangentNormal = 0.5;
     half2 lightmapUV = 0;
-    float3 vLight = 0;
-    float3 vertexLightColor = 0;
-
 
 
     float3 worldNormal = normalize(i.worldNormal);
@@ -69,11 +66,6 @@ half4 frag(v2f i) : SV_Target
         initLighting(i, worldNormal, viewDir, NoV);
     #endif
 
-    #if defined(VERTEXLIGHT_ON) && defined(UNITY_PASS_FORWARDBASE)
-        initVertexLights(worldPos, worldNormal, vLight, vertexLightColor);
-    #endif
-
-
     getIndirectDiffuse(worldNormal, parallaxOffset, lightmapUV);
 
     #if defined(ENABLE_GSAA)
@@ -96,7 +88,7 @@ half4 frag(v2f i) : SV_Target
             float3 reflWorldNormal = worldNormal;
 
             if(_Anisotropy != 0) reflViewDir = getAnisotropicReflectionVector(viewDir, bitangent, tangent, worldNormal, surface.perceptualRoughness);
-            light.indirectSpecular = getIndirectSpecular(reflViewDir, worldPos, reflWorldNormal, fresnel, f0);
+            light.indirectSpecular = getIndirectSpecular(reflViewDir, i.worldPos, reflWorldNormal, fresnel, f0);
         #endif
 
         light.indirectSpecular *= computeSpecularAO(NoV, surface.occlusion, surface.perceptualRoughness * surface.perceptualRoughness);
@@ -143,9 +135,9 @@ half4 frag(v2f i) : SV_Target
         alpha = lerp(alpha, 1, surface.metallic);
     }
 
-    if(_FlatShading) light.finalLight = saturate(light.color + vertexLightColor) * light.attenuation;
+    if(_FlatShading) light.finalLight = saturate(light.color) * light.attenuation;
 
-    half4 finalColor = half4( surface.albedo * surface.oneMinusMetallic * ((light.indirectDiffuse * surface.occlusion) + (light.finalLight + vLight)) + light.directSpecular + light.indirectSpecular + surface.emission, alpha);
+    half4 finalColor = half4( surface.albedo * surface.oneMinusMetallic * ((light.indirectDiffuse * surface.occlusion) + light.finalLight) + light.directSpecular + light.indirectSpecular + surface.emission, alpha);
 
     #ifdef UNITY_PASS_META
         return getMeta(surface, light, alpha);
