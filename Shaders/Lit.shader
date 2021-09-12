@@ -7,7 +7,7 @@ Shader "z3y/lit"
 
         [Enum(Opaque, 0, Cutout, 1, Fade, 2, Transparent, 3)] _Mode("Rendering Mode", Int) = 0
         
-        [Enum(Off, 0, On, 1, Sharpened, 2)] _AlphaToMask ("Alpha To Coverage", int) = 0
+        [Enum(Off, 0, On, 1, Sharpened, 2)] _AlphaToMask ("Alpha To Coverage", Float) = 0
         _Cutoff ("Alpha Cuttoff", Range(0.001, 1)) = 0.5
 
         _MainTex ("Base Map", 2D) = "white" {}
@@ -151,7 +151,6 @@ Shader "z3y/lit"
             #pragma multi_compile_instancing
             #pragma multi_compile_fog
 
-            #pragma shader_feature_local _ _ALPHATEST_ON _ALPHABLEND_ON _ALPHAPREMULTIPLY_ON
             #pragma shader_feature_local ENABLE_GSAA
             #pragma shader_feature_local ENABLE_SPECULAR_HIGHLIGHTS
             #pragma shader_feature_local ENABLE_REFLECTIONS
@@ -198,7 +197,6 @@ Shader "z3y/lit"
             #pragma multi_compile_instancing
             #pragma multi_compile_fog
 
-            #pragma shader_feature_local _ _ALPHATEST_ON _ALPHABLEND_ON _ALPHAPREMULTIPLY_ON
             #pragma shader_feature_local ENABLE_SPECULAR_HIGHLIGHTS
             #pragma shader_feature_local ENABLE_PACKED_MODE
             #pragma shader_feature_local ENABLE_PARALLAX
@@ -232,8 +230,7 @@ Shader "z3y/lit"
             #pragma fragment ShadowCasterfrag
             #pragma multi_compile_shadowcaster
             #pragma multi_compile_instancing
-            
-            #pragma shader_feature_local _ _ALPHATEST_ON _ALPHABLEND_ON _ALPHAPREMULTIPLY_ON
+
             #pragma shader_feature_local LOD_FADE_CROSSFADE
             
             #pragma skip_variants FOG_LINEAR FOG_EXP FOG_EXP2
