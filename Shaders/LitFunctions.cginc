@@ -320,12 +320,8 @@ void applySaturation()
     surface.albedo.rgb = lerp(desaturated, surface.albedo.rgb, (_Saturation+1));
 }
 
-void initSurfaceData(out half metallicMap, out half smoothnessMap, out half occlusionMap, out half4 maskMap, half2 parallaxOffset)
+void initSurfaceData(inout half metallicMap, inout half smoothnessMap, inout half occlusionMap, inout half4 maskMap, half2 parallaxOffset)
 {
-    metallicMap = 1;
-    smoothnessMap = 1;
-    occlusionMap = 1;
-    maskMap = 1;
     bool isRoughness = _GlossinessInvert;
     
     #ifndef ENABLE_PACKED_MODE
@@ -361,7 +357,7 @@ void initSurfaceData(out half metallicMap, out half smoothnessMap, out half occl
     surface.occlusion = lerp(1,occlusionMap , _Occlusion);
 }
 
-void getMainTex(out half4 mainTex, half2 parallaxOffset, half4 vertexColor)
+void getMainTex(inout half4 mainTex, half2 parallaxOffset, half4 vertexColor)
 {
     mainTex = MAIN_TEX(_MainTex, sampler_MainTex, uvs[_MainTexUV], _MainTex_ST);
 
@@ -374,7 +370,7 @@ void getMainTex(out half4 mainTex, half2 parallaxOffset, half4 vertexColor)
     #endif
 }
 
-void getIndirectDiffuse(float3 worldNormal, float2 parallaxOffset, out half2 lightmapUV)
+void getIndirectDiffuse(float3 worldNormal, float2 parallaxOffset, inout half2 lightmapUV)
 {
     #if defined(LIGHTMAP_ON)
         lightmapUV = uvs[1] * unity_LightmapST.xy + unity_LightmapST.zw + parallaxOffset;
@@ -406,3 +402,19 @@ void getIndirectDiffuse(float3 worldNormal, float2 parallaxOffset, out half2 lig
 
     #endif
 }
+
+#if defined(VERTEXLIGHT_ON) && defined(UNITY_PASS_FORWARDBASE)
+void initVertexLights(float3 worldPos, float3 worldNormal, inout float3 vLight, inout float3 vertexLightColor)
+{
+    float3 vertexLightData = 0;
+    float4 vertexLightAtten = float4(0,0,0,0);
+    vertexLightColor = get4VertexLightsColFalloff(vertexLightInformation, worldPos, worldNormal, vertexLightAtten);
+    float3 vertexLightDir = getVertexLightsDir(vertexLightInformation, worldPos, vertexLightAtten);
+    [unroll(4)]
+    for(int i = 0; i < 4; i++)
+    {
+        vertexLightData += saturate(dot(vertexLightInformation.Direction[i], worldNormal) * vertexLightInformation.ColorFalloff[i]);
+    }
+    vLight = vertexLightData;
+}
+#endif
