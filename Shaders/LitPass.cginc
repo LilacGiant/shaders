@@ -47,7 +47,7 @@ struct v2f
             UNITY_FOG_COORDS(7)
         #endif
 
-        #if defined(ENABLE_PARALLAX) || defined(BAKERY_INCLUDED)
+        #if defined(ENABLE_PARALLAX) || defined(BAKERY_RNM)
             float3 viewDirForParallax : TEXCOORD8;
         #endif
 
@@ -55,7 +55,13 @@ struct v2f
             centroid half4 color : COLOR;
         #endif
 
+        #ifdef CENTROID_NORMAL
+            centroid float3 centroidWorldNormal : TEXCOORD9;
+        #endif
+
     #endif
+
+    
 
     UNITY_VERTEX_INPUT_INSTANCE_ID
 	UNITY_VERTEX_OUTPUT_STEREO
@@ -97,13 +103,16 @@ v2f vert(appdata v)
         #endif
 
         o.worldNormal = worldNormal;
+        #ifdef CENTROID_NORMAL
+            o.centroidWorldNormal = worldNormal;
+        #endif
         o.worldPos = mul(unity_ObjectToWorld, v.vertex);
 
         #ifdef USE_FOG
             UNITY_TRANSFER_FOG(o, o.pos);
         #endif
 
-         #if defined(ENABLE_PARALLAX) || defined(BAKERY_INCLUDED)
+         #if defined(ENABLE_PARALLAX) || defined(BAKERY_RNM)
             TANGENT_SPACE_ROTATION;
             o.viewDirForParallax = mul (rotation, ObjSpaceViewDir(v.vertex));
         #endif

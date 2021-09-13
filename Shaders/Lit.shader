@@ -8,7 +8,7 @@ Shader "z3y/lit"
         [Enum(Opaque, 0, Cutout, 1, Fade, 2, Transparent, 3)] _Mode("Rendering Mode", Int) = 0
         
         [Enum(Off, 0, On, 1, Sharpened, 2)] _AlphaToMask ("Alpha To Coverage", Float) = 0
-        _Cutoff ("Alpha Cuttoff", Range(0.001, 1)) = 0.5
+        _Cutoff ("Alpha Cuttoff", Range(0, 1)) = 0.5
 
         _MainTex ("Base Map", 2D) = "white" {}
         _MainTex_STAnimated("_MainTex_ST", Int) = 1
@@ -64,7 +64,7 @@ Shader "z3y/lit"
         
         
         _LightmapMultiplier ("Lightmap Multiplier", Range(0, 2)) = 1
-        _SpecularOcclusion ("Lightmap Specular Occlusion", Range(0, 1)) = 0
+        _SpecularOcclusion ("Indirect Specular Occlusion", Range(0, 1)) = 0
 
         [Toggle(ENABLE_BICUBIC_LIGHTMAP)] _BicubicLightmap ("Bicubic Lightmap Interpolation", Float) = 0
         [ToggleUI] _LightProbeMethod ("Non-linear Light Probe SH", Float) = 0

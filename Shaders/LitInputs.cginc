@@ -1,3 +1,4 @@
+//#define CENTROID_NORMAL
 
 #if (PROP_MODE!=0) || !defined(OPTIMIZER_ENABLED)
     #define ENABLE_TRANSPARENCY

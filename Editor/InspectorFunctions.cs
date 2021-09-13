@@ -125,7 +125,6 @@ namespace z3y
             EditorGUI.BeginDisabledGroup(isLocked);
 
             string animatedPropName = null;
-            bool drawRight = false;
 
             if( property.type == MaterialProperty.PropType.Range ||
                 property.type == MaterialProperty.PropType.Float ||
@@ -141,20 +140,20 @@ namespace z3y
             {
                 string[] p = property.displayName.Split(hoverSplitSeparator);
                 animatedPropName = extraProperty != null ? extraProperty.name.ToString() : null;
-                drawRight = true;
+
 
 
                 me.TexturePropertySingleLine(new GUIContent(p[0], p.Length == 2 ? p[1] : null), property, extraProperty);
             }
 
-            if(isAnimatable) AnimatedPropertyToggle(animatedPropName, drawRight, material);
+            if(isAnimatable) AnimatedPropertyToggle(animatedPropName, material);
 
             EditorGUI.EndDisabledGroup();
  
         }
         const string AnimatedPropertySuffix = "Animated";
 
-        public static void AnimatedPropertyToggle (string k, bool drawRight, Material material)
+        public static void AnimatedPropertyToggle (string k, Material material)
         {
             if(k == null) return;
             string animatedName = k + AnimatedPropertySuffix;
@@ -169,7 +168,7 @@ namespace z3y
             if(isAnimated)
             {
                 Rect lastRect = GUILayoutUtility.GetLastRect();
-                Rect stopWatch = new Rect(drawRight ? Screen.width - 28f : lastRect.x, lastRect.y  + (drawRight ? 3f : 4f), 12f, 12f);
+                Rect stopWatch = new Rect(lastRect.x - 16f, lastRect.y + 4f, 11f, 11f);
 
                 GUI.DrawTexture(stopWatch, Func.animatedTex);
 
@@ -208,7 +207,7 @@ namespace z3y
         {
             EditorGUI.BeginDisabledGroup(isLocked);
             me.TextureScaleOffsetProperty(property);
-            AnimatedPropertyToggle(property.name.ToString(), false, material);
+            AnimatedPropertyToggle(property.name.ToString(), material);
             EditorGUI.EndDisabledGroup();
         }
 
@@ -238,37 +237,39 @@ namespace z3y
 
         public static void ShaderOptimizerButton(MaterialProperty shaderOptimizer, MaterialEditor materialEditor)
         {
-            // Theoretically this shouldn't ever happen since locked in materials have different shaders.
-            // But in a case where the material property says its locked in but the material really isn't, this
-            // will display and allow users to fix the property/lock in
-            if (shaderOptimizer.hasMixedValue)
+            if (materialEditor.targets.Length == 1)
             {
-                EditorGUI.BeginChangeCheck();
-                GUILayout.Button("Lock All Materials");
-                if (EditorGUI.EndChangeCheck())
-                    ShaderOptimizer.LockAllMaterials();
-            }
-            else
-            {
+               
                 EditorGUI.BeginChangeCheck();
                 if (shaderOptimizer.floatValue == 0)
                 {
-                    GUILayout.Button("Lock All Materials");
+                    GUILayout.Button("Lock Material");
                 }
-                else GUILayout.Button("Unlock All Materials");
+                else GUILayout.Button("Unlock Material");
                 if (EditorGUI.EndChangeCheck())
                 {
-                    if (shaderOptimizer.floatValue == 0)
+                    shaderOptimizer.floatValue = shaderOptimizer.floatValue == 1 ? 0 : 1;
+                    if (shaderOptimizer.floatValue == 1)
                     {
-                        ShaderOptimizer.LockAllMaterials();
+                        foreach (Material m in materialEditor.targets)
+                        {
+                            MaterialProperty[] props = MaterialEditor.GetMaterialProperties(new UnityEngine.Object[] { m });
+                            if (!ShaderOptimizer.Lock(m, props))
+                                m.SetFloat(shaderOptimizer.name, 0);
+                        }
                     }
                     else
                     {
-                        ShaderOptimizer.UnlockAllMaterials();
+                        #if BAKERY_INCLUDED
+                            ShaderOptimizer.RevertHandleBakeryPropertyBlocks();
+                        #endif
+                        foreach (Material m in materialEditor.targets)
+                            if (!ShaderOptimizer.Unlock(m))
+                                m.SetFloat(shaderOptimizer.name, 1);
                     }
                 }
+                EditorGUILayout.Space(4);
             }
-            EditorGUILayout.Space(4);
         }
 
         public static void SetupMaterialWithBlendMode(Material material, float type)

@@ -8,15 +8,10 @@ half calcAlpha(half alpha)
             case 0:
                 clip(alpha - _Cutoff);
                 break;
-            case 1:
-                clip(alpha - 0.01);
-                break;
             case 2:
                 alpha = (alpha - _Cutoff) / max(fwidth(alpha), 0.0001) + 0.5;
-                clip(alpha - 0.01);
                 break;
         }
-
     }
 
     return alpha;
@@ -162,7 +157,6 @@ float4 getMeta(Surface surface, Lighting light, float alpha)
     metaInput.Emission = surface.emission;
     metaInput.Albedo = surface.albedo;
     metaInput.SpecularColor = light.directSpecular;
-    if(_Mode == 1) clip(alpha - _Cutoff);
     return float4(UnityMetaFragment(metaInput).rgb, alpha);
 }
 #endif
@@ -210,7 +204,7 @@ void applyEmission(half2 parallaxOffset)
 }
 
 
-half3 getDirectSpecular(float3 worldNormal, half3 tangent, half3 bitangent, half3 f0, half NoV)
+void calcDirectSpecular(float3 worldNormal, half3 tangent, half3 bitangent, half3 f0, half NoV)
 {
     half NoH = saturate(dot(worldNormal, light.halfVector));
     half roughness = max(surface.perceptualRoughness * surface.perceptualRoughness, 0.002);
@@ -227,10 +221,10 @@ half3 getDirectSpecular(float3 worldNormal, half3 tangent, half3 bitangent, half
         D = D_GGX_Anisotropic(NoH, light.halfVector, tangent, bitangent, at, ab);
     }
 
-    return max(0, (D * V) * F) * light.finalLight * UNITY_PI;
+    light.directSpecular = max(0, (D * V) * F) * light.finalLight * UNITY_PI;
 }
 
-half3 getIndirectSpecular(float3 reflDir, float3 worldPos, float3 reflWorldNormal, half3 fresnel, half3 f0)
+void calcIndirectSpecular(float3 reflDir, float3 worldPos, float3 reflWorldNormal, half3 fresnel, half3 f0)
 {
     Unity_GlossyEnvironmentData envData;
     envData.roughness = surface.perceptualRoughness;
@@ -245,7 +239,7 @@ half3 getIndirectSpecular(float3 reflDir, float3 worldPos, float3 reflWorldNorma
     half3 indirectSpecular = probe0;
     
 
-    #if defined(UNITY_SPECCUBE_BLENDING) && !defined(ENABLE_REFRACTION)
+    #if defined(UNITY_SPECCUBE_BLENDING)
         half interpolator = unity_SpecCube0_BoxMin.w;
         UNITY_BRANCH
         if (interpolator < 0.99999)
@@ -263,7 +257,7 @@ half3 getIndirectSpecular(float3 reflDir, float3 worldPos, float3 reflWorldNorma
     half horizon = min(1 + dot(reflDir, reflWorldNormal), 1);
     indirectSpecular *= horizon * horizon;
 
-    return indirectSpecular * lerp(fresnel, f0, surface.perceptualRoughness);
+    light.indirectSpecular = indirectSpecular * lerp(fresnel, f0, surface.perceptualRoughness);
 }
 
 #if !defined(UNITY_PASS_SHADOWCASTER)
@@ -271,7 +265,7 @@ void initLighting(v2f i, float3 worldNormal, float3 viewDir, half NoV)
 {
     light.indirectDominantColor = half3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w);
     light.direction = getLightDir(!_GetDominantLight, i.worldPos);
-    light.color = getLightCol(!_GetDominantLight, _LightColor0.rgb, light.indirectDominantColor) * 0.95;
+    light.color = getLightCol(!_GetDominantLight, _LightColor0.rgb, light.indirectDominantColor);
     light.halfVector = Unity_SafeNormalize(light.direction + viewDir);
     light.NoL = saturate(dot(worldNormal, light.direction));
     light.LoH = saturate(dot(light.direction, light.halfVector));
@@ -316,7 +310,7 @@ float4 applyDetailMap(half2 parallaxOffset, float maskMapAlpha)
 
 void applySaturation()
 {
-    half desaturated = dot(surface.albedo.rgb, grayscaleVec); // saturation has to be applied after detail
+    half desaturated = dot(surface.albedo.rgb, grayscaleVec);
     surface.albedo.rgb = lerp(desaturated, surface.albedo.rgb, (_Saturation+1));
 }
 
@@ -418,3 +412,18 @@ void initVertexLights(float3 worldPos, float3 worldNormal, inout float3 vLight, 
     vLight = vertexLightData;
 }
 #endif
+
+#define MOD3 float3(443.8975,397.2973, 491.1871)
+float ditherNoiseFuncLow(float2 p)
+{
+    float3 p3 = frac(float3(p.xyx) * MOD3 + _Time.y);
+    p3 += dot(p3, p3.yzx + 19.19);
+    return frac((p3.x + p3.y) * p3.z);
+}
+
+float3 ditherNoiseFuncHigh(float2 p)
+{
+    float3 p3 = frac(float3(p.xyx) * (MOD3 + _Time.y));
+    p3 += dot(p3, p3.yxz + 19.19);
+    return frac(float3((p3.x + p3.y)*p3.z, (p3.x + p3.z)*p3.y, (p3.y + p3.z)*p3.x));
+}

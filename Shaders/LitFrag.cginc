@@ -21,7 +21,9 @@ half4 frag(v2f i) : SV_Target
     float3 vLight = 0;
     float3 vertexLightColor = 0;
 
-
+    #ifdef CENTROID_NORMAL
+        if (dot(i.worldNormal.xyz, i.worldNormal.xyz) >= 1.01) i.worldNormal.xyz = i.centroidWorldNormal.xyz;
+    #endif
 
     float3 worldNormal = normalize(i.worldNormal);
     float3 viewDir = normalize(_WorldSpaceCameraPos - i.worldPos);
@@ -69,6 +71,7 @@ half4 frag(v2f i) : SV_Target
         initLighting(i, worldNormal, viewDir, NoV);
     #endif
 
+
     #if defined(VERTEXLIGHT_ON) && defined(UNITY_PASS_FORWARDBASE)
         initVertexLights(worldPos, worldNormal, vLight, vertexLightColor);
     #endif
@@ -79,6 +82,7 @@ half4 frag(v2f i) : SV_Target
     #if defined(ENABLE_GSAA)
         surface.perceptualRoughness = GSAA_Filament(worldNormal, surface.perceptualRoughness);
     #endif
+
 
     #if defined(ENABLE_REFLECTIONS) || defined(ENABLE_SPECULAR_HIGHLIGHTS) || defined(UNITY_PASS_META) || defined(BAKERY_INCLUDED)
         half3 f0 = 0.16 * _Reflectance * _Reflectance * surface.oneMinusMetallic + surface.albedo * surface.metallic;
@@ -96,14 +100,13 @@ half4 frag(v2f i) : SV_Target
             float3 reflWorldNormal = worldNormal;
 
             if(_Anisotropy != 0) reflViewDir = getAnisotropicReflectionVector(viewDir, bitangent, tangent, worldNormal, surface.perceptualRoughness);
-            light.indirectSpecular = getIndirectSpecular(reflViewDir, worldPos, reflWorldNormal, fresnel, f0);
+            calcIndirectSpecular(reflViewDir, worldPos, reflWorldNormal, fresnel, f0);
         #endif
-
         light.indirectSpecular *= computeSpecularAO(NoV, surface.occlusion, surface.perceptualRoughness * surface.perceptualRoughness);
     #endif
 
     #if defined(ENABLE_SPECULAR_HIGHLIGHTS) || defined(UNITY_PASS_META)
-        light.directSpecular = getDirectSpecular(worldNormal, tangent, bitangent, f0, NoV);
+        calcDirectSpecular(worldNormal, tangent, bitangent, f0, NoV);
     #endif
 
     
@@ -145,7 +148,7 @@ half4 frag(v2f i) : SV_Target
 
     if(_FlatShading) light.finalLight = saturate(light.color + vertexLightColor) * light.attenuation;
 
-    half4 finalColor = half4( surface.albedo * surface.oneMinusMetallic * ((light.indirectDiffuse * surface.occlusion) + (light.finalLight + vLight)) + light.directSpecular + light.indirectSpecular + surface.emission, alpha);
+    half4 finalColor = half4( surface.albedo * surface.oneMinusMetallic * (light.indirectDiffuse * surface.occlusion + (light.finalLight + vLight)) + light.indirectSpecular + light.directSpecular + surface.emission, alpha);
 
     #ifdef UNITY_PASS_META
         return getMeta(surface, light, alpha);
