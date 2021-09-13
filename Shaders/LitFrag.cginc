@@ -66,18 +66,17 @@ half4 frag(v2f i) : SV_Target
         initNormalMap(normalMap, bitangent, tangent, worldNormal, detailNormalMap, tangentNormal);
     #endif
     
+    getIndirectDiffuse(worldNormal, parallaxOffset, lightmapUV);
 
     #if !defined(LIGHTMAP_ON) || defined(USING_LIGHT_MULTI_COMPILE)
-        initLighting(i, worldNormal, viewDir, NoV);
+        initLighting(i, worldNormal, viewDir, NoV, tangentNormal);
     #endif
-
 
     #if defined(VERTEXLIGHT_ON) && defined(UNITY_PASS_FORWARDBASE)
         initVertexLights(worldPos, worldNormal, vLight, vertexLightColor);
     #endif
 
 
-    getIndirectDiffuse(worldNormal, parallaxOffset, lightmapUV);
 
     #if defined(ENABLE_GSAA)
         surface.perceptualRoughness = GSAA_Filament(worldNormal, surface.perceptualRoughness);
@@ -98,10 +97,14 @@ half4 frag(v2f i) : SV_Target
         #if defined(ENABLE_REFLECTIONS)
             float3 reflViewDir = reflect(-viewDir, worldNormal);
             float3 reflWorldNormal = worldNormal;
-
             if(_Anisotropy != 0) reflViewDir = getAnisotropicReflectionVector(viewDir, bitangent, tangent, worldNormal, surface.perceptualRoughness);
             calcIndirectSpecular(reflViewDir, worldPos, reflWorldNormal, fresnel, f0);
         #endif
+        
+        #ifdef BAKERY_LMSPEC
+            light.directSpecular += indirectDiffuseSpecular(worldNormal, viewDir, tangentNormal) * fresnel;
+        #endif
+
         light.indirectSpecular *= computeSpecularAO(NoV, surface.occlusion, surface.perceptualRoughness * surface.perceptualRoughness);
     #endif
 
@@ -147,6 +150,8 @@ half4 frag(v2f i) : SV_Target
     }
 
     if(_FlatShading) light.finalLight = saturate(light.color + vertexLightColor) * light.attenuation;
+
+    
 
     half4 finalColor = half4( surface.albedo * surface.oneMinusMetallic * (light.indirectDiffuse * surface.occlusion + (light.finalLight + vLight)) + light.indirectSpecular + light.directSpecular + surface.emission, alpha);
 

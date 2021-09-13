@@ -48,7 +48,6 @@ Shader "z3y/lit"
         [Enum(UV0, 0, UV1, 1, UV2, 2)] _EmissionMapUV ("UV", Int) = 0
 
         
-        [Enum(Default, 0, Light Probes, 1)] _GetDominantLight ("Dominant Light", Int) = 0
         _FresnelColor ("Sheen Color", Color) = (1,1,1,1)
         _Reflectance ("Reflectance", Range(0,1)) = 0.5
         _Anisotropy ("Anisotropy", Range(-1,1)) = 0
@@ -104,10 +103,11 @@ Shader "z3y/lit"
         [Enum(Disabled, 0, Gradient, 1, Path, 2, Intensity, 3)] _ALEmissionType ("Audio Link Emission Type", Int) = 0
         _ALEmissionMap ("Audio Link Emission Path & Mask: Path(G), Mask(A)", 2D) = "white" {}
 
+        [Toggle(BAKERY_LMSPEC)] _BAKERY_LMSPEC ("Enable Specular", Float) = 0
+
         [Toggle(BAKERY_SH)] _BAKERY_SH ("Enable SH", Float) = 0
         [Toggle(BAKERY_SHNONLINEAR)] _BAKERY_SHNONLINEAR ("SH non-linear mode", Float) = 1
         [Toggle(BAKERY_RNM)] _BAKERY_RNM ("Enable RNM", Float) = 0
-        [Toggle(BAKERY_LMSPEC)] _BAKERY_LMSPEC ("Enable Lightmap Specular", Float) = 0
         
         [Enum(BAKERYMODE_DEFAULT, 0, BAKERYMODE_VERTEXLM, 1, BAKERYMODE_RNM, 2, BAKERYMODE_SH, 3)] bakeryLightmapMode ("bakeryLightmapMode", Float) = 0
         _RNM0("RNM0", 2D) = "black" {}

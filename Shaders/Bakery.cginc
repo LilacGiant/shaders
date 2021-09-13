@@ -1,7 +1,6 @@
 #ifndef BAKERY_INCLUDED
 #define BAKERY_INCLUDED
 
-float bakeryLightmapMode;
 //float2 bakeryLightmapSize;
 #define BAKERYMODE_DEFAULT 0
 #define BAKERYMODE_VERTEXLM 1.0f

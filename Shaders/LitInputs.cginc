@@ -127,6 +127,7 @@ uniform half _DetailSmoothnessScale;
 uniform float _LightProbeMethod;
 
 uniform float _FlatShading;
+float bakeryLightmapMode;
 
 struct Lighting
 {
@@ -141,6 +142,7 @@ struct Lighting
     half3 indirectDiffuse;
     half3 directSpecular;
     half3 indirectSpecular;
+    float4 bakedDir;
 };
 static Lighting light;
 

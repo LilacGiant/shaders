@@ -235,40 +235,6 @@ float3 tex2DFastBicubicLightmap(float2 uv)
     #endif
 }
 
-half3 getLightmap(float3 worldNormal, float2 parallaxOffset, float2 lightmapUV)
-{
-    #if defined(SHADER_API_MOBILE)
-        half3 lightMap = DecodeLightmap(UNITY_SAMPLE_TEX2D(unity_Lightmap, lightmapUV));
-    #else
-        half3 lightMap = tex2DFastBicubicLightmap(lightmapUV) * (_LightmapMultiplier);
-    #endif
-
-
-    #if defined(DIRLIGHTMAP_COMBINED) && !defined(SHADER_API_MOBILE)
-        half4 bakedDirTex = UNITY_SAMPLE_TEX2D_SAMPLER (unity_LightmapInd, unity_Lightmap, lightmapUV);
-        lightMap = DecodeDirectionalLightmap(lightMap, bakedDirTex, worldNormal);
-    #endif
-
-    return lightMap;
-}
-
-// Get the most intense light Dir from probes OR from a light source. Method developed by Xiexe / Merlin
-float3 getLightDir(bool lightEnv, float3 worldPos)
-{
-    //switch between using probes or actual light direction
-    float3 lightDir = lightEnv ? UnityWorldSpaceLightDir(worldPos) : unity_SHAr.xyz + unity_SHAg.xyz + unity_SHAb.xyz;
-
-    return normalize(lightDir);
-}
-
-half3 getLightCol(bool lightEnv, half3 lightColor, half3 indirectDominantColor)
-{
-    half3 c = lightEnv ? lightColor : indirectDominantColor; 
-    return c;
-}
-
-
-
 
 float GSAA_Filament(float3 worldNormal,float perceptualRoughness) {
     // Kaplanyan 2016, "Stable specular highlights"

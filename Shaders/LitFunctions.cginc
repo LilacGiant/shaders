@@ -221,7 +221,7 @@ void calcDirectSpecular(float3 worldNormal, half3 tangent, half3 bitangent, half
         D = D_GGX_Anisotropic(NoH, light.halfVector, tangent, bitangent, at, ab);
     }
 
-    light.directSpecular = max(0, (D * V) * F) * light.finalLight * UNITY_PI;
+    light.directSpecular += max(0, (D * V) * F) * light.finalLight * UNITY_PI;
 }
 
 void calcIndirectSpecular(float3 reflDir, float3 worldPos, float3 reflWorldNormal, half3 fresnel, half3 f0)
@@ -260,12 +260,18 @@ void calcIndirectSpecular(float3 reflDir, float3 worldPos, float3 reflWorldNorma
     light.indirectSpecular = indirectSpecular * lerp(fresnel, f0, surface.perceptualRoughness);
 }
 
-#if !defined(UNITY_PASS_SHADOWCASTER)
-void initLighting(v2f i, float3 worldNormal, float3 viewDir, half NoV)
+float3 Unity_NormalReconstructZ_float(float2 In)
 {
-    light.indirectDominantColor = half3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w);
-    light.direction = getLightDir(!_GetDominantLight, i.worldPos);
-    light.color = getLightCol(!_GetDominantLight, _LightColor0.rgb, light.indirectDominantColor);
+    float reconstructZ = sqrt(1.0 - saturate(dot(In.xy, In.xy)));
+    float3 normalVector = float3(In.x, In.y, reconstructZ);
+    return normalize(normalVector);
+}
+
+#if !defined(UNITY_PASS_SHADOWCASTER)
+void initLighting(v2f i, float3 worldNormal, float3 viewDir, half NoV, float3 tangentNormal)
+{
+    light.direction = normalize(UnityWorldSpaceLightDir(i.worldPos));
+    light.color = _LightColor0.rgb;
     light.halfVector = Unity_SafeNormalize(light.direction + viewDir);
     light.NoL = saturate(dot(worldNormal, light.direction));
     light.LoH = saturate(dot(light.direction, light.halfVector));
@@ -368,7 +374,13 @@ void getIndirectDiffuse(float3 worldNormal, float2 parallaxOffset, inout half2 l
 {
     #if defined(LIGHTMAP_ON)
         lightmapUV = uvs[1] * unity_LightmapST.xy + unity_LightmapST.zw + parallaxOffset;
-        half3 lightMap = getLightmap(worldNormal, parallaxOffset, lightmapUV);
+
+        half3 lightMap = tex2DFastBicubicLightmap(lightmapUV) * (_LightmapMultiplier);
+
+        #if defined(DIRLIGHTMAP_COMBINED) && !defined(SHADER_API_MOBILE)
+            light.bakedDir = UNITY_SAMPLE_TEX2D_SAMPLER (unity_LightmapInd, unity_Lightmap, lightmapUV);
+            lightMap = DecodeDirectionalLightmap(lightMap, light.bakedDir, worldNormal);
+        #endif
 
         #if defined(DYNAMICLIGHTMAP_ON)
             half3 realtimeLightMap = getRealtimeLightmap(uvs[2], worldNormal, parallaxOffset);
@@ -426,4 +438,32 @@ float3 ditherNoiseFuncHigh(float2 p)
     float3 p3 = frac(float3(p.xyx) * (MOD3 + _Time.y));
     p3 += dot(p3, p3.yxz + 19.19);
     return frac(float3((p3.x + p3.y)*p3.z, (p3.x + p3.z)*p3.y, (p3.y + p3.z)*p3.x));
+}
+
+float3 indirectDiffuseSpecular(float3 worldNormal, float3 viewDir, float3 tangentNormal)
+{
+    half roughness = max(surface.perceptualRoughness * surface.perceptualRoughness, 0.002);
+    float3 dominantDir = 0;
+    float3 specColor = 0;
+
+    if(bakeryLightmapMode < 2)
+    {
+        #ifdef DIRLIGHTMAP_COMBINED
+            dominantDir = (light.bakedDir.xyz) * 2 - 1;
+            specColor = light.indirectDiffuse;
+        #endif
+        #if defined(LIGHTMAP_ON) && !defined(DIRLIGHTMAP_COMBINED)
+            dominantDir = half3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w);
+            specColor = light.indirectDiffuse;
+        #endif
+        #ifndef LIGHTMAP_ON
+            specColor = half3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w);
+            dominantDir = unity_SHAr.xyz + unity_SHAg.xyz + unity_SHAb.xyz;
+        #endif
+    }
+
+    half3 halfDir = Unity_SafeNormalize(normalize(dominantDir) + viewDir );
+    half nh = saturate(dot(worldNormal, halfDir));
+    half spec = D_GGX(nh, roughness);
+    return spec * specColor;
 }

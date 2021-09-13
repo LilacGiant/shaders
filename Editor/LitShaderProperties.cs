@@ -51,7 +51,6 @@ namespace z3y
         protected MaterialProperty _SpecularHighlights = null;
         protected MaterialProperty _GlossyReflections = null;
         protected MaterialProperty _Reflectance = null;
-        protected MaterialProperty _GetDominantLight = null;
         protected MaterialProperty _Mode = null;
         protected MaterialProperty _AlphaToMask = null;
         protected MaterialProperty _Cutoff = null;
@@ -293,17 +292,17 @@ namespace z3y
                 prop(_LightmapMultiplier);
                 prop(_LightProbeMethod, false);
                 prop(_BicubicLightmap, false);
+                prop(_BAKERY_LMSPEC, false);
                 
                 #if BAKERY_INCLUDED
                 EditorGUILayout.Space();;
                 Func.PropertyGroup(() => {
                     EditorGUILayout.LabelField("Bakery", EditorStyles.boldLabel);
                     prop(_BAKERY_SH, false);
-                    if(_BAKERY_SH.floatValue == 1) prop(_BAKERY_SHNONLINEAR, false);
+                    prop(_BAKERY_SHNONLINEAR, false);
                     prop(_BAKERY_RNM, false);
-                    prop(_BAKERY_LMSPEC, false);
                     EditorGUI.BeginDisabledGroup(true);
-                    if(_BAKERY_SH.floatValue == 1 || _BAKERY_RNM.floatValue == 1 || _BAKERY_LMSPEC.floatValue == 1)
+                    if(_BAKERY_SH.floatValue == 1 || _BAKERY_RNM.floatValue == 1)
                     {
                         prop(bakeryLightmapMode, false);
                         prop(_RNM0, false);
@@ -317,7 +316,6 @@ namespace z3y
 
 
             md[material].ShowAdvanced = Foldout("Advanced", md[material].ShowAdvanced, ()=> {
-                prop(_GetDominantLight, false);
                 prop(_EnablePackedMode);
 
                 EditorGUILayout.Space();;
