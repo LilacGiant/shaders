@@ -16,12 +16,6 @@
 #endif
 
 
-#ifdef SHADER_API_MOBILE
-    #undef ENABLE_PARALLAX
-    #undef PROP_DETAILMAP
-    #undef ENABLE_AUDIOLINK
-#endif
-
 #if defined(PROP_DETAILMAP)
     #define PROP_BUMPMAP
 #endif
@@ -38,13 +32,9 @@
 #endif
 
 #if defined(ENABLE_AUDIOLINK)
+//#if_EnableAudioLink
     #include "AudioLink.cginc"  
 #endif
-
-
-
-
-
 
 
 
@@ -61,7 +51,6 @@ uniform half _Saturation;
 uniform half _EnableVertexColor;
 
 
-uniform float _EnableNormalMap;
 uniform float _NormalMapOrientation;
 UNITY_DECLARE_TEX2D(_BumpMap);
 uniform float _BumpMapUV;
@@ -97,19 +86,14 @@ uniform half _Occlusion;
 UNITY_DECLARE_TEX2D_NOSAMPLER(_MetallicGlossMap);
 uniform float _MetallicGlossMapUV;
 uniform float4 _MetallicGlossMap_ST;
-uniform half _EnableVertexColorMask;
-
 
 uniform half _specularAntiAliasingVariance;
 uniform half _specularAntiAliasingThreshold;
 uniform half4 _FresnelColor;
-uniform half _AngularGlossiness;
 uniform half _GetDominantLight;
 
 uniform half _Reflectance;
-uniform half _ExposureOcclusion;
 uniform half _Anisotropy;
-
 
 uniform half _LightmapMultiplier;
 uniform half _SpecularOcclusion;
@@ -141,14 +125,7 @@ uniform half _DetailSmoothnessScale;
 
 uniform float _LightProbeMethod;
 
-#ifdef ENABLE_REFRACTION
-uniform half _Refraction;
-#endif
-
-
-UNITY_DECLARE_TEX2D_NOSAMPLER(_MatCap);
-uniform half _MatCapReplace;
-
+uniform float _FlatShading;
 
 struct Lighting
 {
@@ -178,6 +155,15 @@ struct Surface
 };
 static Surface surface;
 
+#if defined(VERTEXLIGHT_ON) && defined(UNITY_PASS_FORWARDBASE)
+struct VertexLightInformation {
+    float3 Direction[4];
+    float3 ColorFalloff[4];
+    float Attenuation[4];
+};
+static VertexLightInformation vertexLightInformation;
+#endif
+
 #include "UnityCG.cginc"
 #include "AutoLight.cginc"
 #include "Lighting.cginc"
@@ -189,16 +175,17 @@ static Surface surface;
 
 #if defined(BAKERY_SH) || defined(BAKERY_RNM) || defined(BAKERY_LMSPEC)
     #ifdef UNITY_PASS_FORWARDBASE
-        #ifndef SHADER_API_MOBILE
-            #include "Bakery.cginc"
-        #else
-        #undef BAKERY_SH
-        #undef BAKERY_RNM
-        #undef BAKERY_LMSPEC
-        #endif
+//#if_BAKERY_SH,_BAKERY_RNM,_BAKERY_LMSPEC
+        #include "Bakery.cginc"
     #else
     #undef BAKERY_SH
     #undef BAKERY_RNM
     #undef BAKERY_LMSPEC
+    #endif
+#endif
+
+#if defined(LOD_FADE_CROSSFADE)
+    #if defined(UNITY_PASS_META)
+        #undef LOD_FADE_CROSSFADE
     #endif
 #endif

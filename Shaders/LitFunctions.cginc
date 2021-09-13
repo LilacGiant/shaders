@@ -28,7 +28,7 @@ void initNormalMap(half4 normalMap, inout half3 bitangent, inout half3 tangent, 
 
     tangentNormal = UnpackScaleNormal(normalMap, _BumpScale);
 
-    #if defined(PROP_DETAILMAP) && !defined(SHADER_API_MOBILE)
+    #if defined(PROP_DETAILMAP)
         detailNormalMap.g = 1-detailNormalMap.g;
         half3 detailNormal = UnpackScaleNormal(detailNormalMap, _DetailNormalScale);
         tangentNormal = BlendNormals(tangentNormal, detailNormal);
@@ -174,7 +174,7 @@ void applyEmission(half2 parallaxOffset)
         emissionMap = _EmissionMap.Sample(sampler_MainTex, TRANSFORMTEX(uvs[_EmissionMapUV], _EmissionMap_ST, _MainTex_ST));
     #endif
 
-    #if defined(ENABLE_AUDIOLINK) && !defined (SHADER_API_MOBILE)
+    #if defined(ENABLE_AUDIOLINK)
         float4 alEmissionMap = 1;
         #if defined(PROP_ALEMISSIONMAP)
             alEmissionMap = _ALEmissionMap.Sample(sampler_MainTex, TRANSFORMTEX(uvs[_EmissionMapUV], _EmissionMap_ST, _MainTex_ST));
@@ -213,32 +213,25 @@ void applyEmission(half2 parallaxOffset)
 half3 getDirectSpecular(float3 worldNormal, half3 tangent, half3 bitangent, half3 f0, half NoV)
 {
     half NoH = saturate(dot(worldNormal, light.halfVector));
-
     half roughness = max(surface.perceptualRoughness * surface.perceptualRoughness, 0.002);
 
     half D = GGXTerm (NoH, roughness);
-
-    float anisotropy = _Anisotropy;
-    #if !defined(SHADER_API_MOBILE)
-        if(anisotropy != 0) {
-            anisotropy *= saturate(5.0 * surface.perceptualRoughness);
-            half at = max(roughness * (1.0 + anisotropy), 0.001);
-            half ab = max(roughness * (1.0 - anisotropy), 0.001);
-            D = D_GGX_Anisotropic(NoH, light.halfVector, tangent, bitangent, at, ab);
-        }
-    #endif
-
     half V = V_SmithGGXCorrelated ( NoV,light.NoL, roughness);
     half3 F = F_Schlick(light.LoH, f0);
 
-    half3 specularTerm = max(0, (D * V) * F);
+    float anisotropy = _Anisotropy;
+    if(anisotropy != 0) {
+        anisotropy *= saturate(5.0 * surface.perceptualRoughness);
+        half at = max(roughness * (1.0 + anisotropy), 0.001);
+        half ab = max(roughness * (1.0 - anisotropy), 0.001);
+        D = D_GGX_Anisotropic(NoH, light.halfVector, tangent, bitangent, at, ab);
+    }
 
-    return specularTerm * light.finalLight * UNITY_PI;
+    return max(0, (D * V) * F) * light.finalLight * UNITY_PI;
 }
 
 half3 getIndirectSpecular(float3 reflDir, float3 worldPos, float3 reflWorldNormal, half3 fresnel, half3 f0)
 {
-
     Unity_GlossyEnvironmentData envData;
     envData.roughness = surface.perceptualRoughness;
     envData.reflUVW = getBoxProjection(
@@ -251,26 +244,24 @@ half3 getIndirectSpecular(float3 reflDir, float3 worldPos, float3 reflWorldNorma
 
     half3 indirectSpecular = probe0;
     
-    #if !defined(SHADER_API_MOBILE)
-    
-        #if defined(UNITY_SPECCUBE_BLENDING) && !defined(ENABLE_REFRACTION)
-            half interpolator = unity_SpecCube0_BoxMin.w;
-            UNITY_BRANCH
-            if (interpolator < 0.99999)
-            {
-                envData.reflUVW = getBoxProjection(
-                    reflDir, worldPos,
-                    unity_SpecCube1_ProbePosition,
-                    unity_SpecCube1_BoxMin, unity_SpecCube1_BoxMax
-                );
-                half3 probe1 = Unity_GlossyEnvironment(UNITY_PASS_TEXCUBE_SAMPLER(unity_SpecCube1, unity_SpecCube0), unity_SpecCube1_HDR, envData);
-                indirectSpecular = lerp(probe1, probe0, interpolator);
-            }
-        #endif
 
-        half horizon = min(1 + dot(reflDir, reflWorldNormal), 1);
-        indirectSpecular *= horizon * horizon;
+    #if defined(UNITY_SPECCUBE_BLENDING) && !defined(ENABLE_REFRACTION)
+        half interpolator = unity_SpecCube0_BoxMin.w;
+        UNITY_BRANCH
+        if (interpolator < 0.99999)
+        {
+            envData.reflUVW = getBoxProjection(
+                reflDir, worldPos,
+                unity_SpecCube1_ProbePosition,
+                unity_SpecCube1_BoxMin, unity_SpecCube1_BoxMax
+            );
+            half3 probe1 = Unity_GlossyEnvironment(UNITY_PASS_TEXCUBE_SAMPLER(unity_SpecCube1, unity_SpecCube0), unity_SpecCube1_HDR, envData);
+            indirectSpecular = lerp(probe1, probe0, interpolator);
+        }
     #endif
+
+    half horizon = min(1 + dot(reflDir, reflWorldNormal), 1);
+    indirectSpecular *= horizon * horizon;
 
     return indirectSpecular * lerp(fresnel, f0, surface.perceptualRoughness);
 }
@@ -287,13 +278,11 @@ void initLighting(v2f i, float3 worldNormal, float3 viewDir, half NoV)
     UNITY_LIGHT_ATTENUATION(attenuation, i, i.worldPos.xyz);
     light.attenuation = attenuation;
     light.finalLight = (light.NoL * light.attenuation * light.color);
-    #ifndef SHADER_API_MOBILE
-        light.finalLight *= Fd_Burley(surface.perceptualRoughness, NoV, light.NoL, light.LoH);
-    #endif
+    light.finalLight *= Fd_Burley(surface.perceptualRoughness, NoV, light.NoL, light.LoH);
 }
 #endif
 
-#if defined(PROP_DETAILMAP) && !defined(SHADER_API_MOBILE)
+#if defined(PROP_DETAILMAP)
 float4 applyDetailMap(half2 parallaxOffset, float maskMapAlpha)
 {
     float4 detailMap = _DetailMap.Sample(sampler_MainTex, TRANSFORM(uvs[_DetailMapUV], _DetailMap_ST));
@@ -331,12 +320,8 @@ void applySaturation()
     surface.albedo.rgb = lerp(desaturated, surface.albedo.rgb, (_Saturation+1));
 }
 
-void initSurfaceData(out half metallicMap, out half smoothnessMap, out half occlusionMap, out half4 maskMap, half2 parallaxOffset)
+void initSurfaceData(inout half metallicMap, inout half smoothnessMap, inout half occlusionMap, inout half4 maskMap, half2 parallaxOffset)
 {
-    metallicMap = 1;
-    smoothnessMap = 1;
-    occlusionMap = 1;
-    maskMap = 1;
     bool isRoughness = _GlossinessInvert;
     
     #ifndef ENABLE_PACKED_MODE
@@ -372,7 +357,7 @@ void initSurfaceData(out half metallicMap, out half smoothnessMap, out half occl
     surface.occlusion = lerp(1,occlusionMap , _Occlusion);
 }
 
-void getMainTex(out half4 mainTex, half2 parallaxOffset, half4 vertexColor)
+void getMainTex(inout half4 mainTex, half2 parallaxOffset, half4 vertexColor)
 {
     mainTex = MAIN_TEX(_MainTex, sampler_MainTex, uvs[_MainTexUV], _MainTex_ST);
 
@@ -385,18 +370,21 @@ void getMainTex(out half4 mainTex, half2 parallaxOffset, half4 vertexColor)
     #endif
 }
 
-void getIndirectDiffuse(float3 worldNormal, float2 parallaxOffset, out half2 lightmapUV)
+void getIndirectDiffuse(float3 worldNormal, float2 parallaxOffset, inout half2 lightmapUV)
 {
     #if defined(LIGHTMAP_ON)
         lightmapUV = uvs[1] * unity_LightmapST.xy + unity_LightmapST.zw + 0;
         half3 lightMap = getLightmap(worldNormal, parallaxOffset, lightmapUV);
-        #if defined(DYNAMICLIGHTMAP_ON) && !defined(SHADER_API_MOBILE)
+
+        #if defined(DYNAMICLIGHTMAP_ON)
             half3 realtimeLightMap = getRealtimeLightmap(uvs[2], worldNormal, parallaxOffset);
             lightMap += realtimeLightMap; 
         #endif
+        
         light.indirectDiffuse = lightMap;
 
     #else
+        if(_FlatShading) worldNormal = half3(0,0,0);
         lightmapUV = 0;
         UNITY_BRANCH
         if(_LightProbeMethod == 0)
@@ -414,3 +402,19 @@ void getIndirectDiffuse(float3 worldNormal, float2 parallaxOffset, out half2 lig
 
     #endif
 }
+
+#if defined(VERTEXLIGHT_ON) && defined(UNITY_PASS_FORWARDBASE)
+void initVertexLights(float3 worldPos, float3 worldNormal, inout float3 vLight, inout float3 vertexLightColor)
+{
+    float3 vertexLightData = 0;
+    float4 vertexLightAtten = float4(0,0,0,0);
+    vertexLightColor = get4VertexLightsColFalloff(vertexLightInformation, worldPos, worldNormal, vertexLightAtten);
+    float3 vertexLightDir = getVertexLightsDir(vertexLightInformation, worldPos, vertexLightAtten);
+    [unroll(4)]
+    for(int i = 0; i < 4; i++)
+    {
+        vertexLightData += saturate(dot(vertexLightInformation.Direction[i], worldNormal)) * vertexLightInformation.ColorFalloff[i];
+    }
+    vLight = vertexLightData;
+}
+#endif

@@ -1,9 +1,13 @@
 #if !defined(UNITY_PASS_SHADOWCASTER)
 half4 frag(v2f i) : SV_Target
 {
-    UNITY_SETUP_INSTANCE_ID(i); 
-    initUVs(i);
+    UNITY_SETUP_INSTANCE_ID(i);
+    #if defined(LOD_FADE_CROSSFADE)
+		UnityApplyDitherCrossFade(i.pos);
+	#endif
 
+    initUVs(i);
+    float3 worldPos = i.worldPos;
     half2 parallaxOffset = 0;
     half alpha = 1;
     half4 maskMap = 1;
@@ -14,6 +18,9 @@ half4 frag(v2f i) : SV_Target
     half4 mainTex = 1;
     float3 tangentNormal = 0.5;
     half2 lightmapUV = 0;
+    float3 vLight = 0;
+    float3 vertexLightColor = 0;
+
 
 
     float3 worldNormal = normalize(i.worldNormal);
@@ -35,7 +42,7 @@ half4 frag(v2f i) : SV_Target
 
     initSurfaceData(metallicMap, smoothnessMap, occlusionMap, maskMap, parallaxOffset);
 
-    #if defined(PROP_DETAILMAP) && !defined(SHADER_API_MOBILE)
+    #if defined(PROP_DETAILMAP)
         detailMap = applyDetailMap(parallaxOffset, maskMap.a);
     #endif
 
@@ -51,7 +58,7 @@ half4 frag(v2f i) : SV_Target
     #ifdef PROP_BUMPMAP
         half4 normalMap = _BumpMap.Sample(sampler_BumpMap, TRANSFORMTEX(uvs[_BumpMapUV], _BumpMap_ST, _MainTex_ST));
         float4 detailNormalMap = float4(0.5, 0.5, 1, 1);
-        #if defined(PROP_DETAILMAP) && !defined(SHADER_API_MOBILE)
+        #if defined(PROP_DETAILMAP)
             detailNormalMap = float4(detailMap.a, detailMap.g, 1, 1);
         #endif
         initNormalMap(normalMap, bitangent, tangent, worldNormal, detailNormalMap, tangentNormal);
@@ -62,9 +69,14 @@ half4 frag(v2f i) : SV_Target
         initLighting(i, worldNormal, viewDir, NoV);
     #endif
 
+    #if defined(VERTEXLIGHT_ON) && defined(UNITY_PASS_FORWARDBASE)
+        initVertexLights(worldPos, worldNormal, vLight, vertexLightColor);
+    #endif
+
+
     getIndirectDiffuse(worldNormal, parallaxOffset, lightmapUV);
 
-    #if defined(ENABLE_GSAA) && !defined(SHADER_API_MOBILE)
+    #if defined(ENABLE_GSAA)
         surface.perceptualRoughness = GSAA_Filament(worldNormal, surface.perceptualRoughness);
     #endif
 
@@ -72,40 +84,22 @@ half4 frag(v2f i) : SV_Target
         half3 f0 = 0.16 * _Reflectance * _Reflectance * surface.oneMinusMetallic + surface.albedo * surface.metallic;
         half3 fresnel = F_Schlick(NoV, f0);
 
-        #if !defined(SHADER_API_MOBILE)
-            fresnel = lerp(f0, fresnel , _FresnelColor.a);
-            fresnel *= _FresnelColor.rgb;
-            fresnel *= _SpecularOcclusion ? saturate(lerp(1, pow(length(light.indirectDiffuse), _SpecularOcclusion), _SpecularOcclusion * surface.oneMinusMetallic)) : 1;
-        #endif
+        fresnel = lerp(f0, fresnel , _FresnelColor.a);
+        fresnel *= _FresnelColor.rgb;
+        fresnel *= _SpecularOcclusion ? saturate(lerp(1, pow(length(light.indirectDiffuse), _SpecularOcclusion), _SpecularOcclusion * surface.oneMinusMetallic)) : 1;
     #endif
 
     #if defined(UNITY_PASS_FORWARDBASE)
-
-        #if defined(ENABLE_MATCAP)
-            light.indirectSpecular = lerp(0 , _MatCap.Sample(sampler_MainTex, mul((float3x3)UNITY_MATRIX_V, worldNormal).xy * 0.5 + 0.5).rgb, _MatCapReplace);
-            #undef ENABLE_REFLECTIONS
-        #endif
 
         #if defined(ENABLE_REFLECTIONS)
             float3 reflViewDir = reflect(-viewDir, worldNormal);
             float3 reflWorldNormal = worldNormal;
 
-            #ifdef ENABLE_REFRACTION
-                reflViewDir = refract(-viewDir, worldNormal, _Refraction);
-                reflWorldNormal = 0;
-            #endif
-
-            #if !defined(SHADER_API_MOBILE)
-                if(_Anisotropy != 0) reflViewDir = getAnisotropicReflectionVector(viewDir, bitangent, tangent, worldNormal, surface.perceptualRoughness);
-            #endif
-        
-            light.indirectSpecular = getIndirectSpecular(reflViewDir, i.worldPos, reflWorldNormal, fresnel, f0);
+            if(_Anisotropy != 0) reflViewDir = getAnisotropicReflectionVector(viewDir, bitangent, tangent, worldNormal, surface.perceptualRoughness);
+            light.indirectSpecular = getIndirectSpecular(reflViewDir, worldPos, reflWorldNormal, fresnel, f0);
         #endif
 
-        #if defined(PROP_OCCLUSIONMAP) && !defined(SHADER_API_MOBILE)
-            light.indirectSpecular *= computeSpecularAO(NoV, surface.occlusion, surface.perceptualRoughness * surface.perceptualRoughness);
-        #endif
-
+        light.indirectSpecular *= computeSpecularAO(NoV, surface.occlusion, surface.perceptualRoughness * surface.perceptualRoughness);
     #endif
 
     #if defined(ENABLE_SPECULAR_HIGHLIGHTS) || defined(UNITY_PASS_META)
@@ -149,8 +143,9 @@ half4 frag(v2f i) : SV_Target
         alpha = lerp(alpha, 1, surface.metallic);
     }
 
+    if(_FlatShading) light.finalLight = saturate(light.color + vertexLightColor) * light.attenuation;
 
-    half4 finalColor = half4( surface.albedo * surface.oneMinusMetallic * ((light.indirectDiffuse * surface.occlusion) + light.finalLight) + light.directSpecular + light.indirectSpecular + surface.emission, alpha);
+    half4 finalColor = half4( surface.albedo * surface.oneMinusMetallic * ((light.indirectDiffuse * surface.occlusion) + (light.finalLight + vLight)) + light.directSpecular + light.indirectSpecular + surface.emission, alpha);
 
     #ifdef UNITY_PASS_META
         return getMeta(surface, light, alpha);
@@ -167,6 +162,10 @@ half4 frag(v2f i) : SV_Target
 #if defined(UNITY_PASS_SHADOWCASTER)
 half4 ShadowCasterfrag(v2f i) : SV_Target
 {
+    #if defined(LOD_FADE_CROSSFADE)
+		UnityApplyDitherCrossFade(i.pos);
+	#endif
+    
     initUVs(i);
     half2 parallaxOffset = 0;
     half4 mainTex = MAIN_TEX(_MainTex, sampler_MainTex, uvs[_MainTexUV], _MainTex_ST);

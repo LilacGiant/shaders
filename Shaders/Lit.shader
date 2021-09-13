@@ -1,9 +1,9 @@
-Shader " Lit"
+Shader "z3y/lit"
 {
 
     Properties
     {
-        _ShaderOptimizerEnabled ("", Float) = 0
+        _IsMaterialLocked ("", Float) = 0 // has to be property index 0
 
         [Enum(Opaque, 0, Cutout, 1, Fade, 2, Transparent, 3)] _Mode("Rendering Mode", Int) = 0
         
@@ -62,13 +62,9 @@ Shader " Lit"
         [PowerSlider(3)] _specularAntiAliasingVariance ("Variance", Range(0.0, 1.0)) = 0.15
         [PowerSlider(3)] _specularAntiAliasingThreshold ("Threshold", Range(0.0, 1.0)) = 0.1
         
-        [Toggle(ENABLE_MATCAP)] _EnableMatcap ("Matcap", Float) = 0
-        [NoScaleOffset] _MatCap ("Matcap", 2D) = "white" {}
-        _MatCapReplace ("Intensity", Range(0.0, 1.0)) = 1
-
         
         _LightmapMultiplier ("Lightmap Multiplier", Range(0, 2)) = 1
-        _SpecularOcclusion ("Specular Occlusion", Range(0, 1)) = 0
+        _SpecularOcclusion ("Lightmap Specular Occlusion", Range(0, 1)) = 0
 
         [Toggle(ENABLE_BICUBIC_LIGHTMAP)] _BicubicLightmap ("Bicubic Lightmap Interpolation", Float) = 0
         [ToggleUI] _LightProbeMethod ("Non-linear Light Probe SH", Float) = 0
@@ -100,9 +96,6 @@ Shader " Lit"
         _DetailSmoothnessScale ("Smoothness Scale", Range(0.0, 2.0)) = 1
         
         
-        [Toggle(ENABLE_REFRACTION)] _EnableRefraction ("Fake Refraction", Float) = 0
-        [PowerSlider(0.25)] _Refraction ("Refraction", Range(0.0, 1)) = 0.9
-
         [Toggle(ENABLE_AUDIOLINK)] _EnableAudioLink ("Audio Link", Float) = 0
         _AudioTexture ("Audio Link Render Texture", 2D) = "black" {}
         _ALSmoothing ("Audio Link Smoothing", Range(0, 1)) = 0.5
@@ -115,18 +108,20 @@ Shader " Lit"
         [Toggle(BAKERY_SHNONLINEAR)] _BAKERY_SHNONLINEAR ("SH non-linear mode", Float) = 1
         [Toggle(BAKERY_RNM)] _BAKERY_RNM ("Enable RNM", Float) = 0
         [Toggle(BAKERY_LMSPEC)] _BAKERY_LMSPEC ("Enable Lightmap Specular", Float) = 0
-
+        
         [Enum(BAKERYMODE_DEFAULT, 0, BAKERYMODE_VERTEXLM, 1, BAKERYMODE_RNM, 2, BAKERYMODE_SH, 3)] bakeryLightmapMode ("bakeryLightmapMode", Float) = 0
         _RNM0("RNM0", 2D) = "black" {}
         _RNM1("RNM1", 2D) = "black" {}
         _RNM2("RNM2", 2D) = "black" {}
 
+        [Toggle(LOD_FADE_CROSSFADE)] _LodCrossFade ("Dithered LOD Cross-Fade", Float) = 0
+        [ToggleUI] _FlatShading ("Flat Shading", Float) = 0
+
 
     }
 
-    SubShader //pc shader
+    SubShader
     {
-
 
         Tags
         {
@@ -152,21 +147,20 @@ Shader " Lit"
             #pragma target 5.0
             #pragma vertex vert
             #pragma fragment frag
-            #pragma exclude_renderers gles3
             #pragma multi_compile_fwdbase
             #pragma multi_compile_instancing
             #pragma multi_compile_fog
+            #pragma multi_compile _ VERTEXLIGHT_ON
 
             #pragma shader_feature_local ENABLE_GSAA
             #pragma shader_feature_local ENABLE_SPECULAR_HIGHLIGHTS
             #pragma shader_feature_local ENABLE_REFLECTIONS
             #pragma shader_feature_local ENABLE_PACKED_MODE
             #pragma shader_feature_local ENABLE_BICUBIC_LIGHTMAP
-            #pragma shader_feature_local ENABLE_MATCAP
             #pragma shader_feature_local ENABLE_PARALLAX
-            #pragma shader_feature_local ENABLE_REFRACTION
             #pragma shader_feature_local ENABLE_AUDIOLINK
             #pragma shader_feature_local BAKERY_SHNONLINEAR
+            #pragma shader_feature_local LOD_FADE_CROSSFADE
 
             #pragma shader_feature_local BAKERY_SH
             #pragma shader_feature_local BAKERY_RNM
@@ -174,7 +168,7 @@ Shader " Lit"
 
 
             #ifndef UNITY_PASS_FORWARDBASE
-            #define UNITY_PASS_FORWARDBASE
+                #define UNITY_PASS_FORWARDBASE
             #endif
 
             #include "LitPass.cginc"
@@ -200,7 +194,6 @@ Shader " Lit"
             #pragma target 5.0
             #pragma vertex vert
             #pragma fragment frag
-            #pragma exclude_renderers gles3
             #pragma multi_compile_fwdadd_fullshadows
             #pragma multi_compile_instancing
             #pragma multi_compile_fog
@@ -208,10 +201,11 @@ Shader " Lit"
             #pragma shader_feature_local ENABLE_SPECULAR_HIGHLIGHTS
             #pragma shader_feature_local ENABLE_PACKED_MODE
             #pragma shader_feature_local ENABLE_PARALLAX
+            #pragma shader_feature_local LOD_FADE_CROSSFADE
 
 
             #ifndef UNITY_PASS_FORWARDADD
-            #define UNITY_PASS_FORWARDADD
+                #define UNITY_PASS_FORWARDADD
             #endif
 
             #include "LitPass.cginc"
@@ -235,14 +229,15 @@ Shader " Lit"
             #pragma target 5.0
             #pragma vertex vert
             #pragma fragment ShadowCasterfrag
-            #pragma exclude_renderers gles3
             #pragma multi_compile_shadowcaster
             #pragma multi_compile_instancing
+
+            #pragma shader_feature_local LOD_FADE_CROSSFADE
             
             #pragma skip_variants FOG_LINEAR FOG_EXP FOG_EXP2
 
             #ifndef UNITY_PASS_SHADOWCASTER
-            #define UNITY_PASS_SHADOWCASTER
+                #define UNITY_PASS_SHADOWCASTER
             #endif
 
             #include "LitPass.cginc"
@@ -266,7 +261,7 @@ Shader " Lit"
 
 
             #ifndef UNITY_PASS_META
-            #define UNITY_PASS_META
+                #define UNITY_PASS_META
             #endif
 
             #include "LitPass.cginc"
@@ -274,123 +269,7 @@ Shader " Lit"
         }
 
     }
-
-    SubShader // quest shader
-    {
-        Tags
-        {
-            "RenderType" = "Opaque" "Queue" = "Geometry"
-        }
-
-        Pass
-        {
-            Name "FORWARD"
-            Tags
-            {
-                "LightMode"="ForwardBase"
-            }
-            
-            ZWrite [_ZWrite]
-            Cull [_Cull]
-            ZTest [_ZTest]
-            
-            BlendOp [_BlendOp], [_BlendOpAlpha]
-            Blend [_SrcBlend] [_DstBlend]
-            AlphaToMask [_AlphaToMask]
-
-            CGPROGRAM
-            #pragma target 3.0
-            #pragma vertex vert
-            #pragma fragment frag
-            #pragma only_renderers gles3
-            #pragma multi_compile_fwdbase
-            #pragma multi_compile_instancing
-            #pragma multi_compile_fog
-
-            #pragma shader_feature_local ENABLE_SPECULAR_HIGHLIGHTS
-            #pragma shader_feature_local ENABLE_REFLECTIONS
-            #pragma shader_feature_local ENABLE_PACKED_MODE
-            #pragma shader_feature_local ENABLE_MATCAP
-            #pragma shader_feature_local ENABLE_REFRACTION
-
-
-            #ifndef UNITY_PASS_FORWARDBASE
-            #define UNITY_PASS_FORWARDBASE
-            #endif
-
-            #include "LitPass.cginc"
-            ENDCG
-        }
-
-        Pass
-        {
-            Name "FWDADD"
-            Tags
-            {
-                "LightMode"="ForwardAdd"
-            }
-            ZWrite Off
-            BlendOp [_BlendOp], [_BlendOpAlpha]
-            Blend One One
-            Cull [_Cull]
-            ZTest [_ZTest]
-            AlphaToMask [_AlphaToMask]
-
-
-            CGPROGRAM
-            #pragma target 3.0
-            #pragma vertex vert
-            #pragma fragment frag
-            #pragma only_renderers gles3
-            #pragma multi_compile_fwdadd_fullshadows
-            #pragma multi_compile_instancing
-            #pragma multi_compile_fog
-
-            #pragma shader_feature_local ENABLE_SPECULAR_HIGHLIGHTS
-            #pragma shader_feature_local ENABLE_PACKED_MODE
-
-
-            #ifndef UNITY_PASS_FORWARDADD
-            #define UNITY_PASS_FORWARDADD
-            #endif
-
-            #include "LitPass.cginc"
-            ENDCG
-        }
-
-        Pass
-        {
-            Name "ShadowCaster"
-            Tags
-            {
-                "LightMode"="ShadowCaster"
-            }
-            AlphaToMask Off
-            ZWrite On
-            Cull [_Cull]
-            ZTest LEqual
-
-
-            CGPROGRAM
-            #pragma target 3.0
-            #pragma vertex vert
-            #pragma fragment ShadowCasterfrag
-            #pragma only_renderers gles3
-            #pragma multi_compile_shadowcaster
-            #pragma multi_compile_instancing
-
-            #pragma skip_variants FOG_LINEAR FOG_EXP FOG_EXP2
-
-            #ifndef UNITY_PASS_SHADOWCASTER
-            #define UNITY_PASS_SHADOWCASTER
-            #endif
-
-            #include "LitPass.cginc"
-            ENDCG
-        }
-
-    }
-
+    
     FallBack "Diffuse"
-    CustomEditor "Shaders.Lit.ShaderEditor"
+    CustomEditor "z3y.LitShaderEditor"
 }
