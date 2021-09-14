@@ -181,7 +181,7 @@ half4 ShadowCasterfrag(v2f i) : SV_Target
 
     half alpha = mainTex.a * _Color.a;
 
-    #ifdef ENABLE_TRANSPARENCY // todo dithering
+    #ifdef ENABLE_TRANSPARENCY
         if(_Mode == 1) clip(alpha - _Cutoff);
         if(_Mode > 1) clip(alpha-0.5);
     #endif

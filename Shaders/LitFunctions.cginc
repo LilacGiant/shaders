@@ -448,21 +448,23 @@ float3 indirectDiffuseSpecular(float3 worldNormal, float3 viewDir, float3 tangen
     float3 dominantDir = 1;
     float3 specColor = 0;
 
-    if(bakeryLightmapMode < 2)
-    {
-        #ifdef DIRLIGHTMAP_COMBINED
-            dominantDir = (light.bakedDir.xyz) * 2 - 1;
-            specColor = light.indirectDiffuse;
-        #endif
-        #if defined(LIGHTMAP_ON) && !defined(DIRLIGHTMAP_COMBINED)
-            dominantDir = half3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w);
-            specColor = light.indirectDiffuse;
-        #endif
-        #ifndef LIGHTMAP_ON
-            specColor = half3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w);
-            dominantDir = unity_SHAr.xyz + unity_SHAg.xyz + unity_SHAb.xyz;
-        #endif
-    }
+    #if !defined(BAKERY_SH) && !defined(BAKERY_RNM)
+        if(bakeryLightmapMode < 2)
+        {
+            #ifdef DIRLIGHTMAP_COMBINED
+                dominantDir = (light.bakedDir.xyz) * 2 - 1;
+                specColor = light.indirectDiffuse;
+            #endif
+            #if defined(LIGHTMAP_ON) && !defined(DIRLIGHTMAP_COMBINED)
+                dominantDir = _SpecularDirection.xyz;
+                specColor = light.indirectDiffuse;
+            #endif
+            #ifndef LIGHTMAP_ON
+                specColor = half3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w);
+                dominantDir = unity_SHAr.xyz + unity_SHAg.xyz + unity_SHAb.xyz;
+            #endif
+        }
+    #endif
 
     half3 halfDir = Unity_SafeNormalize(normalize(dominantDir) + viewDir );
     half nh = saturate(dot(worldNormal, halfDir));

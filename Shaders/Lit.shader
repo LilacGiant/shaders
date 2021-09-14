@@ -106,6 +106,8 @@ Shader "z3y/lit"
         _ALEmissionMap ("Audio Link Emission Path & Mask: Path(G), Mask(A)", 2D) = "white" {}
 
         [Toggle(BAKERY_LMSPEC)] _BAKERY_LMSPEC ("Enable Specular", Float) = 0
+        _SpecularDirection ("Non-Directional Lightmap Specular Direction", Vector) = (0, 1, 0)
+
 
         [Toggle(BAKERY_SH)] _BAKERY_SH ("Enable SH", Float) = 0
         [Toggle(BAKERY_SHNONLINEAR)] _BAKERY_SHNONLINEAR ("SH non-linear mode", Float) = 1

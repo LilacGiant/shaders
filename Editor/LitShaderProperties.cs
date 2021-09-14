@@ -64,6 +64,7 @@ namespace z3y
         protected MaterialProperty _SpecularOcclusion = null;
         protected MaterialProperty _SpecularOcclusionSensitivity = null;
         protected MaterialProperty _LightProbeMethod = null;
+        protected MaterialProperty _SpecularDirection = null;
         protected MaterialProperty _Anisotropy = null;
         protected MaterialProperty _Cull = null;
 
@@ -302,9 +303,9 @@ namespace z3y
                 prop(_LightProbeMethod);
                 prop(_BicubicLightmap);
                 prop(_BAKERY_LMSPEC);
+                if(_BAKERY_LMSPEC.floatValue == 1) prop(_SpecularDirection);
                 
                 #if BAKERY_INCLUDED
-                EditorGUILayout.Space();
                 Func.PropertyGroup(() => {
                     EditorGUILayout.LabelField("Bakery", EditorStyles.boldLabel);
                     prop(_BAKERY_SH);

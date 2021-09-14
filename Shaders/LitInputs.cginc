@@ -45,6 +45,7 @@ uniform half _Mode;
 uniform half _AlphaToMask;
 
 uniform float _SpecularOcclusionSensitivity;
+uniform float3 _SpecularDirection;
 
 UNITY_DECLARE_TEX2D(_MainTex);
 uniform float _MainTexUV;
