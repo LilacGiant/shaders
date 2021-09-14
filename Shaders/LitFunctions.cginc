@@ -373,6 +373,7 @@ void getMainTex(inout half4 mainTex, half2 parallaxOffset, half4 vertexColor)
 void getIndirectDiffuse(float3 worldNormal, float2 parallaxOffset, inout half2 lightmapUV)
 {
     #if defined(LIGHTMAP_ON)
+
         lightmapUV = uvs[1] * unity_LightmapST.xy + unity_LightmapST.zw + parallaxOffset;
 
         half3 lightMap = tex2DFastBicubicLightmap(lightmapUV) * (_LightmapMultiplier);
@@ -381,6 +382,7 @@ void getIndirectDiffuse(float3 worldNormal, float2 parallaxOffset, inout half2 l
             light.bakedDir = UNITY_SAMPLE_TEX2D_SAMPLER (unity_LightmapInd, unity_Lightmap, lightmapUV);
             lightMap = DecodeDirectionalLightmap(lightMap, light.bakedDir, worldNormal);
         #endif
+
 
         #if defined(DYNAMICLIGHTMAP_ON)
             half3 realtimeLightMap = getRealtimeLightmap(uvs[2], worldNormal, parallaxOffset);
