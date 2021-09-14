@@ -425,8 +425,9 @@ namespace z3y
         * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
         * SOFTWARE.
         */
-
+        #if BAKERY_INCLUDED
         [MenuItem("Tools/Shader Optimizer/Generate Bakery Materials")]
+        #endif
         public static void HandleBakeryPropertyBlocks()
         {
             const string newMaterialPath = "Assets/GeneratedMaterials/";
@@ -515,8 +516,9 @@ namespace z3y
 
             AssetDatabase.Refresh();
         }
-        
+        #if BAKERY_INCLUDED
         [MenuItem("Tools/Shader Optimizer/Revert Bakery Materials")]
+        #endif
         public static void RevertHandleBakeryPropertyBlocks()
         {
             var renderers = UnityEngine.Object.FindObjectsOfType<MeshRenderer>();
