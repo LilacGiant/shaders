@@ -26,6 +26,7 @@ namespace z3y
         public bool Show_SmoothnessMap = false;
         public bool Show_OcclusionMap = false;
 
+
     }
     
     public class LitShaderEditor : ShaderGUI
@@ -61,6 +62,7 @@ namespace z3y
         protected MaterialProperty _BicubicLightmap = null;
         protected MaterialProperty _LightmapMultiplier = null;
         protected MaterialProperty _SpecularOcclusion = null;
+        protected MaterialProperty _SpecularOcclusionSensitivity = null;
         protected MaterialProperty _LightProbeMethod = null;
         protected MaterialProperty _Anisotropy = null;
         protected MaterialProperty _Cull = null;
@@ -107,6 +109,11 @@ namespace z3y
         protected MaterialProperty _LodCrossFade = null;
         protected MaterialProperty _FlatShading = null;
 
+        protected MaterialProperty _BlendOp = null;
+        protected MaterialProperty _BlendOpAlpha = null;
+        protected MaterialProperty _SrcBlend = null;
+        protected MaterialProperty _DstBlend = null;
+
 
 
 
@@ -116,11 +123,12 @@ namespace z3y
             EditorGUILayout.HelpBox("This shader is not supported on Quest", MessageType.Warning);
             EditorGUILayout.Space();
             #endif
-
+            
+            
             md[material].ShowSurfaceInputs = Foldout("Surface Inputs", md[material].ShowSurfaceInputs, ()=> {
 
                 EditorGUI.BeginChangeCheck();
-                prop(_Mode, false);
+                prop(_Mode);
                 if (EditorGUI.EndChangeCheck())
                 {
                     if(me.targets.Length > 1)
@@ -143,7 +151,7 @@ namespace z3y
 
                 md[material].Show_MainTex = Func.TriangleFoldout(md[material].Show_MainTex, ()=> {
                     propTileOffset(_MainTex);
-                    prop(_MainTexUV, false);
+                    prop(_MainTexUV);
                     prop(_Saturation);
                 });
 
@@ -159,7 +167,7 @@ namespace z3y
                     prop(_MetallicGlossMap);
                     md[material].Show_MetallicGlossMap = Func.TriangleFoldout(md[material].Show_MetallicGlossMap, ()=> {
                         propTileOffset(_MetallicGlossMap);
-                        prop(_MetallicGlossMapUV, false);
+                        prop(_MetallicGlossMapUV);
                     });
                     Func.sRGBWarning(_MetallicGlossMap);
                 }
@@ -168,22 +176,22 @@ namespace z3y
                     prop(_MetallicMap, _Metallic);
                     md[material].Show_MetallicMap = Func.TriangleFoldout(md[material].Show_MetallicMap, ()=> {
                         propTileOffset(_MetallicMap);
-                        prop(_MetallicMapUV, false);
+                        prop(_MetallicMapUV);
                     });
                     Func.sRGBWarning(_MetallicMap);
                     
                     prop(_SmoothnessMap, _Glossiness);
                     md[material].Show_SmoothnessMap = Func.TriangleFoldout(md[material].Show_SmoothnessMap, ()=> {
                         propTileOffset(_SmoothnessMap);
-                        prop(_SmoothnessMapUV, false);
-                        prop(_GlossinessInvert, false);
+                        prop(_SmoothnessMapUV);
+                        prop(_GlossinessInvert);
                     });
                     Func.sRGBWarning(_SmoothnessMap);
                     
                     prop(_OcclusionMap, _Occlusion);
                     md[material].Show_OcclusionMap = Func.TriangleFoldout(md[material].Show_OcclusionMap, ()=> {
                         propTileOffset(_OcclusionMap);
-                        prop(_OcclusionMapUV, false);
+                        prop(_OcclusionMapUV);
                     });
                     Func.sRGBWarning(_OcclusionMapUV);
                 }
@@ -195,15 +203,15 @@ namespace z3y
 
                 md[material].Show_BumpMap = Func.TriangleFoldout(md[material].Show_BumpMap, ()=> {
                     propTileOffset(_BumpMap);
-                    prop(_BumpMapUV, false);
-                    prop(_NormalMapOrientation, false);
+                    prop(_BumpMapUV);
+                    prop(_NormalMapOrientation);
                 });
                 
 
                 prop(_DetailMap);
                 md[material].Show_DetailMap = Func.TriangleFoldout(md[material].Show_DetailMap, ()=> {
                     propTileOffset(_DetailMap);
-                    prop(_DetailMapUV, false);
+                    prop(_DetailMapUV);
                     prop(_DetailAlbedoScale);
                     prop(_DetailNormalScale);
                     prop(_DetailSmoothnessScale);
@@ -216,8 +224,8 @@ namespace z3y
             });
 
             md[material].ShowShaderFeatures = Foldout("Shader Features", md[material].ShowShaderFeatures, ()=> {
-                prop(_GlossyReflections, false);
-                prop(_SpecularHighlights, false);
+                prop(_GlossyReflections);
+                prop(_SpecularHighlights);
                 if(_GlossyReflections.floatValue == 1 || _SpecularHighlights.floatValue == 1 || _BAKERY_SH.floatValue == 1 || _BAKERY_RNM.floatValue == 1 || _BAKERY_LMSPEC.floatValue == 1)
                 {
                     Func.PropertyGroup(() => {
@@ -227,7 +235,7 @@ namespace z3y
                     });
                 }
 
-                prop(_EnableEmission, false);
+                prop(_EnableEmission);
 
                 if(_EnableEmission.floatValue == 1)
                 {
@@ -236,7 +244,7 @@ namespace z3y
 
                         md[material].Show_EmissionMap = Func.TriangleFoldout(md[material].Show_EmissionMap, ()=> {
                             propTileOffset(_EmissionMap);
-                            prop(_EmissionMapUV, false);
+                            prop(_EmissionMapUV);
                         });
                         me.LightmapEmissionProperty();
 
@@ -253,20 +261,20 @@ namespace z3y
                     });
                 }
 
-                prop(_EnableParallax, false);
+                prop(_EnableParallax);
 
                 if(_EnableParallax.floatValue == 1)
                 {
                     Func.PropertyGroup(() => {
                         prop(_ParallaxMap, _Parallax);
                         Func.sRGBWarning(_ParallaxMap);
-                        prop(_ParallaxOffset, false);
-                        prop(_ParallaxSteps, false);
+                        prop(_ParallaxOffset);
+                        prop(_ParallaxSteps);
                     });
                 }
                 
 
-                prop(_GSAA, false);
+                prop(_GSAA);
                 if(_GSAA.floatValue == 1){
                     Func.PropertyGroup(() => {
                         prop(_specularAntiAliasingVariance);
@@ -289,25 +297,26 @@ namespace z3y
 
             md[material].ShowBakedLight = Foldout("Baked Light", md[material].ShowBakedLight, ()=> {
                 prop(_SpecularOcclusion);
+                prop(_SpecularOcclusionSensitivity);
                 prop(_LightmapMultiplier);
-                prop(_LightProbeMethod, false);
-                prop(_BicubicLightmap, false);
-                prop(_BAKERY_LMSPEC, false);
+                prop(_LightProbeMethod);
+                prop(_BicubicLightmap);
+                prop(_BAKERY_LMSPEC);
                 
                 #if BAKERY_INCLUDED
-                EditorGUILayout.Space();;
+                EditorGUILayout.Space();
                 Func.PropertyGroup(() => {
                     EditorGUILayout.LabelField("Bakery", EditorStyles.boldLabel);
-                    prop(_BAKERY_SH, false);
-                    prop(_BAKERY_SHNONLINEAR, false);
-                    prop(_BAKERY_RNM, false);
+                    prop(_BAKERY_SH);
+                    prop(_BAKERY_SHNONLINEAR);
+                    prop(_BAKERY_RNM);
                     EditorGUI.BeginDisabledGroup(true);
                     if(_BAKERY_SH.floatValue == 1 || _BAKERY_RNM.floatValue == 1)
                     {
-                        prop(bakeryLightmapMode, false);
-                        prop(_RNM0, false);
-                        prop(_RNM1, false);
-                        prop(_RNM2, false);
+                        prop(bakeryLightmapMode);
+                        prop(_RNM0);
+                        prop(_RNM1);
+                        prop(_RNM2);
                     }
                     EditorGUI.EndDisabledGroup();
                 });
@@ -316,13 +325,19 @@ namespace z3y
 
 
             md[material].ShowAdvanced = Foldout("Advanced", md[material].ShowAdvanced, ()=> {
-                prop(_EnablePackedMode);
+                Func.PropertyGroup(() => {
+                prop(_BlendOp);
+                prop(_BlendOpAlpha);
+                prop(_SrcBlend);
+                prop(_DstBlend);
+                });
+                EditorGUILayout.Space();
 
-                EditorGUILayout.Space();;
+                prop(_Cull);
+                prop(_EnablePackedMode);
                 me.DoubleSidedGIField();
                 me.EnableInstancingField();
                 me.RenderQueueField();
-                prop(_Cull);
                 EditorGUILayout.Space();;
                 ListAnimatedProps();
             });
@@ -332,7 +347,7 @@ namespace z3y
             
 
 
-
+            
         }
 
         // On inspector change
@@ -377,9 +392,8 @@ namespace z3y
             };
         }
 
-        private void prop(MaterialProperty property) => Func.MaterialProp(property, null, true, me, isLocked, material);
-        private void prop(MaterialProperty property, bool isAnimatable) => Func.MaterialProp(property, null, isAnimatable, me, isLocked, material);
-        private void prop(MaterialProperty property, MaterialProperty extraProperty) => Func.MaterialProp(property, extraProperty, true, me, isLocked, material);
+        private void prop(MaterialProperty property) => Func.MaterialProp(property, null, me, isLocked, material);
+        private void prop(MaterialProperty property, MaterialProperty extraProperty) => Func.MaterialProp(property, extraProperty, me, isLocked, material);
         
         private void propTileOffset(MaterialProperty property) => Func.propTileOffset(property, isLocked, me, material);
         private void ListAnimatedProps() => Func.ListAnimatedProps(isLocked, allProps, material);

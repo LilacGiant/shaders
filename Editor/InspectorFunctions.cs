@@ -119,7 +119,7 @@ namespace z3y
 			}
 		}
         private const char hoverSplitSeparator = ':';
-        public static void MaterialProp(MaterialProperty property, MaterialProperty extraProperty, bool isAnimatable, MaterialEditor me, bool isLocked, Material material)
+        public static void MaterialProp(MaterialProperty property, MaterialProperty extraProperty, MaterialEditor me, bool isLocked, Material material)
         {
 
             EditorGUI.BeginDisabledGroup(isLocked);
@@ -146,7 +146,7 @@ namespace z3y
                 me.TexturePropertySingleLine(new GUIContent(p[0], p.Length == 2 ? p[1] : null), property, extraProperty);
             }
 
-            if(isAnimatable) AnimatedPropertyToggle(animatedPropName, material);
+            AnimatedPropertyToggle(animatedPropName, material);
 
             EditorGUI.EndDisabledGroup();
  

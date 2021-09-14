@@ -7,6 +7,10 @@
 #define BAKERYMODE_RNM 2.0f
 #define BAKERYMODE_SH 3.0f
 
+#ifdef ENABLE_BICUBIC_LIGHTMAP
+#define BAKERY_BICUBIC
+#endif
+
 //#define BAKERY_SSBUMP
 
 // can't fit vertexLM SH to sm3_0 interpolators

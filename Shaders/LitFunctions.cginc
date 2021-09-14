@@ -443,7 +443,7 @@ float3 ditherNoiseFuncHigh(float2 p)
 float3 indirectDiffuseSpecular(float3 worldNormal, float3 viewDir, float3 tangentNormal)
 {
     half roughness = max(surface.perceptualRoughness * surface.perceptualRoughness, 0.002);
-    float3 dominantDir = 0;
+    float3 dominantDir = 1;
     float3 specColor = 0;
 
     if(bakeryLightmapMode < 2)

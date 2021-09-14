@@ -60,17 +60,6 @@ namespace z3y
             ShaderOptimizer.LockAllMaterials();
         }
     }
-#if BAKERY_INCLUDED
-    public class UnlockShadersOnPlatformSwitch : IActiveBuildTargetChanged
-    {
-        public int callbackOrder { get { return 69; } }
-
-        public void OnActiveBuildTargetChanged(BuildTarget previousTarget, BuildTarget newTarget)
-        {
-            ShaderOptimizer.UnlockAllMaterials();
-        }
-    }
-#endif
 
 #if VRC_SDK_VRCSDK2 || VRC_SDK_VRCSDK3
     public class LockMaterialsOnVRCWorldUpload : IVRCSDKBuildRequestedCallback
@@ -92,8 +81,15 @@ namespace z3y
         public void OnProcessShader(Shader shader, ShaderSnippetData snippet, IList<ShaderCompilerData> data)
         {
             bool shouldStrip = false;
+
+            bool usingOptimizer = false;
+            try 
+            {
+                usingOptimizer = ShaderUtil.GetPropertyName(shader, 0) == ShaderOptimizer.ShaderOptimizerEnabled;
+            }
+            catch {}
             
-            if (ShaderUtil.GetPropertyName(shader, 0) == ShaderOptimizer.ShaderOptimizerEnabled && !shader.name.StartsWith("Hidden/")) shouldStrip = true; // make your shader pink if you dont lock it :>
+            if (usingOptimizer && !shader.name.StartsWith("Hidden/")) shouldStrip = true; // make your shader pink if you dont lock it :>
 
             for (int i = data.Count - 1; i >= 0; --i)
             {
@@ -239,21 +235,23 @@ namespace z3y
                 allMaterials.AddRange(mats);
                 float progress = mats.Count;
 
-                List<String> shaderPropertyNames = new List<String>();
 
-                string originalShaderPath = AssetDatabase.GetAssetPath(mats[0].shader);
-                Shader shader = (Shader)AssetDatabase.LoadAssetAtPath(originalShaderPath, typeof(Shader));
-                int propCount = ShaderUtil.GetPropertyCount(shader);
-
-                for(int l=0; l<propCount; l++)
-                {
-                    string st = ShaderUtil.GetPropertyName (shader, l);
-                    shaderPropertyNames.Add(st);
-                }
-                
                 for (int i=0; i<progress; i++)
                 {
                     EditorUtility.DisplayCancelableProgressBar("Generating Shaders", mats[i].name, i/progress);
+
+                    List<String> shaderPropertyNames = new List<String>();
+
+                    string originalShaderPath = AssetDatabase.GetAssetPath(mats[i].shader);
+                    Shader shader = (Shader)AssetDatabase.LoadAssetAtPath(originalShaderPath, typeof(Shader));
+                    int propCount = ShaderUtil.GetPropertyCount(shader);
+
+                    for(int l=0; l<propCount; l++)
+                    {
+                        string st = ShaderUtil.GetPropertyName (shader, l);
+                        shaderPropertyNames.Add(st);
+                    }
+
                     MaterialProperty[] propsI = MaterialEditor.GetMaterialProperties(new UnityEngine.Object[] { mats[i] });
                     List<MaterialProperty> propsIclean = new List<MaterialProperty>();
 
@@ -267,7 +265,7 @@ namespace z3y
                     for (int j=0; j<allMaterials.Count; j++)
                     {
                         bool canShare = true;
-                        if(mats[i] == allMaterials[j]) canShare = false;
+                        if(mats[i] == allMaterials[j] || mats[i].shader != allMaterials[j].shader) canShare = false;
                         else
                         {
                             MaterialProperty[] propsJ = MaterialEditor.GetMaterialProperties(new UnityEngine.Object[] { allMaterials[j] });
@@ -353,6 +351,7 @@ namespace z3y
         {
             List<Material> materials = new List<Material>();
             var renderers = UnityEngine.Object.FindObjectsOfType<Renderer>();
+            
 
             if(renderers != null) foreach (var rend in renderers)
             {
@@ -380,7 +379,14 @@ namespace z3y
                     {
                         if(mat.shader.name != "Hidden/InternalErrorShader")
                         {
-                            if(!materials.Contains(mat) && ShaderUtil.GetPropertyName(mat.shader, 0) == ShaderOptimizerEnabled)
+                            bool usingOptimizer = false;
+                            try 
+                            {
+                                usingOptimizer = ShaderUtil.GetPropertyName(mat.shader, 0) == ShaderOptimizerEnabled;
+                            }
+                            catch {}
+
+                            if(!materials.Contains(mat) && usingOptimizer)
                                 if(mat.GetFloat(ShaderOptimizerEnabled) == (isLocked ? 1 : 0))
                                     materials.Add(mat);
                         }
@@ -420,7 +426,7 @@ namespace z3y
         * SOFTWARE.
         */
 
-        [MenuItem("Tools/Shader Optimizer/HandleBakeryPropertyBlocks")]
+        [MenuItem("Tools/Shader Optimizer/Generate Bakery Materials")]
         public static void HandleBakeryPropertyBlocks()
         {
             const string newMaterialPath = "Assets/GeneratedMaterials/";
@@ -447,48 +453,58 @@ namespace z3y
                     for (int j = 0; j < mr[i].sharedMaterials.Length; j++)
                     {
                         Material material = mr[i].sharedMaterials[j];
-                        
-                        if  (material != null && ShaderUtil.GetPropertyName(material.shader, 0) == ShaderOptimizerEnabled && material.GetTag("OriginalMaterialPath", false) == String.Empty)
+
+                        if(material != null)
                         {
-                            string materialPath = AssetDatabase.GetAssetPath(material);
-                            string textureName = AssetDatabase.GetAssetPath(RNM0) + "_" + AssetDatabase.GetAssetPath(RNM1) + "_" + AssetDatabase.GetAssetPath(RNM2);
-                            string matTexHash = ComputeMD5(materialPath + textureName);
-
-
-                            Material newMaterial = null;
-
-                            generatedMaterialList.TryGetValue(matTexHash, out newMaterial);
-                            if (newMaterial == null)
+                            bool usingOptimizer = false;
+                            try 
                             {
-                                newMaterial = new Material(material);
-                                newMaterial.name = matTexHash;
-                                newMaterial.SetTexture("_RNM0", RNM0);
-                                newMaterial.SetTexture("_RNM1", RNM1);
-                                newMaterial.SetTexture("_RNM2", RNM2);
-                                newMaterial.SetInt("bakeryLightmapMode", propertyLightmapMode);
-                                newMaterial.SetOverrideTag("OriginalMaterialPath", AssetDatabase.AssetPathToGUID(materialPath));
-                                generatedMaterialList.Add(matTexHash, newMaterial);
+                                usingOptimizer = ShaderUtil.GetPropertyName(material.shader, 0) == ShaderOptimizerEnabled;
+                            }
+                            catch {}
+                            
+                            if  (usingOptimizer && material.GetTag("OriginalMaterialPath", false) == String.Empty && (material.shaderKeywords.Contains("BAKERY_SH") || material.shaderKeywords.Contains("BAKERY_RNM")))
+                            {
+                                string materialPath = AssetDatabase.GetAssetPath(material);
+                                string textureName = AssetDatabase.GetAssetPath(RNM0) + "_" + AssetDatabase.GetAssetPath(RNM1) + "_" + AssetDatabase.GetAssetPath(RNM2);
+                                string matTexHash = ComputeMD5(materialPath + textureName);
 
-                                
-                                try
+
+                                Material newMaterial = null;
+
+                                generatedMaterialList.TryGetValue(matTexHash, out newMaterial);
+                                if (newMaterial == null)
                                 {
-                                    AssetDatabase.CreateAsset(newMaterial, newMaterialPath + matTexHash + ".mat");
-                                }
-                                catch(Exception e)
-                                {
-                                    Debug.LogError($"Unable to create new material {newMaterial.name} for {mr} {e}");
+                                    newMaterial = new Material(material);
+                                    newMaterial.name = matTexHash;
+                                    newMaterial.SetTexture("_RNM0", RNM0);
+                                    newMaterial.SetTexture("_RNM1", RNM1);
+                                    newMaterial.SetTexture("_RNM2", RNM2);
+                                    newMaterial.SetInt("bakeryLightmapMode", propertyLightmapMode);
+                                    newMaterial.SetOverrideTag("OriginalMaterialPath", AssetDatabase.AssetPathToGUID(materialPath));
+                                    generatedMaterialList.Add(matTexHash, newMaterial);
+
+                                    
+                                    try
+                                    {
+                                        AssetDatabase.CreateAsset(newMaterial, newMaterialPath + matTexHash + ".mat");
+                                    }
+                                    catch(Exception e)
+                                    {
+                                        Debug.LogError($"Unable to create new material {newMaterial.name} for {mr} {e}");
+                                    }
+
+                                    //Debug.Log($"Created new material for {mr} named {newMaterial.name}");
+
                                 }
 
-                                //Debug.Log($"Created new material for {mr} named {newMaterial.name}");
+                                newSharedMaterials[j] = newMaterial;
 
                             }
-
-                            newSharedMaterials[j] = newMaterial;
-
-                        }
-                        else if (material != null)
-                        {
-                            newSharedMaterials[j] = material;
+                            else if (material != null)
+                            {
+                                newSharedMaterials[j] = material;
+                            }
                         }
                     }
 
@@ -500,7 +516,7 @@ namespace z3y
             AssetDatabase.Refresh();
         }
         
-        [MenuItem("Tools/Shader Optimizer/RevertBakeryPropertyBlocks")]
+        [MenuItem("Tools/Shader Optimizer/Revert Bakery Materials")]
         public static void RevertHandleBakeryPropertyBlocks()
         {
             var renderers = UnityEngine.Object.FindObjectsOfType<MeshRenderer>();

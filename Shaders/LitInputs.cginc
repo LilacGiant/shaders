@@ -44,6 +44,8 @@ uniform half _Cutoff;
 uniform half _Mode;
 uniform half _AlphaToMask;
 
+uniform float _SpecularOcclusionSensitivity;
+
 UNITY_DECLARE_TEX2D(_MainTex);
 uniform float _MainTexUV;
 uniform float4 _MainTex_ST;
@@ -178,7 +180,7 @@ static VertexLightInformation vertexLightInformation;
 
 #if defined(BAKERY_SH) || defined(BAKERY_RNM) || defined(BAKERY_LMSPEC)
     #ifdef UNITY_PASS_FORWARDBASE
-//#if_BAKERY_SH,_BAKERY_RNM,_BAKERY_LMSPEC
+//#if_BAKERY_SH,_BAKERY_RNM
         #include "Bakery.cginc"
     #else
     #undef BAKERY_SH

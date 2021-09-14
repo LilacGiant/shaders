@@ -14,6 +14,7 @@ Shader "z3y/lit"
         _MainTex_STAnimated("_MainTex_ST", Int) = 1
         _Color ("Base Color", Color) = (1,1,1,1)
         _Saturation ("Saturation", Range(-1,1)) = 0
+
         [Enum(UV0, 0, UV1, 1, UV2, 2)] _MainTexUV ("UV", Int) = 0
         
         [ToggleUI] _EnableVertexColor ("Vertex Colors Mulitply Base", Float) = 0
@@ -64,13 +65,14 @@ Shader "z3y/lit"
         
         _LightmapMultiplier ("Lightmap Multiplier", Range(0, 2)) = 1
         _SpecularOcclusion ("Indirect Specular Occlusion", Range(0, 1)) = 0
+        _SpecularOcclusionSensitivity ("Occlusion Sensitivity", Range(0, 1)) = 0
 
         [Toggle(ENABLE_BICUBIC_LIGHTMAP)] _BicubicLightmap ("Bicubic Lightmap Interpolation", Float) = 0
         [ToggleUI] _LightProbeMethod ("Non-linear Light Probe SH", Float) = 0
 
 
-        [Enum(UnityEngine.Rendering.BlendOp)] _BlendOp ("RGB Blend Op", Int) = 0
-        [Enum(UnityEngine.Rendering.BlendOp)] _BlendOpAlpha ("Alpha Blend Op", Int) = 0
+        [Enum(UnityEngine.Rendering.BlendOp)] _BlendOp ("Blend Op", Int) = 0
+        [Enum(UnityEngine.Rendering.BlendOp)] _BlendOpAlpha ("Blend Op Alpha", Int) = 0
         [Enum(UnityEngine.Rendering.BlendMode)] _SrcBlend ("Source Blend", Int) = 1
         [Enum(UnityEngine.Rendering.BlendMode)] _DstBlend ("Destination Blend", Int) = 0
 

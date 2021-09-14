@@ -89,7 +89,8 @@ half4 frag(v2f i) : SV_Target
 
         fresnel = lerp(f0, fresnel , _FresnelColor.a);
         fresnel *= _FresnelColor.rgb;
-        fresnel *= _SpecularOcclusion ? saturate(lerp(1, pow(length(light.indirectDiffuse), _SpecularOcclusion), _SpecularOcclusion * surface.oneMinusMetallic)) : 1;
+        fresnel *= _SpecularOcclusion ? saturate(lerp(1, pow(length(light.indirectDiffuse), _SpecularOcclusionSensitivity), _SpecularOcclusion))* surface.oneMinusMetallic : 1;
+        
     #endif
 
     #if defined(UNITY_PASS_FORWARDBASE)
