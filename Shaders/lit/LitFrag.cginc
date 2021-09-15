@@ -83,7 +83,7 @@ half4 frag(v2f i) : SV_Target
     #endif
 
 
-    #if defined(ENABLE_REFLECTIONS) || defined(ENABLE_SPECULAR_HIGHLIGHTS) || defined(UNITY_PASS_META) || defined(BAKERY_INCLUDED)
+    #if defined(ENABLE_REFLECTIONS) || defined(ENABLE_SPECULAR_HIGHLIGHTS) || defined(UNITY_PASS_META) || defined(BAKERY_INCLUDED) || defined(BAKERY_LMSPEC)
         half3 f0 = 0.16 * _Reflectance * _Reflectance * surface.oneMinusMetallic + surface.albedo * surface.metallic;
         half3 fresnel = F_Schlick(NoV, f0);
 
