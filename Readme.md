@@ -13,6 +13,4 @@ A shader I put together to use in vrchat worlds.
 - detail and mask map based on hdrp/lit
 - shader lock in optimizer
 
-
-some features from standard might be missing currently, 
-optimizer might have bugs, back up your projects
+some features from standard might be missing currently, optimizer might have bugs, back up your projects
