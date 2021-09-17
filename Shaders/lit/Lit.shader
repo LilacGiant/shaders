@@ -120,31 +120,8 @@ Shader "z3y/lit"
 
         [Toggle(LOD_FADE_CROSSFADE)] _LodCrossFade ("Dithered LOD Cross-Fade", Float) = 0
         [ToggleUI] _FlatShading ("Flat Shading", Float) = 0
-        [Toggle(ENABLE_SSDSAA)] _EnableSSDSAA ("Directional Shadows AA", Float) = 0
-        [Toggle(ENABLE_TONEMAPPING)] _EnableTonemapping ("Enable Tonemapping", Float) = 0
-        _Contribution ("Contribution", Range(0,1)) = 0
-        
-        _temperature ("temperature", Range(-100,100)) = 0
-        _tint ("tint", Range(-100,100)) = 0
-        
-        _ColorFilter ("Color Filter", Color) = (1,1,1,1)
-        
-        _ChannelMixerRed ("Channel Mixer Red -2;2", Vector) = (1,0,0,0)
-        _ChannelMixerGreen ("Channel Mixer Green -2;2", Vector) = (0,1,0,0)
-        _ChannelMixerBlue ("Channel Mixer Blue -2;2", Vector) = (0,0,1,0)
-        
-        _lift ("Lift", Range(-1,1)) = 0
-        _gain ("Gain", Range(1000,0.5)) = 1
-        _invGamma ("Gamma", Range(0,2)) = 1
-        
-        _hue ("Hue Shift", Range(-180,180)) = 0
-        _sat ("Saturation", Range(-100,100)) = 0
-        _con ("Contrast", Range(-100,100)) = 0
-        
-        _Curves ("Curves", 2D) = "white" {}
-        
-        
-        
+
+
     }
 
     SubShader
@@ -188,8 +165,6 @@ Shader "z3y/lit"
             #pragma shader_feature_local ENABLE_AUDIOLINK
             #pragma shader_feature_local BAKERY_SHNONLINEAR
             #pragma shader_feature_local LOD_FADE_CROSSFADE
-            #pragma shader_feature_local ENABLE_SSDSAA
-            #pragma shader_feature_local ENABLE_TONEMAPPING
 
             #pragma shader_feature_local BAKERY_SH
             #pragma shader_feature_local BAKERY_RNM
@@ -231,7 +206,7 @@ Shader "z3y/lit"
             #pragma shader_feature_local ENABLE_PACKED_MODE
             #pragma shader_feature_local ENABLE_PARALLAX
             #pragma shader_feature_local LOD_FADE_CROSSFADE
-            #pragma shader_feature_local ENABLE_TONEMAPPING
+
 
             #ifndef UNITY_PASS_FORWARDADD
                 #define UNITY_PASS_FORWARDADD
@@ -260,10 +235,9 @@ Shader "z3y/lit"
             #pragma fragment ShadowCasterfrag
             #pragma multi_compile_shadowcaster
             #pragma multi_compile_instancing
-            #pragma shader_feature_local ENABLE_TONEMAPPING
-
 
             #pragma shader_feature_local LOD_FADE_CROSSFADE
+            
             #pragma skip_variants FOG_LINEAR FOG_EXP FOG_EXP2
 
             #ifndef UNITY_PASS_SHADOWCASTER
@@ -288,7 +262,6 @@ Shader "z3y/lit"
             #pragma shader_feature_local ENABLE_PACKED_MODE
             #pragma shader_feature EDITOR_VISUALIZATION
             #pragma shader_feature_local ENABLE_AUDIOLINK
-            #pragma shader_feature_local ENABLE_TONEMAPPING
 
 
             #ifndef UNITY_PASS_META
@@ -302,5 +275,5 @@ Shader "z3y/lit"
     }
     
     FallBack "Diffuse"
-    CustomEditor "_3.LitShaderEditor"
+    CustomEditor "z3y.LitShaderEditor"
 }

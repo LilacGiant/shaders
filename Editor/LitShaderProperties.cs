@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System;
 using System.Reflection;
 
-namespace _3
+namespace z3y
 {
     public partial class LitFoldoutDictionary
     {
@@ -25,6 +25,7 @@ namespace _3
         public bool Show_MetallicMap = false;
         public bool Show_SmoothnessMap = false;
         public bool Show_OcclusionMap = false;
+
 
     }
     
@@ -108,38 +109,14 @@ namespace _3
 
         protected MaterialProperty _LodCrossFade = null;
         protected MaterialProperty _FlatShading = null;
-        
+
         protected MaterialProperty _BlendOp = null;
         protected MaterialProperty _BlendOpAlpha = null;
         protected MaterialProperty _SrcBlend = null;
         protected MaterialProperty _DstBlend = null;
-        
-        
-        protected MaterialProperty _EnableSSDSAA = null;
-        protected MaterialProperty _EnableTonemapping = null;
-        protected MaterialProperty _Contribution = null;
 
-        protected MaterialProperty _temperature = null;
-        protected MaterialProperty _tint = null;
 
-        protected MaterialProperty _ColorFilter = null;
 
-        protected MaterialProperty _ChannelMixerRed = null;
-        protected MaterialProperty _ChannelMixerGreen = null;
-        protected MaterialProperty _ChannelMixerBlue = null;
-        
-        protected MaterialProperty _lift = null;
-        protected MaterialProperty _gain = null;
-        protected MaterialProperty _invGamma = null;
-        
-        protected MaterialProperty _hue = null;
-        protected MaterialProperty _sat = null;
-        protected MaterialProperty _con = null;
-        
-        protected MaterialProperty _Curves = null;
-
-        
-        
 
         public void ShaderPropertiesGUI(Material material)
         {
@@ -317,31 +294,7 @@ namespace _3
                 prop(_LodCrossFade);
                 prop(_FlatShading);
 
-            
-                
-                prop(_EnableSSDSAA);
-                prop(_EnableTonemapping);
-                if(_EnableTonemapping.floatValue == 1){
-                    Func.PropertyGroup(() => {
-                        prop(_Contribution);
-                        prop(_temperature);
-                        prop(_tint);
-                        prop(_ColorFilter);
-                        prop(_ChannelMixerRed);
-                        prop(_ChannelMixerGreen);
-                        prop(_ChannelMixerBlue);
-                        prop(_lift);
-                        prop(_gain);
-                        prop(_invGamma);
-                        prop(_hue);
-                        prop(_sat);
-                        prop(_con);
-                        prop(_Curves);
-                    });
-                };
-
             });
-
 
             md[material].ShowBakedLight = Foldout("Baked Light", md[material].ShowBakedLight, ()=> {
                 prop(_SpecularOcclusion);
@@ -368,16 +321,16 @@ namespace _3
                     }
                     EditorGUI.EndDisabledGroup();
                 });
-            #endif
+                #endif
             });
 
 
             md[material].ShowAdvanced = Foldout("Advanced", md[material].ShowAdvanced, ()=> {
                 Func.PropertyGroup(() => {
-                    prop(_BlendOp);
-                    prop(_BlendOpAlpha);
-                    prop(_SrcBlend);
-                    prop(_DstBlend);
+                prop(_BlendOp);
+                prop(_BlendOpAlpha);
+                prop(_SrcBlend);
+                prop(_DstBlend);
                 });
                 EditorGUILayout.Space();
 
@@ -397,7 +350,6 @@ namespace _3
 
             
         }
-
 
         // On inspector change
         private void ApplyChanges()
@@ -470,7 +422,7 @@ namespace _3
                 }
             }
         }
-        public static string litShaderName = "3/lit";
+        public static string litShaderName = "z3y/lit";
 
         [MenuItem("Tools/Lit/Standard -> Lit")]
         public static void SwitchToLit()
