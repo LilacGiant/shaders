@@ -352,19 +352,20 @@ namespace _3
         public static List<Material> GetAllMaterialsWithShader(string shaderName)
         {
             List<Material> materials = new List<Material>();
-            var renderers = UnityEngine.Object.FindObjectsOfType<Renderer>();
-
-            if(renderers != null) foreach (var rend in renderers)
+            Scene scene = SceneManager.GetActiveScene();
+            Debug.Log($"{scene.path}");
+            String[] dependencies = AssetDatabase.GetDependencies(scene.path);
+            foreach (string dependency in dependencies)
             {
-                if(rend != null) foreach (var mat in rend.sharedMaterials)
+                Debug.Log($"{dependency}");
+                Material material = AssetDatabase.LoadAssetAtPath<Material>(dependency);
+                if (dependency.EndsWith(".mat") && material.shader.name == shaderName)
                 {
-                    if(mat != null) if(mat.shader.name == shaderName)
-                    {
-                        if(!materials.Contains(mat)) materials.Add(mat);
-                    }
+                    Debug.Log($"{dependency}");
+                    if(!materials.Contains(material) && material != null) materials.Add(material);
                 }
             }
-            return materials;
+            return materials; 
         }
 
         public static List<Material> GetMaterialsUsingOptimizer(bool isLocked)
@@ -380,7 +381,14 @@ namespace _3
                     {
                         if(mat.shader.name != "Hidden/InternalErrorShader")
                         {
-                            if(!materials.Contains(mat) && ShaderUtil.GetPropertyName(mat.shader, 0) == ShaderOptimizerEnabled)
+                            bool usingOptimizer = false;
+                            try 
+                            {
+                                usingOptimizer = ShaderUtil.GetPropertyName(mat.shader, 0) == ShaderOptimizerEnabled;
+                            }
+                            catch {}
+
+                            if(!materials.Contains(mat) && usingOptimizer)
                                 if(mat.GetFloat(ShaderOptimizerEnabled) == (isLocked ? 1 : 0))
                                     materials.Add(mat);
                         }
