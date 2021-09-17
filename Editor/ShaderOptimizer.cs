@@ -35,6 +35,7 @@ using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
 using UnityEditor.Rendering;
 using System.Linq;
+using UnityEngine.SceneManagement;
 
 #if VRC_SDK_VRCSDK3
 using VRC.SDKBase;
