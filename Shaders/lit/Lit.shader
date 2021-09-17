@@ -134,8 +134,8 @@ Shader "z3y/lit"
         _ChannelMixerBlue ("Channel Mixer Blue -2;2", Vector) = (0,0,1,0)
         
         _lift ("Lift", Range(-1,1)) = 0
-        _gain ("Gain", Range(0,2)) = 1
-        _invGamma ("Gamma", Range(1000,0.5)) = 1
+        _gain ("Gain", Range(1000,0.5)) = 1
+        _invGamma ("Gamma", Range(0,2)) = 1
         
         _hue ("Hue Shift", Range(-180,180)) = 0
         _sat ("Saturation", Range(-100,100)) = 0
