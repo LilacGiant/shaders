@@ -124,8 +124,8 @@ uniform half _DetailAlbedoScale;
 uniform half _DetailNormalScale;
 uniform half _DetailSmoothnessScale;
 
-//sampler2D_float _CameraDepthTexture;
-//float4 _CameraDepthTexture_TexelSize;
+sampler2D_float _CameraDepthTexture;
+float4 _CameraDepthTexture_TexelSize;
 
 uniform float _LightProbeMethod;
 
@@ -193,5 +193,14 @@ static VertexLightInformation vertexLightInformation;
 #if defined(LOD_FADE_CROSSFADE)
     #if defined(UNITY_PASS_META)
         #undef LOD_FADE_CROSSFADE
+    #endif
+#endif
+
+uniform half _Contribution;
+
+
+#if defined(SHADOWS_SCREEN)
+    #if defined(UNITY_PASS_SHADOWCASTER)
+        #undef SHADOWS_SCREEN
     #endif
 #endif

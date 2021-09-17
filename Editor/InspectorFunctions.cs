@@ -4,7 +4,7 @@ using UnityEngine;
 using System.IO;
 using System;
 
-namespace z3y
+namespace _3
 {
     [InitializeOnLoad]
     public static class Func
@@ -332,4 +332,3 @@ namespace z3y
 
     }
 }
-

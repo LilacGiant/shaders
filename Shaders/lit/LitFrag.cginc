@@ -93,6 +93,14 @@ half4 frag(v2f i) : SV_Target
         
     #endif
 
+
+    UNITY_LIGHT_ATTENUATION(attenuation, i, i.worldPos.xyz);
+    
+    #if defined(SHADOWS_SCREEN) && defined(UNITY_PASS_FORWARDBASE) && !defined(SHADER_API_MOBILE) && defined(ENABLE_SSDSAA) // fix screen space shadow arficats from msaa
+    attenuation = SSDirectionalShadowAA(i._ShadowCoord, _CameraDepthTexture, _CameraDepthTexture_TexelSize, _ShadowMapTexture, attenuation);
+    #endif
+
+    
     #if defined(UNITY_PASS_FORWARDBASE)
 
         #if defined(ENABLE_REFLECTIONS)
@@ -152,8 +160,6 @@ half4 frag(v2f i) : SV_Target
 
     if(_FlatShading) light.finalLight = saturate(light.color + vertexLightColor) * light.attenuation;
 
-    
-
     half4 finalColor = half4( surface.albedo * surface.oneMinusMetallic * (light.indirectDiffuse * surface.occlusion + (light.finalLight + vLight)) + light.indirectSpecular + light.directSpecular + surface.emission, alpha);
 
     #ifdef UNITY_PASS_META
@@ -164,6 +170,9 @@ half4 frag(v2f i) : SV_Target
         UNITY_APPLY_FOG(i.fogCoord, finalColor);
     #endif
 
+    #ifdef ENABLE_TONEMAPPING
+        finalColor.rgb = lerp(finalColor.rgb, ColorGrade(LUT_SPACE_ENCODE(finalColor)), _Contribution);
+    #endif
     return finalColor;
 }
 #endif

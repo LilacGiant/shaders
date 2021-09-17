@@ -10,11 +10,14 @@ ShaderImporter:
   - _OcclusionMap: {instanceID: 0}
   - _BumpMap: {instanceID: 0}
   - _EmissionMap: {instanceID: 0}
-  - _MatCap: {instanceID: 0}
   - _ParallaxMap: {instanceID: 0}
   - _DetailMap: {instanceID: 0}
-  - _AudioTexture: {fileID: 8600000, guid: f51fa799ef0abde489235f40fc0328ef, type: 2}
+  - _AudioTexture: {instanceID: 0}
   - _ALEmissionMap: {instanceID: 0}
+  - _RNM0: {instanceID: 0}
+  - _RNM1: {instanceID: 0}
+  - _RNM2: {instanceID: 0}
+  - _Curves: {fileID: 2800000, guid: bc2a58cf64ff5b14cae92a9b8f023d0b, type: 3}
   nonModifiableTextures: []
   userData: 
   assetBundleName: 

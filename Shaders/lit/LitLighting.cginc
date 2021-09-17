@@ -276,7 +276,7 @@ float computeSpecularAO(float NoV, float ao, float roughness) {
 }
 
 //https://forum.unity.com/threads/fixing-screen-space-directional-shadows-and-anti-aliasing.379902/
-/*
+
 float SSDirectionalShadowAA(float4 _ShadowCoord, sampler2D_float depthTex, float4 depthTextureTexelSize, sampler2D _ShadowMapTexture, half atten){
     half a = atten;
     float2 screenUV = _ShadowCoord.xy / _ShadowCoord.w;
@@ -325,7 +325,7 @@ float SSDirectionalShadowAA(float4 _ShadowCoord, sampler2D_float depthTex, float
     }
     return a;
 }
-*/
+
 
 #if defined(VERTEXLIGHT_ON) && defined(UNITY_PASS_FORWARDBASE)
 //Lifted vertex light support from XSToon: https://github.com/Xiexe/Xiexes-Unity-Shaders
