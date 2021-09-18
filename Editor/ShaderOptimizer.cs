@@ -182,7 +182,13 @@ namespace z3y
             "_MainTex",
             "_IsMaterialLocked"
         };
-        
+
+        public static readonly string[] TexelSizeCheck = new string[]
+        {
+            "_RNM0",
+            "_RNM1",
+            "_RNM2"
+        };
         
         [MenuItem("Tools/Shader Optimizer/Lock All Shaders")]
         public static void LockAllMaterials()
@@ -212,34 +218,43 @@ namespace z3y
                 {
                     string propName = ShaderUtil.GetPropertyName(mats[i].shader, l);
                     
-                    if(PropertiesToSkip.Contains(propName)) continue;
+                    if(PropertiesToSkip.Contains(propName))
+                    {
+                        materialPropertyValues.Append(propName);
+                        continue;
+                    }
                     
                     switch(ShaderUtil.GetPropertyType(mats[i].shader, l))
                     {
                         case(ShaderUtil.ShaderPropertyType.Float):
                             materialPropertyValues.Append(mats[i].GetFloat(propName).ToString());
                             break;
+
                         case(ShaderUtil.ShaderPropertyType.TexEnv):
-                            materialPropertyValues.Append(mats[i].GetTexture(propName) != null ? "true" : "false");
+                            Texture t = mats[i].GetTexture(propName);
+                            Vector4 texelSize = new Vector4(1.0f, 1.0f, 1.0f, 1.0f);
+                            
+                            materialPropertyValues.Append(t != null ? "true" : "false");
                             materialPropertyValues.Append(mats[i].GetTextureOffset(propName).ToString());
                             materialPropertyValues.Append(mats[i].GetTextureScale(propName).ToString());
+
+                            if (t != null && TexelSizeCheck.Contains(propName)) texelSize = new Vector4(1.0f / t.width, 1.0f / t.height, t.width, t.height);
+                            materialPropertyValues.Append(texelSize.ToString());
                             break;
+
                         case(ShaderUtil.ShaderPropertyType.Color):
                             materialPropertyValues.Append(mats[i].GetColor(propName).ToString());
                             break;
+
                         case(ShaderUtil.ShaderPropertyType.Range):
                             materialPropertyValues.Append(mats[i].GetFloat(propName).ToString());
                             break;
+
                         case(ShaderUtil.ShaderPropertyType.Vector):
                             materialPropertyValues.Append(mats[i].GetVector(propName).ToString());
                             break;
                     }
-                        
-
-
-                    
                 }
-
 
                 Material sharedMaterial = null;
                 string matPropHash = ComputeMD5(materialPropertyValues.ToString());
