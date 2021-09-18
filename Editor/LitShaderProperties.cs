@@ -426,7 +426,7 @@ namespace z3y
         }
         public static string litShaderName = "z3y/lit";
 
-        [MenuItem("Tools/Lit/Standard -> Lit")]
+       // [MenuItem("Tools/Lit/Standard -> Lit")]
         public static void SwitchToLit()
         {
             Material[] mats = ShaderOptimizer.GetAllMaterialsWithShader("Standard");
@@ -440,7 +440,7 @@ namespace z3y
             }
         }
 
-        [MenuItem("Tools/Lit/Lit -> Standard")]
+       // [MenuItem("Tools/Lit/Lit -> Standard")]
         public static void SwitchToStandard()
         {
             Material[] mats = ShaderOptimizer.GetAllMaterialsWithShader(litShaderName);

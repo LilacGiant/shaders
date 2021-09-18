@@ -153,7 +153,7 @@ namespace z3y
                 mat.SetFloat(ShaderOptimizerEnabled, 0);
         }
 
-        [MenuItem("Tools/Shader Optimizer/Unlock All Shaders")]
+        [MenuItem("Tools/Shader Optimizer/Unlock Materials In Scene")]
         public static void UnlockAllMaterials()
         {
             #if BAKERY_INCLUDED
@@ -190,7 +190,7 @@ namespace z3y
             "_RNM2"
         };
         
-        [MenuItem("Tools/Shader Optimizer/Lock All Shaders")]
+        [MenuItem("Tools/Shader Optimizer/Lock Materials In Scene")]
         public static void LockAllMaterials()
         {
             #if BAKERY_INCLUDED
@@ -221,6 +221,14 @@ namespace z3y
                     if(PropertiesToSkip.Contains(propName))
                     {
                         materialPropertyValues.Append(propName);
+                        continue;
+                    }
+
+                    bool isAnimated = mats[i].GetTag(propName, false) != "";
+
+                    if(isAnimated)
+                    {
+                        materialPropertyValues.Append(propName + "_Animated");
                         continue;
                     }
                     
