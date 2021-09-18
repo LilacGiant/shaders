@@ -1255,7 +1255,13 @@ namespace z3y
                 Debug.LogError("[Kaj Shader Optimizer] Original shader " + originalShaderName + " could not be found");
                 return false;
             }
+            // For some reason when shaders are swapped on a material the RenderType override tag gets completely deleted and render queue set back to -1
+            // So these are saved as temp values and reassigned after switching shaders
+            string renderType = material.GetTag("RenderType", false, String.Empty);
+            int renderQueue = material.renderQueue;
             material.shader = orignalShader;
+            material.SetOverrideTag("RenderType", renderType);
+            material.renderQueue = renderQueue;
             return true;
         }
     }
