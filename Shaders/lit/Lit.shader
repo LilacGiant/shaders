@@ -42,6 +42,7 @@ Shader "z3y/lit"
         _BumpScale ("Bump Scale", Range(0,10)) = 0
         [Enum(OpenGL, 0, Direct3D, 1)] _NormalMapOrientation ("Orientation", Int) = 0
         [Enum(UV0, 0, UV1, 1, UV2, 2)] _BumpMapUV ("UV", Int) = 0
+        [ToggleUI] _HemiOctahedron ("Hemi Octahedron", Int) = 0
 
         [ToggleUI] _EnableEmission ("Emission", Float) = 0
         _EmissionMap ("Emission Map", 2D) = "white" {}

@@ -19,9 +19,18 @@ half calcAlpha(half alpha)
 
 void initNormalMap(half4 normalMap, inout half3 bitangent, inout half3 tangent, inout half3 normal, half4 detailNormalMap, inout float3 tangentNormal)
 {
-    //normalMap.g = _NormalMapOrientation ? 1-normalMap.g : normalMap.g;
 
-    tangentNormal = UnpackScaleNormal(normalMap, _BumpScale);
+    if(!_HemiOctahedron) tangentNormal = UnpackScaleNormal(normalMap, _BumpScale);
+    else
+    {
+        half2 f = normalMap.ag * 2 - 1;
+        // https://twitter.com/Stubbesaurus/status/937994790553227264
+        normalMap.xyz = float3(f.x, f.y, 1 - abs(f.x) - abs(f.y));
+        float t = saturate(-normalMap.z);
+        normalMap.xy += normalMap.xy >= 0.0 ? -t : t;
+        normalMap.xy *= _BumpScale;
+        tangentNormal = normalize(normalMap);
+    }
 
     #if defined(PROP_DETAILMAP)
         detailNormalMap.g = 1-detailNormalMap.g;

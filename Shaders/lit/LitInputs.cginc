@@ -60,6 +60,7 @@ UNITY_DECLARE_TEX2D(_BumpMap);
 uniform float _BumpMapUV;
 uniform float4 _BumpMap_ST;
 uniform half _BumpScale;
+uniform int _HemiOctahedron;
 
 #ifndef ENABLE_PACKED_MODE
 UNITY_DECLARE_TEX2D_NOSAMPLER(_MetallicMap);

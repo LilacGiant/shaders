@@ -49,6 +49,7 @@ namespace z3y
         protected MaterialProperty _EmissionMapUV = null;
         protected MaterialProperty _EnableEmission = null;
         protected MaterialProperty _EnableNormalMap = null;
+        protected MaterialProperty _HemiOctahedron = null;
         protected MaterialProperty _SpecularHighlights = null;
         protected MaterialProperty _GlossyReflections = null;
         protected MaterialProperty _Reflectance = null;
@@ -206,6 +207,7 @@ namespace z3y
                     propTileOffset(_BumpMap);
                     prop(_BumpMapUV);
                     prop(_NormalMapOrientation);
+                    prop(_HemiOctahedron);
                 });
                 
 
