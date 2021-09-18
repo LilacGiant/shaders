@@ -427,34 +427,28 @@ namespace z3y
         [MenuItem("Tools/Lit/Standard -> Lit")]
         public static void SwitchToLit()
         {
-            List<Material> mats = ShaderOptimizer.GetAllMaterialsWithShader("Standard");
-            int progress = mats.Count;
+            Material[] mats = ShaderOptimizer.GetAllMaterialsWithShader("Standard");
 
             Shader lit = Shader.Find(litShaderName);
 
-            for (int i=0; i<progress; i++)
+            for (int i=0; i<mats.Length; i++)
             {
-                EditorUtility.DisplayCancelableProgressBar("Replacing Shaders", mats[i].name, i/progress);
                 Func.SetupMaterialWithBlendMode(mats[i], mats[i].GetFloat("_Mode"));
                 mats[i].shader = lit;
             }
-            EditorUtility.ClearProgressBar();
         }
 
         [MenuItem("Tools/Lit/Lit -> Standard")]
         public static void SwitchToStandard()
         {
-            List<Material> mats = ShaderOptimizer.GetAllMaterialsWithShader(litShaderName);
-            int progress = mats.Count;
+            Material[] mats = ShaderOptimizer.GetAllMaterialsWithShader(litShaderName);
 
             Shader standard = Shader.Find("Standard");
 
-            for (int i=0; i<progress; i++)
+            for (int i=0; i<mats.Length; i++)
             {
-                EditorUtility.DisplayCancelableProgressBar("Replacing Shaders", mats[i].name, i/progress);
                 mats[i].shader = standard;
             }
-            EditorUtility.ClearProgressBar();
         }
     }
 }

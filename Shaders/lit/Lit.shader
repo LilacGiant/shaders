@@ -273,7 +273,6 @@ Shader "z3y/lit"
         }
 
     }
-    
-    FallBack "Diffuse"
+    FallBack "Mobile/Unlit (Supports Lightmap)"
     CustomEditor "z3y.LitShaderEditor"
 }
