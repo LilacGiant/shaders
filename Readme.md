@@ -16,3 +16,5 @@ A shader I put together to use in vrchat worlds.
 
 some features from standard might be missing currently, 
 optimizer might have bugs, back up your projects
+
+questions https://discord.gg/bw46tKgRFT
