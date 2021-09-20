@@ -116,6 +116,8 @@ namespace z3y
         protected MaterialProperty _SrcBlend = null;
         protected MaterialProperty _DstBlend = null;
 
+        protected MaterialProperty _CentroidNormal = null;
+
 
 
 
@@ -338,6 +340,7 @@ namespace z3y
 
                 prop(_Cull);
                 prop(_EnablePackedMode);
+                prop(_CentroidNormal);
                 me.DoubleSidedGIField();
                 me.EnableInstancingField();
                 me.RenderQueueField();

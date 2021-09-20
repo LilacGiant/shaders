@@ -6,8 +6,13 @@ struct appdata
     float3 normal : NORMAL;
 
     float2 uv0 : TEXCOORD0;
-    float2 uv1 : TEXCOORD1;
-    float2 uv2 : TEXCOORD2;
+    #ifdef NEEDS_UV1
+        float2 uv1 : TEXCOORD1;
+    #endif
+    #ifdef NEEDS_UV2
+        float2 uv2 : TEXCOORD2;
+    #endif
+    
 
     #if !defined(UNITY_PASS_SHADOWCASTER)
 
@@ -28,8 +33,14 @@ struct v2f
 {
     float4 pos : SV_POSITION;
 
-    float4 texcoord0 : TEXCOORD0;
-    float4 texcoord1 : TEXCOORD1;
+    #ifdef NEEDS_UV1
+        float4 texcoord0 : TEXCOORD0;
+    #else
+        float2 texcoord0 : TEXCOORD0;
+    #endif
+    #ifdef NEEDS_UV2
+        float4 texcoord1 : TEXCOORD1;
+    #endif
 
     #if !defined(UNITY_PASS_SHADOWCASTER)
 
@@ -88,8 +99,14 @@ v2f vert(appdata v)
     #endif
 
     o.texcoord0.xy = v.uv0;
+
+    #ifdef NEEDS_UV1
     o.texcoord0.zw = v.uv1;
+    #endif
+
+    #ifdef NEEDS_UV2
     o.texcoord1.xy = v.uv2;
+    #endif
 
     
     #if !defined(UNITY_PASS_SHADOWCASTER)
@@ -130,11 +147,5 @@ v2f vert(appdata v)
     return o;
 }
 
-void initUVs(v2f i)
-{
-    uvs[0] = i.texcoord0.xy;
-    uvs[1] = i.texcoord0.zw;
-    uvs[2] = i.texcoord1.xy;
-}
 #include "LitFunctions.cginc"
 #include "LitFrag.cginc"

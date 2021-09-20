@@ -1,3 +1,16 @@
+void initUVs(v2f i)
+{
+    uvs[0] = i.texcoord0.xy;
+
+    #ifdef NEEDS_UV1
+        uvs[1] = i.texcoord0.zw;
+    #endif
+
+    #ifdef NEEDS_UV2
+        uvs[2] = i.texcoord1.xy;
+    #endif
+}
+
 half calcAlpha(half alpha)
 {
     UNITY_BRANCH

@@ -1,5 +1,3 @@
-//#define CENTROID_NORMAL
-
 #if (PROP_MODE!=0) || !defined(OPTIMIZER_ENABLED)
     #define ENABLE_TRANSPARENCY
 #endif
@@ -14,8 +12,19 @@
     #define PROP_DETAILMAP
     #define PROP_ALEMISSIONMAP
     #define PROP_ENABLEVERTEXCOLOR
+
+    #define NEEDS_UV1
+    #define NEEDS_UV2
 #endif
 
+
+#if defined(LIGHTMAP_ON) || defined(UNITY_PASS_META) || (PROP_MAINTEXUV==1) || (PROP_METALLICGLOSSMAPUV==1) || (PROP_SMOOTHNESSMAPUV==1) || (PROP_METALLICMAPUV==1) || (PROP_OCCLUSIONMAPUV==1) || (PROP_BUMPMAPUV==1) || (PROP_EMISSIONMAPUV==1) || (PROP_DETAILMAPUV==1)
+    #define NEEDS_UV1
+#endif
+
+#if defined(DYNAMICLIGHTMAP_ON) || defined(UNITY_PASS_META) || (PROP_MAINTEXUV==2) || (PROP_METALLICGLOSSMAPUV==2) || (PROP_SMOOTHNESSMAPUV==2) || (PROP_METALLICMAPUV==2) || (PROP_OCCLUSIONMAPUV==2) || (PROP_BUMPMAPUV==2) || (PROP_EMISSIONMAPUV==2) || (PROP_DETAILMAPUV==2)
+    #define NEEDS_UV2
+#endif
 
 #if defined(PROP_DETAILMAP)
     #define PROP_BUMPMAP
@@ -39,7 +48,7 @@
 
 
 
-uniform float2 uvs[4];
+static float2 uvs[3];
 uniform half _Cutoff;
 uniform half _Mode;
 uniform half _AlphaToMask;
@@ -124,6 +133,8 @@ uniform half _DetailMapUV;
 uniform half _DetailAlbedoScale;
 uniform half _DetailNormalScale;
 uniform half _DetailSmoothnessScale;
+
+
 
 //sampler2D_float _CameraDepthTexture;
 //float4 _CameraDepthTexture_TexelSize;

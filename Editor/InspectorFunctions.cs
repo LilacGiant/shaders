@@ -178,7 +178,7 @@ namespace z3y
         public static void ListAnimatedProps(bool isLocked, MaterialProperty[] allProps, Material material)
         {
             EditorGUI.indentLevel--;
-            EditorGUILayout.HelpBox("Middle click a property to make it animatable when locked in", MessageType.Info);
+            EditorGUILayout.HelpBox("Middle click a property to keep it unlocked", MessageType.Info);
             EditorGUI.indentLevel++;
 
             EditorGUI.BeginDisabledGroup(isLocked);

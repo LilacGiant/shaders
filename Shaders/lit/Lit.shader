@@ -63,7 +63,7 @@ Shader "z3y/lit"
         [PowerSlider(3)] _specularAntiAliasingVariance ("Variance", Range(0.0, 1.0)) = 0.15
         [PowerSlider(3)] _specularAntiAliasingThreshold ("Threshold", Range(0.0, 1.0)) = 0.1
         
-        
+
         _LightmapMultiplier ("Lightmap Multiplier", Range(0, 2)) = 1
         _SpecularOcclusion ("Indirect Specular Occlusion", Range(0, 1)) = 0
         _SpecularOcclusionSensitivity ("Occlusion Sensitivity", Range(0, 1)) = 0
@@ -119,6 +119,8 @@ Shader "z3y/lit"
         _RNM1("RNM1", 2D) = "black" {}
         _RNM2("RNM2", 2D) = "black" {}
 
+        [Toggle(CENTROID_NORMAL)] _CentroidNormal ("Centroid Normal", Int) = 0
+
         [Toggle(LOD_FADE_CROSSFADE)] _LodCrossFade ("Dithered LOD Cross-Fade", Float) = 0
         [ToggleUI] _FlatShading ("Flat Shading", Float) = 0
 
@@ -166,6 +168,7 @@ Shader "z3y/lit"
             #pragma shader_feature_local ENABLE_AUDIOLINK
             #pragma shader_feature_local BAKERY_SHNONLINEAR
             #pragma shader_feature_local LOD_FADE_CROSSFADE
+            #pragma shader_feature_local CENTROID_NORMAL
 
             #pragma shader_feature_local BAKERY_SH
             #pragma shader_feature_local BAKERY_RNM
@@ -207,6 +210,8 @@ Shader "z3y/lit"
             #pragma shader_feature_local ENABLE_PACKED_MODE
             #pragma shader_feature_local ENABLE_PARALLAX
             #pragma shader_feature_local LOD_FADE_CROSSFADE
+            #pragma shader_feature_local CENTROID_NORMAL
+
 
 
             #ifndef UNITY_PASS_FORWARDADD
