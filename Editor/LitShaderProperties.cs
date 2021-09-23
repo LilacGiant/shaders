@@ -229,16 +229,15 @@ namespace z3y
             });
 
             md[material].ShowShaderFeatures = Foldout("Shader Features", md[material].ShowShaderFeatures, ()=> {
+                
+                Func.PropertyGroup(() => {
+                EditorGUILayout.LabelField("Specular", EditorStyles.boldLabel);
                 prop(_GlossyReflections);
                 prop(_SpecularHighlights);
-                if(_GlossyReflections.floatValue == 1 || _SpecularHighlights.floatValue == 1 || _BAKERY_SH.floatValue == 1 || _BAKERY_RNM.floatValue == 1 || _BAKERY_LMSPEC.floatValue == 1)
-                {
-                    Func.PropertyGroup(() => {
-                    prop(_FresnelColor);
-                    prop(_Reflectance);
-                    prop(_Anisotropy);
-                    });
-                }
+                prop(_FresnelColor);
+                prop(_Reflectance);
+                prop(_Anisotropy);
+                });
 
                 prop(_EnableEmission);
 

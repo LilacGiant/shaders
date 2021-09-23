@@ -50,7 +50,7 @@ Shader "z3y/lit"
         [Enum(UV0, 0, UV1, 1, UV2, 2)] _EmissionMapUV ("UV", Int) = 0
 
         
-        _FresnelColor ("Sheen Color", Color) = (1,1,1,1)
+        _FresnelColor ("Fresnel Multiplier", Color) = (1,1,1,1)
         _Reflectance ("Reflectance", Range(0,1)) = 0.5
         _Anisotropy ("Anisotropy", Range(-1,1)) = 0
 
@@ -68,7 +68,7 @@ Shader "z3y/lit"
         _SpecularOcclusion ("Indirect Specular Occlusion", Range(0, 1)) = 0
         _SpecularOcclusionSensitivity ("Occlusion Sensitivity", Range(0, 1)) = 0
 
-        [Toggle(ENABLE_BICUBIC_LIGHTMAP)] _BicubicLightmap ("Bicubic Lightmap Interpolation", Float) = 0
+        [Toggle(ENABLE_BICUBIC_LIGHTMAP)] _BicubicLightmap ("Bicubic Lightmap", Float) = 0
         [ToggleUI] _LightProbeMethod ("Non-linear Light Probe SH", Float) = 0
 
 
@@ -90,6 +90,8 @@ Shader "z3y/lit"
         [IntRange] _ParallaxSteps ("Parallax Steps", Range(1,50)) = 25
         _ParallaxOffset ("Parallax Offset", Range(-1, 1)) = 0
 
+	    [Toggle(DoubleLayerFresnel)] _DoubleLayerFresnel ("DoubleLayerFresnel", Float) = 0
+
 
         _DetailMap ("Detail Map:Desaturated Albedo(R), Normal Y(G), Smoothness(B), Normal X(A)", 2D) = "linearGrey" {}
         [Enum(UV0, 0, UV1, 1, UV2, 2)] _DetailMapUV ("UV", Int) = 0
@@ -106,7 +108,7 @@ Shader "z3y/lit"
         [Enum(Disabled, 0, Gradient, 1, Path, 2, Intensity, 3)] _ALEmissionType ("Audio Link Emission Type", Int) = 0
         _ALEmissionMap ("Audio Link Emission Path & Mask: Path(G), Mask(A)", 2D) = "white" {}
 
-        [Toggle(BAKERY_LMSPEC)] _BAKERY_LMSPEC ("Enable Specular", Float) = 0
+        [Toggle(BAKERY_LMSPEC)] _BAKERY_LMSPEC ("Baked Specular Highlights ", Float) = 0
         _SpecularDirection ("Non-Directional Lightmap Specular Direction", Vector) = (0, 1, 0)
 
 
@@ -158,6 +160,7 @@ Shader "z3y/lit"
             #pragma multi_compile_instancing
             #pragma multi_compile_fog
             #pragma multi_compile _ VERTEXLIGHT_ON
+            #pragma multi_compile _ LOD_FADE_CROSSFADE
 
             #pragma shader_feature_local ENABLE_GSAA
             #pragma shader_feature_local ENABLE_SPECULAR_HIGHLIGHTS
@@ -167,7 +170,6 @@ Shader "z3y/lit"
             #pragma shader_feature_local ENABLE_PARALLAX
             #pragma shader_feature_local ENABLE_AUDIOLINK
             #pragma shader_feature_local BAKERY_SHNONLINEAR
-            #pragma shader_feature_local LOD_FADE_CROSSFADE
             #pragma shader_feature_local CENTROID_NORMAL
 
             #pragma shader_feature_local BAKERY_SH
@@ -205,11 +207,11 @@ Shader "z3y/lit"
             #pragma multi_compile_fwdadd_fullshadows
             #pragma multi_compile_instancing
             #pragma multi_compile_fog
+            #pragma multi_compile _ LOD_FADE_CROSSFADE
 
             #pragma shader_feature_local ENABLE_SPECULAR_HIGHLIGHTS
             #pragma shader_feature_local ENABLE_PACKED_MODE
             #pragma shader_feature_local ENABLE_PARALLAX
-            #pragma shader_feature_local LOD_FADE_CROSSFADE
             #pragma shader_feature_local CENTROID_NORMAL
 
 
@@ -241,8 +243,7 @@ Shader "z3y/lit"
             #pragma fragment ShadowCasterfrag
             #pragma multi_compile_shadowcaster
             #pragma multi_compile_instancing
-
-            #pragma shader_feature_local LOD_FADE_CROSSFADE
+            #pragma multi_compile _ LOD_FADE_CROSSFADE
             
             #pragma skip_variants FOG_LINEAR FOG_EXP FOG_EXP2
 

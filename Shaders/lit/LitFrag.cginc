@@ -83,15 +83,11 @@ half4 frag(v2f i) : SV_Target
     #endif
 
 
-    #if defined(ENABLE_REFLECTIONS) || defined(ENABLE_SPECULAR_HIGHLIGHTS) || defined(UNITY_PASS_META) || defined(BAKERY_INCLUDED) || defined(BAKERY_LMSPEC)
-        half3 f0 = 0.16 * _Reflectance * _Reflectance * surface.oneMinusMetallic + surface.albedo * surface.metallic;
-        half3 fresnel = F_Schlick(NoV, f0);
 
-        fresnel = lerp(f0, fresnel , _FresnelColor.a);
-        fresnel *= _FresnelColor.rgb;
-        fresnel *= _SpecularOcclusion ? saturate(lerp(1, pow(length(light.indirectDiffuse), _SpecularOcclusionSensitivity), _SpecularOcclusion))* surface.oneMinusMetallic : 1;
-        
-    #endif
+    half3 f0 = 0.16 * _Reflectance * _Reflectance * surface.oneMinusMetallic + surface.albedo * surface.metallic;
+    float3 fresnel = lerp(f0, F_Schlick(NoV, f0) , _FresnelColor.a) * _FresnelColor.rgb;
+    fresnel *= _SpecularOcclusion ? saturate(lerp(1, pow(length(light.indirectDiffuse), _SpecularOcclusionSensitivity), _SpecularOcclusion))* surface.oneMinusMetallic : 1;
+    
 
     #if defined(UNITY_PASS_FORWARDBASE)
 

@@ -124,7 +124,7 @@ namespace z3y
 
         // LOD Crossfade Dithing doesn't have multi_compile keyword correctly toggled at build time (its always included) so
         // this hard-coded material property will uncomment //#pragma multi_compile _ LOD_FADE_CROSSFADE in optimized .shader files
-        public static readonly string LODCrossFadePropertyName = "_LODCrossfade";
+        public static readonly string LODCrossFadePropertyName = "_LodCrossFade";
 
         // Material property suffix that controls whether the property of the same name gets baked into the optimized shader
         // e.g. if _Color exists and _ColorAnimated = 1, _Color will not be baked in
