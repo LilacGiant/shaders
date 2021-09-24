@@ -133,11 +133,10 @@ float3 getBoxProjection (float3 direction, float3 position, float4 cubemapPositi
 
 float3 getAnisotropicReflectionVector(float3 viewDir, float3 bitangent, float3 tangent, float3 normal, float roughness)
 {
-    float anisotropy =clamp(_Anisotropy + (pixel.anisotropicDirection * 2 - 1),-1,1); // help
-    float3 anisotropicDirection = (anisotropy >= 0.0 ? bitangent : tangent);
+    float3 anisotropicDirection = (_Anisotropy >= 0.0 ? pixel.anisotropicB : pixel.anisotropicT);
     float3 anisotropicTangent = cross(anisotropicDirection, viewDir);
     float3 anisotropicNormal = cross(anisotropicTangent, anisotropicDirection);
-    float bendFactor = abs(anisotropy ) * saturate(5.0 * roughness) ;
+    float bendFactor = abs(_Anisotropy) * saturate(5.0 * roughness) ;
     float3 bentNormal = normalize(lerp(normal, anisotropicNormal, bendFactor));
     return reflect(-viewDir, bentNormal);
 }

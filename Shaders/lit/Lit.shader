@@ -54,7 +54,7 @@ Shader "z3y/lit"
         _Reflectance ("Reflectance", Range(0,1)) = 0.5
         [ToggleUI] _EnableAnisotropy ("Anisotropy", Int) = 0
         _Anisotropy ("Anisotropy", Range(-1,1)) = 0
-        _AnisotropyMap ("Anisotropy Direction Map", 2D) = "linearGray" {}
+        _AnisotropyMap ("Anisotropy Direction Map:Bitangent(R), Tangent(G)", 2D) = "white" {}
 
 
 

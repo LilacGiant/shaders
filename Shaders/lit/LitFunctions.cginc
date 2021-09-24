@@ -69,7 +69,7 @@ void initNormalMap(half4 normalMap, inout half3 bitangent, inout half3 tangent, 
     bitangent = normalize(cross(normal, tangent));
 
     #if defined(PROP_ANISOTROPYMAP)
-        pixel.anisotropicDirection = _AnisotropyMap.Sample(sampler_MainTex, (uvs[0] * _AnisotropyMap_ST.xy + _AnisotropyMap_ST.zw)).rgb;
+        pixel.anisotropicDirection = float3(_AnisotropyMap.Sample(sampler_MainTex, (uvs[0] * _AnisotropyMap_ST.xy + _AnisotropyMap_ST.zw)).rg, 1);
         pixel.anisotropicT = normalize(tangent * pixel.anisotropicDirection);
         pixel.anisotropicB = normalize(cross(normal, pixel.anisotropicT));
     #else
@@ -243,9 +243,10 @@ void calcDirectSpecular(float3 worldNormal, half3 tangent, half3 bitangent, half
     half NoH = saturate(dot(worldNormal, light.halfVector));
     half roughness = max(surface.perceptualRoughness * surface.perceptualRoughness, 0.002);
 
-    half D = GGXTerm (NoH, roughness);
-    half V = V_SmithGGXCorrelated ( NoV,light.NoL, roughness);
+    
     half3 F = F_Schlick(light.LoH, f0);
+    float D = 0;
+    float V = 0;
 
     UNITY_BRANCH
     if(_EnableAnisotropy)
@@ -269,6 +270,11 @@ void calcDirectSpecular(float3 worldNormal, half3 tangent, half3 bitangent, half
         half ab = max(roughness * (1.0 - anisotropy), 0.002);
         D = D_GGX_Anisotropic(at, ab, ToH, BoH, NoH);
         V = V_SmithGGXCorrelated_Anisotropic(at, ab, ToV, BoV, ToL, BoL, NoV, light.NoL);
+    }
+    else
+    {
+        D = GGXTerm (NoH, roughness);
+        V = V_SmithGGXCorrelated ( NoV,light.NoL, roughness);
     }
 
 
