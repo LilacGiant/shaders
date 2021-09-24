@@ -294,6 +294,7 @@ namespace z3y
                         md[material].Show_AnisotropyMap = Func.TriangleFoldout(md[material].Show_AnisotropyMap, ()=> {
                             propTileOffset(_AnisotropyMap);
                         });
+                        Func.sRGBWarning(_AnisotropyMap);
                     });
                 }
                 
