@@ -18,17 +18,27 @@ half D_GGX(half NoH, half roughness) {
 }
 
 
-float D_GGX_Anisotropic(float NoH, float3 h, float3 t, float3 b, float at, float ab)
-{
-    float ToH = dot(t, h);
-    float BoH = dot(b, h);
+float D_GGX_Anisotropic(float at, float ab, float ToH, float BoH, float NoH) {
+    // Burley 2012, "Physically-Based Shading at Disney"
+
+    // The values at and ab are perceptualRoughness^2, a2 is therefore perceptualRoughness^4
+    // The dot product below computes perceptualRoughness^8. We cannot fit in fp16 without clamping
+    // the roughness to too high values so we perform the dot product and the division in fp32
     float a2 = at * ab;
-    float3 v = float3(ab * ToH, at * BoH, a2 * NoH);
-    float v2 = dot(v, v);
-    float w2 = a2 / v2;
-    return a2 * w2 * w2 * (1.0 / UNITY_PI);
+    float3 d = float3(ab * ToH, at * BoH, a2 * NoH);
+    float d2 = dot(d, d);
+    float b2 = a2 / d2;
+    return a2 * b2 * b2 * (1.0 / UNITY_PI);
 }
 
+float V_SmithGGXCorrelated_Anisotropic(float at, float ab, float ToV, float BoV, float ToL, float BoL, float NoV, float NoL) {
+    // Heitz 2014, "Understanding the Masking-Shadowing Function in Microfacet-Based BRDFs"
+    // TODO: lambdaV can be pre-computed for all the lights, it should be moved out of this function
+    float lambdaV = NoL * length(float3(at * ToV, ab * BoV, NoV));
+    float lambdaL = NoV * length(float3(at * ToL, ab * BoL, NoL));
+    float v = 0.5 / (lambdaV + lambdaL);
+    return saturate(v);
+}
 
 half V_Kelemen(half LoH) {
     return 0.25 / (LoH * LoH);
@@ -121,16 +131,14 @@ float3 getBoxProjection (float3 direction, float3 position, float4 cubemapPositi
 }
 
 
-
-
 float3 getAnisotropicReflectionVector(float3 viewDir, float3 bitangent, float3 tangent, float3 normal, float roughness)
 {
-    //_Anisotropy = lerp(-0.2, 0.2, sin(_Time.y / 20)); //This is pretty fun
-    float3 anisotropicDirection = _Anisotropy >= 0.0 ? bitangent : tangent;
+    float anisotropy =clamp(_Anisotropy + (pixel.anisotropicDirection * 2 - 1),-1,1); // help
+    float3 anisotropicDirection = (anisotropy >= 0.0 ? bitangent : tangent);
     float3 anisotropicTangent = cross(anisotropicDirection, viewDir);
     float3 anisotropicNormal = cross(anisotropicTangent, anisotropicDirection);
-    float bendFactor = abs(_Anisotropy) * saturate(5.0 * roughness);
-    float3 bentNormal = normalize(lerp(normal, anisotropicNormal, _Anisotropy));
+    float bendFactor = abs(anisotropy ) * saturate(5.0 * roughness) ;
+    float3 bentNormal = normalize(lerp(normal, anisotropicNormal, bendFactor));
     return reflect(-viewDir, bentNormal);
 }
 

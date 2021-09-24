@@ -21,6 +21,7 @@ namespace z3y
         public bool Show_BumpMap = false;
         public bool Show_EmissionMap = false;
         public bool Show_DetailMap = false;
+        public bool Show_AnisotropyMap = false;
 
         public bool Show_MetallicMap = false;
         public bool Show_SmoothnessMap = false;
@@ -66,7 +67,11 @@ namespace z3y
         protected MaterialProperty _SpecularOcclusionSensitivity = null;
         protected MaterialProperty _LightProbeMethod = null;
         protected MaterialProperty _SpecularDirection = null;
+
+        protected MaterialProperty _EnableAnisotropy = null;
         protected MaterialProperty _Anisotropy = null;
+        protected MaterialProperty _AnisotropyMap = null;
+
         protected MaterialProperty _Cull = null;
 
         protected MaterialProperty _EnablePackedMode = null;
@@ -231,13 +236,16 @@ namespace z3y
             md[material].ShowShaderFeatures = Foldout("Shader Features", md[material].ShowShaderFeatures, ()=> {
                 
                 Func.PropertyGroup(() => {
-                EditorGUILayout.LabelField("Specular", EditorStyles.boldLabel);
-                prop(_GlossyReflections);
-                prop(_SpecularHighlights);
-                prop(_FresnelColor);
-                prop(_Reflectance);
-                prop(_Anisotropy);
+                    EditorGUILayout.LabelField("Specular", EditorStyles.boldLabel);
+                    prop(_GlossyReflections);
+                    prop(_SpecularHighlights);
+                    prop(_FresnelColor);
+                    prop(_Reflectance);
+                    
+                    
                 });
+
+                
 
                 prop(_EnableEmission);
 
@@ -274,6 +282,18 @@ namespace z3y
                         Func.sRGBWarning(_ParallaxMap);
                         prop(_ParallaxOffset);
                         prop(_ParallaxSteps);
+                    });
+                }
+
+                prop(_EnableAnisotropy);
+                if(_EnableAnisotropy.floatValue == 1)
+                {
+                    Func.PropertyGroup(() => {
+                        prop(_Anisotropy);
+                        prop(_AnisotropyMap);
+                        md[material].Show_AnisotropyMap = Func.TriangleFoldout(md[material].Show_AnisotropyMap, ()=> {
+                            propTileOffset(_AnisotropyMap);
+                        });
                     });
                 }
                 

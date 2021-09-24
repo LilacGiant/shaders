@@ -52,7 +52,10 @@ Shader "z3y/lit"
         
         _FresnelColor ("Fresnel Multiplier", Color) = (1,1,1,1)
         _Reflectance ("Reflectance", Range(0,1)) = 0.5
+        [ToggleUI] _EnableAnisotropy ("Anisotropy", Int) = 0
         _Anisotropy ("Anisotropy", Range(-1,1)) = 0
+        _AnisotropyMap ("Anisotropy Direction Map", 2D) = "linearGray" {}
+
 
 
         [Toggle(ENABLE_SPECULAR_HIGHLIGHTS)] _SpecularHighlights("Specular Highlights", Float) = 1

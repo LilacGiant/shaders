@@ -51,6 +51,9 @@ void initNormalMap(half4 normalMap, inout half3 bitangent, inout half3 tangent, 
         tangentNormal = BlendNormals(tangentNormal, detailNormal);
     #endif
 
+
+
+
     tangentNormal.g *= _NormalMapOrientation ? 1 : -1;
 
     half3 calcedNormal = normalize
@@ -62,8 +65,17 @@ void initNormalMap(half4 normalMap, inout half3 bitangent, inout half3 tangent, 
 
 
     normal = calcedNormal;
-    tangent = cross(normal, bitangent);
-    bitangent = cross(normal, tangent);    
+    tangent = normalize(cross(normal, bitangent));
+    bitangent = normalize(cross(normal, tangent));
+
+    #if defined(PROP_ANISOTROPYMAP)
+        pixel.anisotropicDirection = _AnisotropyMap.Sample(sampler_MainTex, (uvs[0] * _AnisotropyMap_ST.xy + _AnisotropyMap_ST.zw)).rgb;
+        pixel.anisotropicT = normalize(tangent * pixel.anisotropicDirection);
+        pixel.anisotropicB = normalize(cross(normal, pixel.anisotropicT));
+    #else
+        pixel.anisotropicT = tangent;
+        pixel.anisotropicB = bitangent;
+    #endif
 }
 
 
@@ -226,7 +238,7 @@ void applyEmission(half2 parallaxOffset)
 }
 
 
-void calcDirectSpecular(float3 worldNormal, half3 tangent, half3 bitangent, half3 f0, half NoV)
+void calcDirectSpecular(float3 worldNormal, half3 tangent, half3 bitangent, half3 f0, half NoV, float3 viewDir)
 {
     half NoH = saturate(dot(worldNormal, light.halfVector));
     half roughness = max(surface.perceptualRoughness * surface.perceptualRoughness, 0.002);
@@ -235,13 +247,31 @@ void calcDirectSpecular(float3 worldNormal, half3 tangent, half3 bitangent, half
     half V = V_SmithGGXCorrelated ( NoV,light.NoL, roughness);
     half3 F = F_Schlick(light.LoH, f0);
 
-    float anisotropy = _Anisotropy;
-    if(anisotropy != 0) {
-        anisotropy *= saturate(5.0 * surface.perceptualRoughness);
-        half at = max(roughness * (1.0 + anisotropy), 0.001);
-        half ab = max(roughness * (1.0 - anisotropy), 0.001);
-        D = D_GGX_Anisotropic(NoH, light.halfVector, tangent, bitangent, at, ab);
+    UNITY_BRANCH
+    if(_EnableAnisotropy)
+    {
+
+        float anisotropy = _Anisotropy;
+        float3 l = light.direction;
+        float3 t = pixel.anisotropicT;
+        float3 b = pixel.anisotropicB;
+        float3 v = viewDir;
+        float3 h = light.halfVector;
+
+        float ToV = dot(t, v);
+        float BoV = dot(b, v);
+        float ToL = dot(t, l);
+        float BoL = dot(b, l);
+        float ToH = dot(t, h);
+        float BoH = dot(b, h);
+
+        half at = max(roughness * (1.0 + anisotropy), 0.002);
+        half ab = max(roughness * (1.0 - anisotropy), 0.002);
+        D = D_GGX_Anisotropic(at, ab, ToH, BoH, NoH);
+        V = V_SmithGGXCorrelated_Anisotropic(at, ab, ToV, BoV, ToL, BoL, NoV, light.NoL);
     }
+
+
 
     light.directSpecular += max(0, (D * V) * F) * light.finalLight * UNITY_PI;
 }

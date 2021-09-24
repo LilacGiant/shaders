@@ -20,6 +20,7 @@ half4 frag(v2f i) : SV_Target
     half2 lightmapUV = 0;
     float3 vLight = 0;
     float3 vertexLightColor = 0;
+    pixel.anisotropicDirection = 0.5;
 
     #ifdef CENTROID_NORMAL
         if (dot(i.worldNormal.xyz, i.worldNormal.xyz) >= 1.01) i.worldNormal.xyz = i.centroidWorldNormal.xyz;
@@ -94,7 +95,9 @@ half4 frag(v2f i) : SV_Target
         #if defined(ENABLE_REFLECTIONS)
             float3 reflViewDir = reflect(-viewDir, worldNormal);
             float3 reflWorldNormal = worldNormal;
-            if(_Anisotropy != 0) reflViewDir = getAnisotropicReflectionVector(viewDir, bitangent, tangent, worldNormal, surface.perceptualRoughness);
+            
+            if(_EnableAnisotropy) reflViewDir = getAnisotropicReflectionVector(viewDir, bitangent, tangent, worldNormal, surface.perceptualRoughness);
+            
             calcIndirectSpecular(reflViewDir, worldPos, reflWorldNormal, fresnel, f0);
         #endif
         
@@ -106,7 +109,7 @@ half4 frag(v2f i) : SV_Target
     #endif
 
     #if defined(ENABLE_SPECULAR_HIGHLIGHTS) || defined(UNITY_PASS_META)
-        calcDirectSpecular(worldNormal, tangent, bitangent, f0, NoV);
+        calcDirectSpecular(worldNormal, tangent, bitangent, f0, NoV, viewDir);
     #endif
 
     

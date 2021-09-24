@@ -12,7 +12,7 @@
     #define PROP_DETAILMAP
     #define PROP_ALEMISSIONMAP
     #define PROP_ENABLEVERTEXCOLOR
-
+    #define PROP_ANISOTROPYMAP
     #define NEEDS_UV1
     #define NEEDS_UV2
 #endif
@@ -26,7 +26,7 @@
     #define NEEDS_UV2
 #endif
 
-#if defined(PROP_DETAILMAP)
+#if defined(PROP_DETAILMAP) || (PROP_ENABLEANISOTROPY==1)
     #define PROP_BUMPMAP
 #endif
 
@@ -107,7 +107,11 @@ uniform half4 _FresnelColor;
 uniform half _GetDominantLight;
 
 uniform half _Reflectance;
+uniform int _EnableAnisotropy;
 uniform half _Anisotropy;
+UNITY_DECLARE_TEX2D_NOSAMPLER(_AnisotropyMap);
+uniform float4 _AnisotropyMap_ST;
+
 
 uniform half _LightmapMultiplier;
 uniform half _SpecularOcclusion;
@@ -172,6 +176,15 @@ struct Surface
     half3 emission;
 };
 static Surface surface;
+
+struct Pixel
+{
+    float3 anisotropicT;
+    float3 anisotropicB;
+    float3 anisotropicDirection;
+};
+
+static Pixel pixel;
 
 #if defined(VERTEXLIGHT_ON) && defined(UNITY_PASS_FORWARDBASE)
 struct VertexLightInformation {
