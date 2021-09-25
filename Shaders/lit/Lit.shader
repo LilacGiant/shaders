@@ -14,10 +14,10 @@ Shader "z3y/lit"
         _MainTex_STAnimated("_MainTex_ST", Int) = 1
         _Color ("Base Color", Color) = (1,1,1,1)
         _Saturation ("Saturation", Range(-1,1)) = 0
+        _SuperSamplingBias ("SuperSampling Bias", Range(-2,1)) = -1
 
-        [Enum(UV 0, 0, UV 1, 1, UV 2, 2, Triplanar, 4)] _MainTexUV ("UV Type", Int) = 0
-        //[Enum(UV 0 Locked, 0, UV 1, 1, UV 2, 2, UV 0 Unlocked, 3, Triplanar, 4)] _MainTexUV ("UV Type", Int) = 0
-        
+        [Enum(UV 0, 0, UV 1, 1, UV 2, 2, Triplanar, 4, Stochastic, 5, SuperSampling, 6)] _MainTexUV ("UV Type", Int) = 0
+      
         [ToggleUI] _EnableVertexColor ("Vertex Colors Mulitply Base", Float) = 0
                
         _Metallic ("Metallic", Range(0,1)) = 0
@@ -26,29 +26,29 @@ Shader "z3y/lit"
 
 
         _MetallicGlossMap ("Mask Map:Metallic(R), Occlusion(G), Detail Mask(B), Smoothness(A)", 2D) = "white" {}
-        [Enum(UV 0 Locked, 0, UV 1, 1, UV 2, 2, UV 0 Unlocked, 3, Triplanar, 4)] _MetallicGlossMapUV ("UV Type", Int) = 0
+        [Enum(UV 0 Locked, 0, UV 1, 1, UV 2, 2, UV 0 Unlocked, 3, Triplanar, 4, Stochastic, 5)] _MetallicGlossMapUV ("UV Type", Int) = 0
 
 
         _SmoothnessMap ("Smoothness Map", 2D) = "white" {}
-        [Enum(UV 0 Locked, 0, UV 1, 1, UV 2, 2, UV 0 Unlocked, 3, Triplanar, 4)]  _SmoothnessMapUV ("UV Type", Int) = 0
+        [Enum(UV 0 Locked, 0, UV 1, 1, UV 2, 2, UV 0 Unlocked, 3, Triplanar, 4, Stochastic, 5)]  _SmoothnessMapUV ("UV Type", Int) = 0
         [ToggleUI] _GlossinessInvert ("Invert Smoothness", Float) = 0
 
         _MetallicMap ("Metallic Map", 2D) = "white" {}
-        [Enum(UV 0 Locked, 0, UV 1, 1, UV 2, 2, UV 0 Unlocked, 3, Triplanar, 4)]  _MetallicMapUV ("UV Type", Int) = 0
+        [Enum(UV 0 Locked, 0, UV 1, 1, UV 2, 2, UV 0 Unlocked, 3, Triplanar, 4, Stochastic, 5)]  _MetallicMapUV ("UV Type", Int) = 0
 
         _OcclusionMap ("Occlusion Map", 2D) = "white" {}
-        [Enum(UV 0 Locked, 0, UV 1, 1, UV 2, 2, UV 0 Unlocked, 3, Triplanar, 4)]  _OcclusionMapUV ("UV Type", Int) = 0
+        [Enum(UV 0 Locked, 0, UV 1, 1, UV 2, 2, UV 0 Unlocked, 3, Triplanar, 4, Stochastic, 5)]  _OcclusionMapUV ("UV Type", Int) = 0
 
         [Normal] _BumpMap ("Normal Map", 2D) = "bump" {}
         _BumpScale ("Bump Scale", Range(0,10)) = 0
         [Enum(OpenGL, 0, Direct3D, 1)] _NormalMapOrientation ("Orientation", Int) = 0
-        [Enum(UV 0 Locked, 0, UV 1, 1, UV 2, 2, UV 0 Unlocked, 3, Triplanar, 4)] _BumpMapUV ("UV Type", Int) = 0
+        [Enum(UV 0 Locked, 0, UV 1, 1, UV 2, 2, UV 0 Unlocked, 3, Triplanar, 4, Stochastic, 5)] _BumpMapUV ("UV Type", Int) = 0
         [ToggleUI] _HemiOctahedron ("Hemi Octahedron", Int) = 0
 
         [ToggleUI] _EnableEmission ("Emission", Float) = 0
         _EmissionMap ("Emission Map", 2D) = "white" {}
         [HDR] _EmissionColor ("Emission Color", Color) = (0,0,0)
-        [Enum(UV 0 Locked, 0, UV 1, 1, UV 2, 2, UV 0 Unlocked, 3, Triplanar, 4)]  _EmissionMapUV ("UV Type", Int) = 0
+        [Enum(UV 0 Locked, 0, UV 1, 1, UV 2, 2, UV 0 Unlocked, 3, Triplanar, 4, Stochastic, 5)]  _EmissionMapUV ("UV Type", Int) = 0
 
         
         _SheenColor ("Sheen Color", Color) = (0.5,0.5,0.5,0.5)
@@ -100,7 +100,7 @@ Shader "z3y/lit"
 
 
         _DetailMap ("Detail Map:Desaturated Albedo(R), Normal Y(G), Smoothness(B), Normal X(A)", 2D) = "linearGrey" {}
-        [Enum(UV 0 Locked, 0, UV 1, 1, UV 2, 2, UV 0 Unlocked, 3, Triplanar, 4)]  _DetailMapUV ("UV Type", Int) = 0
+        [Enum(UV 0 Locked, 0, UV 1, 1, UV 2, 2, UV 0 Unlocked, 3, Triplanar, 4, Stochastic, 5)]  _DetailMapUV ("UV Type", Int) = 0
         _DetailAlbedoScale ("Albedo Scale", Range(0.0, 2.0)) = 1
         _DetailNormalScale ("Normal Scale", Range(0.0, 2.0)) = 0
         _DetailSmoothnessScale ("Smoothness Scale", Range(0.0, 2.0)) = 1

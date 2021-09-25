@@ -36,6 +36,7 @@ namespace z3y
         protected MaterialProperty _Color = null;
         protected MaterialProperty _Saturation = null;
         protected MaterialProperty _MainTexUV = null;
+        protected MaterialProperty _SuperSamplingBias = null;
         protected MaterialProperty _Metallic = null;
         protected MaterialProperty _Glossiness = null;
         protected MaterialProperty _Occlusion = null;
@@ -161,6 +162,7 @@ namespace z3y
                 md[material].Show_MainTex = Func.TriangleFoldout(md[material].Show_MainTex, ()=> {
                     prop(_MainTexUV);
                     propTileOffset(_MainTex);
+                    if(_MainTexUV.floatValue == 6) prop(_SuperSamplingBias);
                     prop(_Saturation);
                 });
 

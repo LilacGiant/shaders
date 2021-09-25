@@ -57,7 +57,9 @@ uniform float _SpecularOcclusionSensitivity;
 uniform float3 _SpecularDirection;
 
 UNITY_DECLARE_TEX2D(_MainTex);
+uniform float4 _MainTex_TexelSize;
 uniform float _MainTexUV;
+uniform float _SuperSamplingBias;
 uniform float4 _MainTex_ST;
 uniform half4 _Color;
 uniform half _Saturation;
