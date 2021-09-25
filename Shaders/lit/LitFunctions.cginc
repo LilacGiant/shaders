@@ -11,6 +11,61 @@ void initUVs(v2f i)
     #endif
 }
 
+// custom uv sample texture
+// type 0: uv0 and locked to maintex tiling
+// type 1: uv1 unlocked
+// type 2: uv2 unlocked
+// type 3: uv0 unlocked
+// type 4: triplanar
+
+float4 SampleTexture(Texture2D tex, float4 st, sampler s, int type)
+{
+    float4 sampledTexture = 0;
+
+    switch(type)
+    {
+        case 0:
+            sampledTexture = tex.Sample(s, uvs[0] * _MainTex_ST.xy + _MainTex_ST.zw + pixel.parallaxOffset);
+            break;
+        case 1:
+            sampledTexture = tex.Sample(s, uvs[1] * st.xy + st.zw + pixel.parallaxOffset);
+            break;
+        case 2:
+            sampledTexture = tex.Sample(s, uvs[2] * st.xy + st.zw + pixel.parallaxOffset);
+            break;
+        case 3:
+            sampledTexture = tex.Sample(s, uvs[0] * st.xy + st.zw + pixel.parallaxOffset);
+            break;
+        case 4:
+            float3 n = abs(pixel.worldNormal);
+            float3 w = n / (n.x + n.y + n.z);
+            float4 tzy = tex.Sample(s, pixel.worldPos.zy * st.xy + st.zw);
+            float4 txz = tex.Sample(s, pixel.worldPos.xz * st.xy + st.zw);
+            float4 txy = tex.Sample(s, pixel.worldPos.xy * st.xy + st.zw);
+            sampledTexture = tzy * w.x + txz * w.y + txy * w.z;
+            break;
+    }
+
+    return sampledTexture;
+}
+
+float4 SampleTexture(Texture2D tex, float4 st, int type)
+{
+    return SampleTexture(tex, st, sampler_MainTex, type);
+}
+
+float4 SampleTexture(Texture2D tex, float4 st)
+{
+    return SampleTexture(tex, st, sampler_MainTex, 3);
+}
+
+float4 SampleTexture(Texture2D tex)
+{
+    return SampleTexture(tex, float4(1,1,0,0), sampler_MainTex, 3);
+}
+
+
+
 half calcAlpha(half alpha)
 {
     UNITY_BRANCH
@@ -28,6 +83,20 @@ half calcAlpha(half alpha)
     }
 
     return alpha;
+}
+
+void getMainTex(inout half4 mainTex, half2 parallaxOffset, half4 vertexColor)
+{
+    //mainTex = MAIN_TEX(_MainTex, sampler_MainTex, uvs[_MainTexUV], _MainTex_ST);
+    mainTex = SampleTexture(_MainTex, _MainTex_ST, _MainTexUV);
+
+    
+
+    surface.albedo = mainTex * _Color;
+
+    #ifdef PROP_ENABLEVERTEXCOLOR
+        surface.albedo.rgb *= _EnableVertexColor ? GammaToLinearSpace(vertexColor) : 1;
+    #endif
 }
 
 void initNormalMap(half4 normalMap, inout half3 bitangent, inout half3 tangent, inout half3 normal, half4 detailNormalMap, inout float3 tangentNormal)
@@ -116,13 +185,6 @@ float2 Rotate(float2 coords, float rot){
 }
 
 
-#define TRANSFORM(uv, tileOffset) (uv.xy * tileOffset.xy + tileOffset.zw + parallaxOffset)
-#define TRANSFORMTEX(uv, tileOffset, transformTex) (uv.xy * tileOffset.xy * transformTex.xy + tileOffset.zw + transformTex.zw + parallaxOffset)
-#define TRANSFORMTEXNOOFFSET(uv, tileOffset, transformTex) (uv.xy * tileOffset.xy * transformTex.xy + tileOffset.zw + transformTex.zw + parallaxOffset)
-
-#define MAIN_TEX(tex, sampl, texUV, texST) (tex.Sample(sampl, TRANSFORM(texUV.xy, texST)))
-#define NOSAMPLER_TEX(tex, texUV, texST, mainST) (tex.Sample(sampler_MainTex, TRANSFORMTEX(texUV.xy, texST, mainST)))
-
 
 #ifdef ENABLE_PARALLAX
 float3 CalculateTangentViewDir(float3 tangentViewDir)
@@ -150,7 +212,7 @@ float2 ParallaxOffsetMultiStep(float surfaceHeight, float strength, float2 uv, f
         prevSurfaceHeight = surfaceHeight;
         uvOffset -= uvDelta;
         stepHeight -= stepSize;
-        surfaceHeight = _ParallaxMap.Sample(sampler_MainTex, (uv.xy * _MainTex_ST.xy + _MainTex_ST.zw + uvOffset)) + _ParallaxOffset;
+        surfaceHeight = _ParallaxMap.Sample(sampler_MainTex, (uv + uvOffset)) + _ParallaxOffset;
     }
     [unroll(3)]
     for (int k = 0; k < 3; k++) {
@@ -165,7 +227,7 @@ float2 ParallaxOffsetMultiStep(float surfaceHeight, float strength, float2 uv, f
             uvOffset -= uvDelta;
             stepHeight -= stepSize;
         }
-        surfaceHeight = _ParallaxMap.Sample(sampler_MainTex, (uv.xy * _MainTex_ST.xy + _MainTex_ST.zw + uvOffset)) + _ParallaxOffset;
+        surfaceHeight = _ParallaxMap.Sample(sampler_MainTex, (uv + uvOffset)) + _ParallaxOffset;
     }
 
     return uvOffset;
@@ -175,9 +237,10 @@ float2 ParallaxOffset (float3 viewDirForParallax)
 {
     viewDirForParallax = CalculateTangentViewDir(viewDirForParallax);
 
-    float h = _ParallaxMap.Sample(sampler_MainTex, (uvs[_MainTexUV] * _MainTex_ST.xy + _MainTex_ST.zw)) + _ParallaxOffset;
+    float2 mainTexUV = uvs[clamp(_MainTexUV, 0, 2)]; // for now
+    float h = _ParallaxMap.Sample(sampler_MainTex, (mainTexUV * _MainTex_ST.xy + _MainTex_ST.zw));
     h = clamp(h, 0, 0.999);
-    float2 offset = ParallaxOffsetMultiStep(h, _Parallax, uvs[_MainTexUV], viewDirForParallax);
+    float2 offset = ParallaxOffsetMultiStep(h, _Parallax, mainTexUV * _MainTex_ST.xy + _MainTex_ST.zw, viewDirForParallax);
 
 	return offset;
 }
@@ -195,17 +258,17 @@ float4 getMeta(Surface surface, Lighting light, float alpha)
 }
 #endif
 
-void applyEmission(half2 parallaxOffset)
+void applyEmission()
 {
     half4 emissionMap = 1;
     #if defined(PROP_EMISSIONMAP)
-        emissionMap = _EmissionMap.Sample(sampler_MainTex, TRANSFORMTEX(uvs[_EmissionMapUV], _EmissionMap_ST, _MainTex_ST));
+        emissionMap = SampleTexture(_EmissionMap, _EmissionMap_ST, _EmissionMapUV);
     #endif
 
     #if defined(ENABLE_AUDIOLINK)
         float4 alEmissionMap = 1;
         #if defined(PROP_ALEMISSIONMAP)
-            alEmissionMap = _ALEmissionMap.Sample(sampler_MainTex, TRANSFORMTEX(uvs[_EmissionMapUV], _EmissionMap_ST, _MainTex_ST));
+            alEmissionMap = SampleTexture(_ALEmissionMap, _EmissionMap_ST, _EmissionMapUV);
         #endif
         
         float alEmissionType = 0;
@@ -343,7 +406,7 @@ void initLighting(v2f i, float3 worldNormal, float3 viewDir, half NoV, float3 ta
 #if defined(PROP_DETAILMAP)
 float4 applyDetailMap(half2 parallaxOffset, float maskMapAlpha)
 {
-    float4 detailMap = _DetailMap.Sample(sampler_MainTex, TRANSFORM(uvs[_DetailMapUV], _DetailMap_ST));
+    float4 detailMap = SampleTexture(_DetailMap, _DetailMap_ST, _DetailMapUV);
 
     float detailMask = maskMapAlpha;
     float detailAlbedo = detailMap.r * 2.0 - 1.0;
@@ -385,21 +448,21 @@ void initSurfaceData(inout half metallicMap, inout half smoothnessMap, inout hal
     #ifndef ENABLE_PACKED_MODE
 
         #ifdef PROP_METALLICMAP
-            metallicMap = NOSAMPLER_TEX(_MetallicMap, uvs[_MetallicMapUV], _MetallicMap_ST, _MainTex_ST);
+            metallicMap = SampleTexture(_MetallicMap, _MetallicMap_ST, _MetallicMapUV);
         #endif
 
         #ifdef PROP_SMOOTHNESSMAP
-            smoothnessMap = NOSAMPLER_TEX(_SmoothnessMap, uvs[_SmoothnessMapUV], _SmoothnessMap_ST, _MainTex_ST);
+            smoothnessMap = SampleTexture(_SmoothnessMap, _SmoothnessMap_ST, _SmoothnessMapUV);
         #endif
 
         #ifdef PROP_OCCLUSIONMAP
-            occlusionMap = NOSAMPLER_TEX(_OcclusionMap, uvs[_OcclusionMapUV], _OcclusionMap_ST, _MainTex_ST);
+            occlusionMap = SampleTexture(_OcclusionMap, _OcclusionMap_ST, _OcclusionMapUV);
         #endif
 
     #else
 
         #ifdef PROP_METALLICGLOSSMAP
-            maskMap = NOSAMPLER_TEX(_MetallicGlossMap, uvs[_MetallicGlossMapUV], _MetallicGlossMap_ST, _MainTex_ST);
+            maskMap = SampleTexture(_MetallicGlossMap, _MetallicGlossMap_ST, _MetallicGlossMapUV);
         #endif
         
         metallicMap = maskMap.r;
@@ -415,18 +478,6 @@ void initSurfaceData(inout half metallicMap, inout half smoothnessMap, inout hal
     surface.occlusion = lerp(1,occlusionMap , _Occlusion);
 }
 
-void getMainTex(inout half4 mainTex, half2 parallaxOffset, half4 vertexColor)
-{
-    mainTex = MAIN_TEX(_MainTex, sampler_MainTex, uvs[_MainTexUV], _MainTex_ST);
-
-    
-
-    surface.albedo = mainTex * _Color;
-
-    #ifdef PROP_ENABLEVERTEXCOLOR
-        surface.albedo.rgb *= _EnableVertexColor ? GammaToLinearSpace(vertexColor) : 1;
-    #endif
-}
 
 void getIndirectDiffuse(float3 worldNormal, float2 parallaxOffset, inout half2 lightmapUV)
 {

@@ -98,6 +98,7 @@ v2f vert(appdata v)
     o.pos = UnityObjectToClipPos(v.vertex);
     #endif
 
+
     o.texcoord0.xy = v.uv0;
 
     #ifdef NEEDS_UV1

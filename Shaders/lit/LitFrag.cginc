@@ -8,6 +8,7 @@ half4 frag(v2f i) : SV_Target
 
     initUVs(i);
     float3 worldPos = i.worldPos;
+    pixel.worldPos = i.worldPos;
     half2 parallaxOffset = 0;
     half alpha = 1;
     half4 maskMap = 1;
@@ -27,12 +28,14 @@ half4 frag(v2f i) : SV_Target
     #endif
 
     float3 worldNormal = normalize(i.worldNormal);
+    pixel.worldNormal = worldNormal;
     float3 viewDir = normalize(_WorldSpaceCameraPos - i.worldPos);
     half NoV = abs(dot(worldNormal, viewDir)) + 1e-5;
 
     
     #if defined(ENABLE_PARALLAX)
         parallaxOffset = ParallaxOffset(i.viewDirForParallax);
+        pixel.parallaxOffset = parallaxOffset;
     #endif
 
     getMainTex(mainTex, parallaxOffset, i.color);
@@ -59,7 +62,7 @@ half4 frag(v2f i) : SV_Target
 
 
     #ifdef PROP_BUMPMAP
-        half4 normalMap = _BumpMap.Sample(sampler_BumpMap, TRANSFORMTEX(uvs[_BumpMapUV], _BumpMap_ST, _MainTex_ST));
+        half4 normalMap = SampleTexture(_BumpMap, _BumpMap_ST, sampler_BumpMap, _BumpMapUV);
         float4 detailNormalMap = float4(0.5, 0.5, 1, 1);
         #if defined(PROP_DETAILMAP)
             detailNormalMap = float4(detailMap.a, detailMap.g, 1, 1);
@@ -78,11 +81,8 @@ half4 frag(v2f i) : SV_Target
     #endif
 
 
-
-    #if defined(ENABLE_GSAA)
-        surface.perceptualRoughness = GSAA_Filament(worldNormal, surface.perceptualRoughness);
-    #endif
-
+    UNITY_BRANCH
+    if(_GSAA) surface.perceptualRoughness = GSAA_Filament(worldNormal, surface.perceptualRoughness);
 
 
     half3 f0 = 0.16 * _Reflectance * _Reflectance * surface.oneMinusMetallic + surface.albedo * surface.metallic;
@@ -114,7 +114,7 @@ half4 frag(v2f i) : SV_Target
 
     
     #if defined(UNITY_PASS_FORWARDBASE) || defined(UNITY_PASS_META)
-        applyEmission(parallaxOffset);
+        applyEmission();
     #endif
 
     #if defined(BAKERY_RNM)
@@ -176,7 +176,7 @@ half4 ShadowCasterfrag(v2f i) : SV_Target
     
     initUVs(i);
     half2 parallaxOffset = 0;
-    half4 mainTex = MAIN_TEX(_MainTex, sampler_MainTex, uvs[_MainTexUV], _MainTex_ST);
+    half4 mainTex = SampleTexture(_MainTex, _MainTex_ST, _MainTexUV);
 
     half alpha = mainTex.a * _Color.a;
 

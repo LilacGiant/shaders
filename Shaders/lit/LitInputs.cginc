@@ -101,9 +101,14 @@ UNITY_DECLARE_TEX2D_NOSAMPLER(_MetallicGlossMap);
 uniform float _MetallicGlossMapUV;
 uniform float4 _MetallicGlossMap_ST;
 
+uniform int _GSAA;
 uniform half _specularAntiAliasingVariance;
 uniform half _specularAntiAliasingThreshold;
+
 uniform half4 _FresnelColor;
+uniform float3 _SheenColor;
+uniform float _SheenRoughness;
+
 uniform half _GetDominantLight;
 
 uniform half _Reflectance;
@@ -123,6 +128,7 @@ uniform float4 _EmissionMap_ST;
 uniform half3 _EmissionColor;
 
 
+
 #ifdef ENABLE_PARALLAX
 UNITY_DECLARE_TEX2D_NOSAMPLER(_ParallaxMap);
 uniform float4 _ParallaxMap_ST;
@@ -137,7 +143,6 @@ uniform half _DetailMapUV;
 uniform half _DetailAlbedoScale;
 uniform half _DetailNormalScale;
 uniform half _DetailSmoothnessScale;
-
 
 
 //sampler2D_float _CameraDepthTexture;
@@ -182,6 +187,9 @@ struct Pixel
     float3 anisotropicT;
     float3 anisotropicB;
     float3 anisotropicDirection;
+    float2 parallaxOffset;
+    float3 worldPos;
+    float3 worldNormal;
 };
 
 static Pixel pixel;
