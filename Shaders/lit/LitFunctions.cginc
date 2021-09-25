@@ -90,8 +90,8 @@ float4 SampleTexture(Texture2D tex, float4 st, sampler s, int type)
         case 6: // only for maintex
             // https://bgolus.medium.com/sharper-mipmapping-using-shader-based-supersampling-ed7aadb47bec
             // per pixel partial derivatives
-            float2 dx = ddx(uvs[0] * st.xy + st.zw);
-            float2 dy = ddy(uvs[0] * st.xy + st.zw);
+            float2 dx = ddx(uvs[0] * st.xy + st.zw + pixel.parallaxOffset);
+            float2 dy = ddy(uvs[0] * st.xy + st.zw + pixel.parallaxOffset);
             // manually calculate the per axis mip level, clamp to 0 to 1
             // and use that to scale down the derivatives
             
@@ -102,13 +102,13 @@ float4 SampleTexture(Texture2D tex, float4 st, sampler s, int type)
             float2 uvOffsets = float2(0.125, 0.375);
             float4 offsetUV = float4(0.0, 0.0, 0.0, _SuperSamplingBias);
             // supersampled using 2x2 rotated grid
-            offsetUV.xy = (uvs[0] * st.xy + st.zw) + uvOffsets.x * dx + uvOffsets.y * dy;
+            offsetUV.xy = (uvs[0] * st.xy + st.zw + pixel.parallaxOffset) + uvOffsets.x * dx + uvOffsets.y * dy;
             sampledTexture = tex.SampleBias(s, offsetUV.xy, offsetUV.w);
-            offsetUV.xy = (uvs[0] * st.xy + st.zw) - uvOffsets.x * dx - uvOffsets.y * dy;
+            offsetUV.xy = (uvs[0] * st.xy + st.zw + pixel.parallaxOffset) - uvOffsets.x * dx - uvOffsets.y * dy;
             sampledTexture += tex.SampleBias(s, offsetUV.xy, offsetUV.w);
-            offsetUV.xy = (uvs[0] * st.xy + st.zw) + uvOffsets.y * dx - uvOffsets.x * dy;
+            offsetUV.xy = (uvs[0] * st.xy + st.zw + pixel.parallaxOffset) + uvOffsets.y * dx - uvOffsets.x * dy;
             sampledTexture += tex.SampleBias(s, offsetUV.xy, offsetUV.w);
-            offsetUV.xy = (uvs[0] * st.xy + st.zw) - uvOffsets.y * dx + uvOffsets.x * dy;
+            offsetUV.xy = (uvs[0] * st.xy + st.zw + pixel.parallaxOffset) - uvOffsets.y * dx + uvOffsets.x * dy;
             sampledTexture += tex.SampleBias(s, offsetUV.xy, offsetUV.w);
             sampledTexture *= 0.25;
             break;
