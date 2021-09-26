@@ -16,7 +16,6 @@ A shader I put together to use in vrchat worlds.
 
 #### Currently known missing features and bugs:
 
-- shadowmask
 - dithered shadow with transparency
 - generating materials for bakery might leave some material slots empty (probably fixed)
 
