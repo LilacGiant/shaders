@@ -229,7 +229,7 @@ float h1(float a)
 }
 
 //https://ndotl.wordpress.com/2018/08/29/baking-artifact-free-lightmaps
-float3 tex2DFastBicubicLightmap(float2 uv)
+float3 tex2DFastBicubicLightmap(float2 uv, inout float4 bakedColorTex)
 {
     #if defined(SHADER_API_D3D11) && defined(ENABLE_BICUBIC_LIGHTMAP)
     float width;
@@ -259,9 +259,11 @@ float3 tex2DFastBicubicLightmap(float2 uv)
                          g1x * UNITY_SAMPLE_TEX2D(unity_Lightmap, (float2(px + h1x, py + h0y) * 1.0f/width))) +
                          g1(fy) * ( g0x * UNITY_SAMPLE_TEX2D(unity_Lightmap, (float2(px + h0x, py + h1y) * 1.0f/width)) +
                          g1x * UNITY_SAMPLE_TEX2D(unity_Lightmap, (float2(px + h1x, py + h1y) * 1.0f/width)));
+    bakedColorTex = r;
     return DecodeLightmap(r);
     #else
-    return DecodeLightmap(UNITY_SAMPLE_TEX2D(unity_Lightmap, uv));
+    bakedColorTex = UNITY_SAMPLE_TEX2D(unity_Lightmap, uv);
+    return DecodeLightmap(bakedColorTex);
     #endif
 }
 

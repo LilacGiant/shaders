@@ -69,8 +69,7 @@ half4 frag(v2f i) : SV_Target
         #endif
         initNormalMap(normalMap, bitangent, tangent, worldNormal, detailNormalMap, tangentNormal);
     #endif
-    
-    getIndirectDiffuse(worldNormal, parallaxOffset, lightmapUV);
+
 
     #if !defined(LIGHTMAP_ON) || defined(USING_LIGHT_MULTI_COMPILE)
         initLighting(i, worldNormal, viewDir, NoV, tangentNormal);
@@ -79,7 +78,13 @@ half4 frag(v2f i) : SV_Target
     #if defined(VERTEXLIGHT_ON) && defined(UNITY_PASS_FORWARDBASE)
         initVertexLights(worldPos, worldNormal, vLight, vertexLightColor);
     #endif
+    
+    getIndirectDiffuse(worldNormal, parallaxOffset, lightmapUV);
 
+    #if defined(LIGHTMAP_SHADOW_MIXING) && defined(SHADOWS_SHADOWMASK) && defined(SHADOWS_SCREEN) && defined(LIGHTMAP_ON)
+        light.finalLight *= UnityComputeForwardShadows(lightmapUV, pixel.worldPos, i.screenPos);
+    #endif
+    
 
     UNITY_BRANCH
     if(_GSAA) surface.perceptualRoughness = GSAA_Filament(worldNormal, surface.perceptualRoughness);
@@ -151,8 +156,8 @@ half4 frag(v2f i) : SV_Target
 
     if(_FlatShading) light.finalLight = saturate(light.color + vertexLightColor) * light.attenuation;
 
-    
 
+ 
     half4 finalColor = half4( surface.albedo * surface.oneMinusMetallic * (light.indirectDiffuse * surface.occlusion + (light.finalLight + vLight)) + light.indirectSpecular + light.directSpecular + surface.emission, alpha);
 
     #ifdef UNITY_PASS_META

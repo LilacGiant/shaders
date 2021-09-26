@@ -6,9 +6,8 @@ struct appdata
     float3 normal : NORMAL;
 
     float2 uv0 : TEXCOORD0;
-    #ifdef NEEDS_UV1
-        float2 uv1 : TEXCOORD1;
-    #endif
+    float2 uv1 : TEXCOORD1;
+
     #ifdef NEEDS_UV2
         float2 uv2 : TEXCOORD2;
     #endif
@@ -33,14 +32,13 @@ struct v2f
 {
     float4 pos : SV_POSITION;
 
-    #ifdef NEEDS_UV1
-        float4 texcoord0 : TEXCOORD0;
-    #else
-        float2 texcoord0 : TEXCOORD0;
-    #endif
+    float4 texcoord0 : TEXCOORD0;
+    
     #ifdef NEEDS_UV2
         float4 texcoord1 : TEXCOORD1;
     #endif
+
+
 
     #if !defined(UNITY_PASS_SHADOWCASTER)
 
@@ -50,7 +48,8 @@ struct v2f
         #endif
 
         float3 worldNormal : TEXCOORD4;
-        float3 worldPos : TEXCOORD5;
+
+        float4 worldPos : TEXCOORD5;
     
         UNITY_SHADOW_COORDS(6)
 
@@ -70,8 +69,11 @@ struct v2f
             centroid float3 centroidWorldNormal : TEXCOORD9;
         #endif
 
-    #endif
+        #if defined(LIGHTMAP_SHADOW_MIXING) && defined(SHADOWS_SHADOWMASK) && defined(SHADOWS_SCREEN) && defined(LIGHTMAP_ON)
+            float4 screenPos : TEXCOORD10;
+        #endif
 
+    #endif
     
 
     UNITY_VERTEX_INPUT_INSTANCE_ID
@@ -95,19 +97,19 @@ v2f vert(appdata v)
     #ifdef UNITY_PASS_META
     o.pos = UnityMetaVertexPosition(v.vertex, v.uv1.xy, v.uv2.xy, unity_LightmapST, unity_DynamicLightmapST);
     #else
-    o.pos = UnityObjectToClipPos(v.vertex);
+        #if !defined(UNITY_PASS_SHADOWCASTER)
+            o.pos = UnityObjectToClipPos(v.vertex);
+        #endif
     #endif
 
 
     o.texcoord0.xy = v.uv0;
-
-    #ifdef NEEDS_UV1
     o.texcoord0.zw = v.uv1;
-    #endif
 
     #ifdef NEEDS_UV2
     o.texcoord1.xy = v.uv2;
     #endif
+    
 
     
     #if !defined(UNITY_PASS_SHADOWCASTER)
@@ -118,6 +120,10 @@ v2f vert(appdata v)
             half3 bitangent = cross(tangent, worldNormal) * v.tangent.w;
             o.bitangent = bitangent;
             o.tangent = tangent;
+        #endif
+
+        #if defined(LIGHTMAP_SHADOW_MIXING) && defined(SHADOWS_SHADOWMASK) && defined(SHADOWS_SCREEN) && defined(LIGHTMAP_ON)
+            o.screenPos = ComputeScreenPos(o.pos);
         #endif
 
         o.worldNormal = worldNormal;
@@ -138,9 +144,12 @@ v2f vert(appdata v)
         #ifdef PROP_ENABLEVERTEXCOLOR
             o.color = v.color;
         #endif
-
-        UNITY_TRANSFER_SHADOW(o, o.texcoord0.xy);
+        
+        UNITY_TRANSFER_SHADOW(o, o.texcoord0.zw);
+        
     #else
+        o.pos = UnityClipSpaceShadowCasterPos(v.vertex, v.normal);
+        o.pos = UnityApplyLinearShadowBias(o.pos);
         TRANSFER_SHADOW_CASTER_NOPOS(o, o.pos);
     #endif
 

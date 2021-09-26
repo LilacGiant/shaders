@@ -7,9 +7,9 @@ void initUVs(v2f i)
 {
     uvs[0] = i.texcoord0.xy;
 
-    #ifdef NEEDS_UV1
-        uvs[1] = i.texcoord0.zw;
-    #endif
+    
+    uvs[1] = i.texcoord0.zw;
+    
 
     #ifdef NEEDS_UV2
         uvs[2] = i.texcoord1.xy;
@@ -467,8 +467,8 @@ void initLighting(v2f i, float3 worldNormal, float3 viewDir, half NoV, float3 ta
     light.halfVector = Unity_SafeNormalize(light.direction + viewDir);
     light.NoL = saturate(dot(worldNormal, light.direction));
     light.LoH = saturate(dot(light.direction, light.halfVector));
-    UNITY_LIGHT_ATTENUATION(attenuation, i, i.worldPos.xyz);
-    light.attenuation = attenuation;
+    UNITY_LIGHT_ATTENUATION(lightAttenuation, i, i.worldPos.xyz);
+    light.attenuation = lightAttenuation;
     light.finalLight = (light.NoL * light.attenuation * light.color);
     light.finalLight *= Fd_Burley(surface.perceptualRoughness, NoV, light.NoL, light.LoH);
 }
@@ -555,19 +555,28 @@ void getIndirectDiffuse(float3 worldNormal, float2 parallaxOffset, inout half2 l
     #if defined(LIGHTMAP_ON)
 
         lightmapUV = uvs[1] * unity_LightmapST.xy + unity_LightmapST.zw + parallaxOffset;
+        float4 bakedColorTex = 0;
 
-        half3 lightMap = tex2DFastBicubicLightmap(lightmapUV) * (_LightmapMultiplier);
+        half3 lightMap = tex2DFastBicubicLightmap(lightmapUV, bakedColorTex) * (_LightmapMultiplier);
 
-        #if defined(DIRLIGHTMAP_COMBINED) && !defined(SHADER_API_MOBILE)
+        #if defined(DIRLIGHTMAP_COMBINED)
             light.bakedDir = UNITY_SAMPLE_TEX2D_SAMPLER (unity_LightmapInd, unity_Lightmap, lightmapUV);
             lightMap = DecodeDirectionalLightmap(lightMap, light.bakedDir, worldNormal);
         #endif
-
 
         #if defined(DYNAMICLIGHTMAP_ON)
             half3 realtimeLightMap = getRealtimeLightmap(uvs[2], worldNormal, parallaxOffset);
             lightMap += realtimeLightMap; 
         #endif
+
+        #if defined(LIGHTMAP_SHADOW_MIXING) && !defined(SHADOWS_SHADOWMASK) && defined(SHADOWS_SCREEN)
+            light.finalLight = 0;
+            light.NoL = 0;
+            light.direction = float3(0,1,0);
+            lightMap = SubtractMainLightWithRealtimeAttenuationFromLightmap (lightMap, light.attenuation, bakedColorTex, worldNormal);
+        #endif
+
+        
         
         light.indirectDiffuse = lightMap;
 
