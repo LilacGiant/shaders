@@ -93,6 +93,53 @@ v2f vert(appdata v)
     UNITY_TRANSFER_INSTANCE_ID(v, o);
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
 
+    #ifdef ENABLE_DISPLACEMENT
+
+        float2 dUV = 0;
+        switch(_DisplacementMaskUV)
+        {
+            case(0):
+                dUV = v.uv0;
+                break;
+            case(1):
+                dUV = v.uv1;
+                break;
+            #ifdef NEEDS_UV2
+            case(2):
+                dUV = v.uv2;
+                break;
+            #endif
+        }
+
+        float3 offset = 0;
+
+        UNITY_BRANCH
+        if(_RandomizePosition)
+        {
+            float2 seed = unity_ObjectToWorld._m03_m23;
+            offset = lerp( 0.0 , 1.0 , frac( ( sin( dot( seed, float2( 12.9898,78.233 ) ) ) * 43758.55 ) )).x;
+        }
+
+        #ifdef PROP_DISPLACEMENTMASK
+            float4 dMask = _DisplacementMask.SampleLevel(sampler_DisplacementMask, dUV, 0);
+        #else 
+            float4 dMask = 1;
+        #endif
+        
+
+        #ifdef PROP_DISPLACEMENTNOISE
+            float2 dPan = _Time.xx * _DisplacementNoisePan;
+            float4 dNoise = _DisplacementNoise.SampleLevel(sampler_DisplacementNoise, dUV + dPan + offset.xx, 0);
+        #else 
+            float4 dNoise = 0.5;
+        #endif
+
+        float3 displacement = (dNoise.xyz - 0.5) * 2;
+
+        displacement *= dMask * _DisplacementIntensity;
+        v.vertex.xyz += displacement;
+    #endif
+
 
     #ifdef UNITY_PASS_META
     o.pos = UnityMetaVertexPosition(v.vertex, v.uv1.xy, v.uv2.xy, unity_LightmapST, unity_DynamicLightmapST);
@@ -152,6 +199,8 @@ v2f vert(appdata v)
         o.pos = UnityApplyLinearShadowBias(o.pos);
         TRANSFER_SHADOW_CASTER_NOPOS(o, o.pos);
     #endif
+
+    
 
 
     return o;

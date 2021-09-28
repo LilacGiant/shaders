@@ -13,11 +13,13 @@
     #define PROP_ALEMISSIONMAP
     #define PROP_ENABLEVERTEXCOLOR
     #define PROP_ANISOTROPYMAP
+    #define PROP_DISPLACEMENTMASK
+    #define PROP_DISPLACEMENTNOISE
     #define NEEDS_UV2
 #endif
 
 #define NEEDS_UV1
-#if defined(DYNAMICLIGHTMAP_ON) || defined(UNITY_PASS_META) || (PROP_MAINTEXUV==2) || (PROP_METALLICGLOSSMAPUV==2) || (PROP_SMOOTHNESSMAPUV==2) || (PROP_METALLICMAPUV==2) || (PROP_OCCLUSIONMAPUV==2) || (PROP_BUMPMAPUV==2) || (PROP_EMISSIONMAPUV==2) || (PROP_DETAILMAPUV==2)
+#if defined(DYNAMICLIGHTMAP_ON) || defined(UNITY_PASS_META) || (PROP_MAINTEXUV==2) || (PROP_METALLICGLOSSMAPUV==2) || (PROP_SMOOTHNESSMAPUV==2) || (PROP_METALLICMAPUV==2) || (PROP_OCCLUSIONMAPUV==2) || (PROP_BUMPMAPUV==2) || (PROP_EMISSIONMAPUV==2) || (PROP_DETAILMAPUV==2) || (PROP_DISPLACEMENTMASKUV==2)
     #define NEEDS_UV2
 #endif
 
@@ -140,6 +142,17 @@ uniform half _DetailMapUV;
 uniform half _DetailAlbedoScale;
 uniform half _DetailNormalScale;
 uniform half _DetailSmoothnessScale;
+
+#ifdef ENABLE_DISPLACEMENT
+UNITY_DECLARE_TEX2D(_DisplacementMask);
+uniform int _DisplacementMaskUV;
+uniform float _DisplacementIntensity;
+
+UNITY_DECLARE_TEX2D(_DisplacementNoise);
+uniform int _RandomizePosition;
+uniform float2 _DisplacementNoisePan;
+
+#endif
 
 
 //sampler2D_float _CameraDepthTexture;

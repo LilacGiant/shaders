@@ -123,6 +123,16 @@ namespace z3y
         protected MaterialProperty _DstBlend = null;
 
         protected MaterialProperty _CentroidNormal = null;
+        
+        protected MaterialProperty _EnableDisplacement = null;
+        protected MaterialProperty _DisplacementMask = null;
+        protected MaterialProperty _DisplacementMaskUV = null;
+        protected MaterialProperty _DisplacementIntensity = null;
+        protected MaterialProperty _DisplacementNoise = null;
+        protected MaterialProperty _DisplacementNoisePan = null;
+        protected MaterialProperty _RandomizePosition = null;
+        protected MaterialProperty _WSNoise = null;
+        protected MaterialProperty _WSDisplacementNoisePan = null;
 
 
 
@@ -324,6 +334,22 @@ namespace z3y
 
                 prop(_LodCrossFade);
                 prop(_FlatShading);
+
+                prop(_EnableDisplacement);
+                if(_EnableDisplacement.floatValue == 1)
+                {
+                    Func.PropertyGroup(() => {
+                        prop(_DisplacementMaskUV);
+                        prop(_DisplacementMask);
+                        Func.sRGBWarning(_DisplacementMask);
+                        prop(_DisplacementIntensity);
+                        prop(_DisplacementNoise);
+                        Func.sRGBWarning(_DisplacementNoise);
+                        prop(_DisplacementNoisePan);
+                        prop(_RandomizePosition);
+                        if(!material.enableInstancing && _RandomizePosition.floatValue==1) EditorGUILayout.LabelField("Enable GPU Instancing or disable batching to use random panning", EditorStyles.boldLabel);
+                    });
+                }
 
             });
 
