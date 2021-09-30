@@ -3,7 +3,10 @@ Shader "z3y/lit"
 
     Properties
     {
-        _IsMaterialLocked ("", Int) = 0 // has to be property index 0
+        wAg6H2wQzc7UbxaL ("Is Locked", Int) = 0
+
+        _VertexLights ("Vertex Lights", Int) = 0
+
 
         [Enum(Opaque, 0, Cutout, 1, Fade, 2, Transparent, 3)] _Mode("Rendering Mode", Int) = 0
             [Enum(Off, 0, On, 1, Sharpened, 2)] _AlphaToMask ("Alpha To Coverage", Int) = 0
@@ -16,7 +19,7 @@ Shader "z3y/lit"
             _Color ("Base Color", Color) = (1,1,1,1)
             _Saturation ("Saturation", Range(-1,1)) = 0
             _SuperSamplingBias ("SuperSampling Bias", Range(-2,1)) = -1
-            [ToggleUI] _EnableVertexColor ("Vertex Colors Mulitply Base", Float) = 0
+            [ToggleUI] _EnableVertexColor ("Vertex Colors Mulitply Base", Int) = 0
       
 
         [Toggle(ENABLE_PACKED_MODE)] _EnablePackedMode ("Packed Mode", Float) = 1 
@@ -59,9 +62,13 @@ Shader "z3y/lit"
 
         [Toggle(ENABLE_SPECULAR_HIGHLIGHTS)] _SpecularHighlights("Specular Highlights", Float) = 1
         [Toggle(ENABLE_REFLECTIONS)] _GlossyReflections("Reflections", Float) = 1
+            [Enum(Metallic, 0, Specular, 1)] _SpecularWorkflow ("Workflow", Int) = 0
+            _SpecGlossMap ("Specular Color", 2D) = "white" {}
+            _SpecColor ("Specular Color", Color) = (0.5,0.5,0.5,0.5)
+            [Enum(UV 0 Locked, 0, UV 1, 1, UV 2, 2, UV 0 Unlocked, 3, Triplanar, 4, Stochastic, 5)]  _SpecGlossMapUV ("UV Type", Int) = 0
             _SheenColor ("Sheen Color", Color) = (0.5,0.5,0.5,0.5)
             _SheenRoughness ("Sheen Roughness", Range(0.004,1)) = 0.004
-            _FresnelColor ("Fresnel Multiplier", Color) = (1,1,1,1)
+            _FresnelColor ("Tint", Color) = (1,1,1,1)
             _Reflectance ("Reflectance", Range(0,1)) = 0.5
 
 
@@ -71,7 +78,7 @@ Shader "z3y/lit"
             
 
         [Toggle(ENABLE_BICUBIC_LIGHTMAP)] _BicubicLightmap ("Bicubic Lightmap", Float) = 0
-        [ToggleUI] _LightProbeMethod ("Non-linear Light Probe SH", Float) = 0
+        [ToggleUI] _LightProbeMethod ("Non-linear Light Probe SH", Int) = 0
         _LightmapMultiplier ("Lightmap Multiplier", Range(0, 2)) = 1
         _SpecularOcclusion ("Indirect Specular Occlusion", Range(0, 1)) = 0
         _SpecularOcclusionSensitivity ("Occlusion Sensitivity", Range(0, 1)) = 0
@@ -83,11 +90,11 @@ Shader "z3y/lit"
         [Enum(UnityEngine.Rendering.BlendMode)] _DstBlend ("Destination Blend", Int) = 0
 
         [Enum(Off, 0, On, 1)] _ZWrite ("ZWrite", Int) = 1
-        [Enum(UnityEngine.Rendering.CompareFunction)] _ZTest ("ZTest", Float) = 4
-        [Enum(UnityEngine.Rendering.CullMode)] _Cull ("Cull", Float) = 2
+        [Enum(UnityEngine.Rendering.CompareFunction)] _ZTest ("ZTest", Int) = 4
+        [Enum(UnityEngine.Rendering.CullMode)] _Cull ("Cull", Int) = 2
 
 
-        [Toggle(ENABLE_PARALLAX)] _EnableParallax ("Parallax", Float) = 0  
+        [Toggle(ENABLE_PARALLAX)] _EnableParallax ("Parallax", Int) = 0
             _Parallax ("Height Scale", Range (0, 0.2)) = 0.02
             _ParallaxMap ("Height Map", 2D) = "black" {}
             [IntRange] _ParallaxSteps ("Parallax Steps", Range(1,50)) = 25
@@ -110,11 +117,11 @@ Shader "z3y/lit"
             _ALEmissionMap ("Audio Link Emission Path & Mask: Path(G), Mask(A)", 2D) = "white" {}
 
 
-        [Toggle(BAKERY_LMSPEC)] _BAKERY_LMSPEC ("Baked Specular Highlights ", Float) = 0
+        [Toggle(BAKERY_LMSPEC)] _BAKERY_LMSPEC ("Baked Specular Highlights ", Int) = 0
         [Toggle(BAKERY_SH)] _BAKERY_SH ("Enable SH", Float) = 0
-        [Toggle(BAKERY_SHNONLINEAR)] _BAKERY_SHNONLINEAR ("SH non-linear mode", Float) = 1
-        [Toggle(BAKERY_RNM)] _BAKERY_RNM ("Enable RNM", Float) = 0
-        [Enum(BAKERYMODE_DEFAULT, 0, BAKERYMODE_VERTEXLM, 1, BAKERYMODE_RNM, 2, BAKERYMODE_SH, 3)] bakeryLightmapMode ("bakeryLightmapMode", Float) = 0
+        [Toggle(BAKERY_SHNONLINEAR)] _BAKERY_SHNONLINEAR ("SH non-linear mode", Int) = 0
+        [Toggle(BAKERY_RNM)] _BAKERY_RNM ("Enable RNM", Int) = 0
+        [Enum(BAKERYMODE_DEFAULT, 0, BAKERYMODE_VERTEXLM, 1, BAKERYMODE_RNM, 2, BAKERYMODE_SH, 3)] bakeryLightmapMode ("bakeryLightmapMode", Int) = 0
             _SpecularDirection ("Non-Directional Lightmap Specular Direction", Vector) = (0, 1, 0)
             _RNM0("RNM0", 2D) = "black" {}
             _RNM1("RNM1", 2D) = "black" {}
@@ -171,6 +178,7 @@ Shader "z3y/lit"
             #pragma target 5.0
             #pragma vertex vert
             #pragma fragment frag
+            #pragma fragmentoption ARB_precision_hint_fastest
             #pragma multi_compile_fwdbase
             #pragma multi_compile_instancing
             #pragma multi_compile_fog
@@ -229,7 +237,6 @@ Shader "z3y/lit"
             #pragma shader_feature_local ENABLE_PARALLAX
             #pragma shader_feature_local CENTROID_NORMAL
             #pragma shader_feature_local ENABLE_DISPLACEMENT
-
 
 
             #ifndef UNITY_PASS_FORWARDADD

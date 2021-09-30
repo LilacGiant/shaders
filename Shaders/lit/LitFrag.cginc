@@ -89,12 +89,31 @@ half4 frag(v2f i) : SV_Target
     UNITY_BRANCH
     if(_GSAA) surface.perceptualRoughness = GSAA_Filament(worldNormal, surface.perceptualRoughness);
 
+    float3 f0 = 1;
+    float3 specularIntensity = 0;
+    float3 fresnel = 1;
 
-    half3 f0 = 0.16 * _Reflectance * _Reflectance * surface.oneMinusMetallic + surface.albedo * surface.metallic;
-    float3 fresnel = lerp(f0, F_Schlick(NoV, f0) , _FresnelColor.a) * _FresnelColor.rgb;
-    fresnel *= _SpecularOcclusion ? saturate(lerp(1, pow(length(light.indirectDiffuse), _SpecularOcclusionSensitivity), _SpecularOcclusion))* surface.oneMinusMetallic : 1;
+    UNITY_BRANCH
+    if(_SpecularWorkflow == 1)
+    {
+        #ifdef PROP_SPECGLOSSMAP
+            float3 specularTexture = SampleTexture(_SpecGlossMap, _SpecGlossMap_ST, _SpecGlossMapUV).rgb;
+        #else
+            float3 specularTexture = 1;
+        #endif
+        f0 = _Reflectance;
+        specularIntensity = saturate(_SpecColor.r * specularTexture.r + _SpecColor.b * specularTexture.b + _SpecColor.g * specularTexture.g);
+        surface.oneMinusMetallic = 1 - specularIntensity;
+        fresnel = F_Schlick(NoV, _SpecColor.rgb * specularTexture);
+    }
+    else
+    {
+        f0 = 0.16 * _Reflectance * _Reflectance * surface.oneMinusMetallic + surface.albedo * surface.metallic;
+        fresnel = lerp(f0, F_Schlick(NoV, f0) , _FresnelColor.a) * _FresnelColor.rgb;
+    }
+
+    fresnel *= _SpecularOcclusion ? saturate(lerp(1, pow(length(light.indirectDiffuse), _SpecularOcclusionSensitivity), _SpecularOcclusion)) * surface.oneMinusMetallic : 1;
     
-
     #if defined(UNITY_PASS_FORWARDBASE)
 
         #if defined(ENABLE_REFLECTIONS)

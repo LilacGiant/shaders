@@ -377,8 +377,17 @@ void calcDirectSpecular(float3 worldNormal, half3 tangent, half3 bitangent, half
     half NoH = saturate(dot(worldNormal, light.halfVector));
     half roughness = max(surface.perceptualRoughness * surface.perceptualRoughness, 0.002);
 
-    
-    half3 F = F_Schlick(light.LoH, f0);
+    float3 F = 1;
+
+    UNITY_BRANCH
+    if(_SpecularWorkflow == 1)
+    {
+        F = F_Schlick(light.LoH, _FresnelColor.rgb);
+    }
+    else
+    {
+        F = F_Schlick(light.LoH, f0);
+    }
     float D = 0;
     float V = 0;
 

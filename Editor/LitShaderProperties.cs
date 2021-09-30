@@ -124,6 +124,11 @@ namespace z3y
 
         protected MaterialProperty _CentroidNormal = null;
         
+        protected MaterialProperty _SpecularWorkflow = null;
+        protected MaterialProperty _SpecGlossMap = null;
+        protected MaterialProperty _SpecColor = null;
+        protected MaterialProperty _SpecGlossMapUV = null;
+
         protected MaterialProperty _EnableDisplacement = null;
         protected MaterialProperty _DisplacementMask = null;
         protected MaterialProperty _DisplacementMaskUV = null;
@@ -249,22 +254,32 @@ namespace z3y
 
             });
 
-            md[material].ShowShaderFeatures = Foldout("Shader Features", md[material].ShowShaderFeatures, ()=> {
-                
-                Func.PropertyGroup(() => {
-                    EditorGUILayout.LabelField("Specular", EditorStyles.boldLabel);
-                    prop(_GlossyReflections);
-                    prop(_SpecularHighlights);
-                    prop(_FresnelColor);
-                    prop(_Reflectance);
-                    
-                    
-                });
+            md[material].ShowSpecular = Foldout("Specular Reflections", md[material].ShowSpecular, ()=> {
+                prop(_SpecularWorkflow);
 
+                if(_SpecularWorkflow.floatValue == 1)
+                {
+                    prop(_SpecGlossMap, _SpecColor);
+                    Func.PropertyGroup(() => {
+                    prop(_SpecGlossMapUV);
+                    propTileOffset(_SpecGlossMap);
+                    });
+                }
+
+                else
+                {
+                    prop(_FresnelColor);
+                }
+                prop(_Reflectance);
                 
+                EditorGUILayout.Space();
+                prop(_GlossyReflections);
+                prop(_SpecularHighlights);
+            });
+
+            md[material].ShowShaderFeatures = Foldout("Shader Features", md[material].ShowShaderFeatures, ()=> {
 
                 prop(_EnableEmission);
-
                 if(_EnableEmission.floatValue == 1)
                 {
                     Func.PropertyGroup(() => {
@@ -291,7 +306,6 @@ namespace z3y
                 }
 
                 prop(_EnableParallax);
-
                 if(_EnableParallax.floatValue == 1)
                 {
                     Func.PropertyGroup(() => {
@@ -412,15 +426,16 @@ namespace z3y
         // On inspector change
         private void ApplyChanges()
         {
-            if(_IsMaterialLocked.floatValue != 0) return;
             Func.SetupGIFlags(_EnableEmission.floatValue, material);
+
+            if(wAg6H2wQzc7UbxaL.floatValue != 0) return;
         }
 
         protected static Dictionary<Material, LitFoldoutDictionary> md = new Dictionary<Material, LitFoldoutDictionary>();
         protected BindingFlags bindingFlags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static;
         MaterialEditor me;
         public bool m_FirstTimeApply = true;
-        protected MaterialProperty _IsMaterialLocked = null;
+        protected MaterialProperty wAg6H2wQzc7UbxaL = null;
 
         public bool isLocked;
         Material material = null;
@@ -439,8 +454,8 @@ namespace z3y
                 m_FirstTimeApply = false;
             }
             
-            Func.ShaderOptimizerButton(_IsMaterialLocked, me);
-            isLocked = _IsMaterialLocked.floatValue == 1;
+            Func.ShaderOptimizerButton(wAg6H2wQzc7UbxaL, me);
+            isLocked = wAg6H2wQzc7UbxaL.floatValue == 1;
             EditorGUI.BeginChangeCheck();
             EditorGUI.indentLevel++;
 

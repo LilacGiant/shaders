@@ -55,7 +55,7 @@ namespace z3y
             style.font = new GUIStyle(EditorStyles.boldLabel).font;
             //style.font = EditorStyles.boldFont;
             //style.fontSize = GUI.skin.font.fontSize;
-            style.fontSize = 11;
+            style.fontSize = 12;
             //style.border = new RectOffset(15, 7, 4, 4);
             style.fixedHeight = HeaderHeight;
             style.contentOffset = contentOffset;
@@ -243,9 +243,9 @@ namespace z3y
                 EditorGUI.BeginChangeCheck();
                 if (shaderOptimizer.floatValue == 0)
                 {
-                    GUILayout.Button("Lock Material");
+                    GUILayout.Button("Lock");
                 }
-                else GUILayout.Button("Unlock Material");
+                else GUILayout.Button("Unlock");
                 if (EditorGUI.EndChangeCheck())
                 {
                     shaderOptimizer.floatValue = shaderOptimizer.floatValue == 1 ? 0 : 1;

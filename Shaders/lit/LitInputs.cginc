@@ -15,6 +15,7 @@
     #define PROP_ANISOTROPYMAP
     #define PROP_DISPLACEMENTMASK
     #define PROP_DISPLACEMENTNOISE
+    #define PROP_SPECGLOSSMAP
     #define NEEDS_UV2
 #endif
 
@@ -44,6 +45,8 @@
 #endif
 
 
+#define DECLARE_TEX2D_CUSTOM_SAMPLER(tex) SamplerState sampler##tex; Texture2D tex; uint tex##UV; float4 tex##_ST
+#define DECLARE_TEX2D_CUSTOM(tex)                                    Texture2D tex; uint tex##UV; float4 tex##_ST
 
 static float2 uvs[3];
 uniform half _Cutoff;
@@ -53,35 +56,29 @@ uniform half _AlphaToMask;
 uniform float _SpecularOcclusionSensitivity;
 uniform float3 _SpecularDirection;
 
-UNITY_DECLARE_TEX2D(_MainTex);
-uniform float4 _MainTex_TexelSize;
-uniform float _MainTexUV;
+
+
+DECLARE_TEX2D_CUSTOM_SAMPLER(_MainTex);
+ uniform float4 _MainTex_TexelSize;
 uniform float _SuperSamplingBias;
-uniform float4 _MainTex_ST;
-uniform half4 _Color;
+uniform float4 _Color;
 uniform half _Saturation;
 uniform half _EnableVertexColor;
 
 
 uniform float _NormalMapOrientation;
-UNITY_DECLARE_TEX2D(_BumpMap);
-uniform float _BumpMapUV;
-uniform float4 _BumpMap_ST;
+DECLARE_TEX2D_CUSTOM_SAMPLER(_BumpMap);
 uniform half _BumpScale;
 uniform int _HemiOctahedron;
 
 #ifndef ENABLE_PACKED_MODE
-UNITY_DECLARE_TEX2D_NOSAMPLER(_MetallicMap);
-uniform float _MetallicMapUV;
-uniform float4 _MetallicMap_ST;
+DECLARE_TEX2D_CUSTOM(_MetallicMap);
 #endif
 uniform half _Metallic;
 
 #ifndef ENABLE_PACKED_MODE
 
-UNITY_DECLARE_TEX2D_NOSAMPLER(_SmoothnessMap);
-uniform float _SmoothnessMapUV;
-uniform float4 _SmoothnessMap_ST;
+DECLARE_TEX2D_CUSTOM(_SmoothnessMap);
 
 #endif
 uniform float _GlossinessInvert;
@@ -89,16 +86,12 @@ uniform float _GlossinessInvert;
 uniform half _Glossiness;
 
 #ifndef ENABLE_PACKED_MODE
-UNITY_DECLARE_TEX2D_NOSAMPLER(_OcclusionMap);
-uniform float _OcclusionMapUV;
-uniform float4 _OcclusionMap_ST;
+DECLARE_TEX2D_CUSTOM(_OcclusionMap);
 #endif
 uniform half _Occlusion;
 
 
-UNITY_DECLARE_TEX2D_NOSAMPLER(_MetallicGlossMap);
-uniform float _MetallicGlossMapUV;
-uniform float4 _MetallicGlossMap_ST;
+DECLARE_TEX2D_CUSTOM(_MetallicGlossMap);
 
 uniform int _GSAA;
 uniform half _specularAntiAliasingVariance;
@@ -107,23 +100,24 @@ uniform half _specularAntiAliasingThreshold;
 uniform half4 _FresnelColor;
 uniform float3 _SheenColor;
 uniform float _SheenRoughness;
+uniform int _SpecularWorkflow;
+//uniform float3 _SpecColor; defined in unity cginc
+DECLARE_TEX2D_CUSTOM(_SpecGlossMap);
 
 uniform half _GetDominantLight;
 
 uniform half _Reflectance;
 uniform int _EnableAnisotropy;
 uniform half _Anisotropy;
-UNITY_DECLARE_TEX2D_NOSAMPLER(_AnisotropyMap);
-uniform float4 _AnisotropyMap_ST;
+DECLARE_TEX2D_CUSTOM(_AnisotropyMap);
+
 
 
 uniform half _LightmapMultiplier;
 uniform half _SpecularOcclusion;
 
 uniform half _EnableEmission;
-UNITY_DECLARE_TEX2D_NOSAMPLER(_EmissionMap);
-uniform float _EmissionMapUV;
-uniform float4 _EmissionMap_ST;
+DECLARE_TEX2D_CUSTOM(_EmissionMap);
 uniform half3 _EmissionColor;
 
 
@@ -136,9 +130,7 @@ uniform float _ParallaxOffset;
 uniform float _Parallax;
 #endif
 
-UNITY_DECLARE_TEX2D_NOSAMPLER(_DetailMap);
-uniform float4 _DetailMap_ST;
-uniform half _DetailMapUV;
+DECLARE_TEX2D_CUSTOM(_DetailMap);
 uniform half _DetailAlbedoScale;
 uniform half _DetailNormalScale;
 uniform half _DetailSmoothnessScale;

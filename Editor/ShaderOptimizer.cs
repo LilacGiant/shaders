@@ -126,12 +126,16 @@ namespace z3y
         // this hard-coded material property will uncomment //#pragma multi_compile _ LOD_FADE_CROSSFADE in optimized .shader files
         public static readonly string LODCrossFadePropertyName = "_LodCrossFade";
 
+
+        
+        public static readonly string VertexLightPropertyName = "_VertexLights";
+
         // Material property suffix that controls whether the property of the same name gets baked into the optimized shader
         // e.g. if _Color exists and _ColorAnimated = 1, _Color will not be baked in
         public static readonly string AnimatedPropertySuffix = "Animated";
 
         public static readonly string OriginalShaderTag = "OriginalShaderTag";
-        public static readonly string ShaderOptimizerEnabled = "_IsMaterialLocked";
+        public static readonly string ShaderOptimizerEnabled = "wAg6H2wQzc7UbxaL";
 
 
         // Material properties are put into each CGPROGRAM as preprocessor defines when the optimizer is run.
@@ -172,6 +176,7 @@ namespace z3y
 
         public static readonly string[] PropertiesToSkip = new string[]
         {
+            ShaderOptimizerEnabled,
             "_BlendOp",
             "_BlendOpAlpha",
             "_SrcBlend",
@@ -179,8 +184,7 @@ namespace z3y
             "_ZWrite",
             "_ZTest",
             "_Cull",
-            "_MainTex",
-            "_IsMaterialLocked"
+            "_MainTex"
         };
 
         public static readonly string[] TexelSizeCheck = new string[]
@@ -812,12 +816,20 @@ namespace z3y
                             string originalSgaderName = psf.lines[i].Split('\"')[1];
                             psf.lines[i] = psf.lines[i].Replace(originalSgaderName, newShaderName);
                         }
-                        else if (trimmedLine.StartsWith("//#pragma multi_compile _ LOD_FADE_CROSSFADE"))
+                        else if (trimmedLine.StartsWith("#pragma multi_compile _ LOD_FADE_CROSSFADE"))
                         {
                             MaterialProperty crossfadeProp = Array.Find(props, x => x.name == LODCrossFadePropertyName);
-                            if (crossfadeProp != null && crossfadeProp.floatValue == 1)
-                                psf.lines[i] = psf.lines[i].Replace("//#pragma", "#pragma");
+                            if (crossfadeProp != null && crossfadeProp.floatValue == 0)
+                                psf.lines[i] = psf.lines[i].Replace("#pragma", "//#pragma");
                         }
+
+                        else if (trimmedLine.StartsWith("#pragma multi_compile _ VERTEXLIGHT_ON"))
+                        {
+                            MaterialProperty crossfadeProp = Array.Find(props, x => x.name == VertexLightPropertyName);
+                            if (crossfadeProp != null && crossfadeProp.floatValue == 0)
+                                psf.lines[i] = psf.lines[i].Replace("#pragma", "//#pragma");
+                        }
+           
 
                         else if (trimmedLine.StartsWith("CGINCLUDE"))
                         {
@@ -1200,10 +1212,10 @@ namespace z3y
                         switch (constant.type)
                         {
                             case PropertyType.Float:
-                                sb.Append("half(" + constant.value.x.ToString(CultureInfo.InvariantCulture) + ")");
+                                sb.Append("float(" + constant.value.x.ToString(CultureInfo.InvariantCulture) + ")");
                                 break;
                             case PropertyType.Vector:
-                                sb.Append("half4("+constant.value.x.ToString(CultureInfo.InvariantCulture)+","
+                                sb.Append("float4("+constant.value.x.ToString(CultureInfo.InvariantCulture)+","
                                                    +constant.value.y.ToString(CultureInfo.InvariantCulture)+","
                                                    +constant.value.z.ToString(CultureInfo.InvariantCulture)+","
                                                    +constant.value.w.ToString(CultureInfo.InvariantCulture)+")");
