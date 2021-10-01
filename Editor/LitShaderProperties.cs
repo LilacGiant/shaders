@@ -136,8 +136,8 @@ namespace z3y
         protected MaterialProperty _DisplacementNoise = null;
         protected MaterialProperty _DisplacementNoisePan = null;
         protected MaterialProperty _RandomizePosition = null;
-        protected MaterialProperty _WSNoise = null;
-        protected MaterialProperty _WSDisplacementNoisePan = null;
+
+        protected MaterialProperty _VertexLights = null;
 
 
 
@@ -406,6 +406,7 @@ namespace z3y
                 EditorGUILayout.Space();
 
                 prop(_Cull);
+                prop(_VertexLights);
                 prop(_EnablePackedMode);
                 prop(_CentroidNormal);
                 me.DoubleSidedGIField();

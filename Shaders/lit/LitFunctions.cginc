@@ -372,7 +372,7 @@ void applyEmission()
 }
 
 
-void calcDirectSpecular(float3 worldNormal, half3 tangent, half3 bitangent, half3 f0, half NoV, float3 viewDir)
+void calcDirectSpecular(float3 worldNormal, half3 tangent, half3 bitangent, half3 f0, half NoV, float3 viewDir, float3 specularColor)
 {
     half NoH = saturate(dot(worldNormal, light.halfVector));
     half roughness = max(surface.perceptualRoughness * surface.perceptualRoughness, 0.002);
@@ -382,7 +382,7 @@ void calcDirectSpecular(float3 worldNormal, half3 tangent, half3 bitangent, half
     UNITY_BRANCH
     if(_SpecularWorkflow == 1)
     {
-        F = F_Schlick(light.LoH, _FresnelColor.rgb);
+        F = F_Schlick(light.LoH, specularColor);
     }
     else
     {

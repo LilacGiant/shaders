@@ -93,18 +93,20 @@ half4 frag(v2f i) : SV_Target
     float3 specularIntensity = 0;
     float3 fresnel = 1;
 
+    #ifdef PROP_SPECGLOSSMAP
+        float3 specularColor = SampleTexture(_SpecGlossMap, _SpecGlossMap_ST, _SpecGlossMapUV).rgb * _SpecColor.rgb;
+    #else
+        float3 specularColor = _SpecColor.rgb;
+    #endif
+
     UNITY_BRANCH
     if(_SpecularWorkflow == 1)
     {
-        #ifdef PROP_SPECGLOSSMAP
-            float3 specularTexture = SampleTexture(_SpecGlossMap, _SpecGlossMap_ST, _SpecGlossMapUV).rgb;
-        #else
-            float3 specularTexture = 1;
-        #endif
+        
         f0 = _Reflectance;
-        specularIntensity = saturate(_SpecColor.r * specularTexture.r + _SpecColor.b * specularTexture.b + _SpecColor.g * specularTexture.g);
+        specularIntensity = saturate(specularColor.r + specularColor.b + specularColor.g);
         surface.oneMinusMetallic = 1 - specularIntensity;
-        fresnel = F_Schlick(NoV, _SpecColor.rgb * specularTexture);
+        fresnel = F_Schlick(NoV, specularColor);
     }
     else
     {
@@ -133,7 +135,7 @@ half4 frag(v2f i) : SV_Target
     #endif
 
     #if defined(ENABLE_SPECULAR_HIGHLIGHTS) || defined(UNITY_PASS_META)
-        calcDirectSpecular(worldNormal, tangent, bitangent, f0, NoV, viewDir);
+        calcDirectSpecular(worldNormal, tangent, bitangent, f0, NoV, viewDir, specularColor);
     #endif
 
     
@@ -200,6 +202,7 @@ half4 ShadowCasterfrag(v2f i) : SV_Target
     
     initUVs(i);
     half2 parallaxOffset = 0;
+    pixel.worldNormal = 1;
     half4 mainTex = SampleTexture(_MainTex, _MainTex_ST, _MainTexUV);
 
     half alpha = mainTex.a * _Color.a;

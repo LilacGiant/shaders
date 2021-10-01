@@ -5,7 +5,7 @@ Shader "z3y/lit"
     {
         wAg6H2wQzc7UbxaL ("Is Locked", Int) = 0
 
-        _VertexLights ("Vertex Lights", Int) = 0
+        [ToggleUI] _VertexLights ("Allow Vertex Lights", Int) = 0
 
 
         [Enum(Opaque, 0, Cutout, 1, Fade, 2, Transparent, 3)] _Mode("Rendering Mode", Int) = 0
