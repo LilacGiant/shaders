@@ -122,6 +122,8 @@ namespace z3y
         // Set to false if you want to keep UNITY_BRANCH and [branch]
         public static bool RemoveUnityBranches = true;
 
+        public static readonly bool BakeUnityGlobalKeywords = false;
+
         // LOD Crossfade Dithing doesn't have multi_compile keyword correctly toggled at build time (its always included) so
         // this hard-coded material property will uncomment //#pragma multi_compile _ LOD_FADE_CROSSFADE in optimized .shader files
         public static readonly string LODCrossFadePropertyName = "_LodCrossFade";
@@ -692,6 +694,49 @@ namespace z3y
 
             List<PropertyData> constantProps = new List<PropertyData>();
             List<string> animatedProps = new List<string>();
+
+            if(BakeUnityGlobalKeywords)
+            {
+                StringBuilder skipVariants = new StringBuilder("#pragma skip_variants ");
+
+                var lights = UnityEngine.Object.FindObjectsOfType<Light>();
+                int pixelLightCount = 0;
+                bool hasVertexLights = false;
+                bool hasCookie = false;
+                bool hasShadows = false;
+                bool hasSoftShadows = false;
+                bool hasSpotLight = false;
+                bool hasPointLight = false;
+
+                for (int j = 0; j < lights.Length; j++)
+                {
+                    if(lights[j].lightmapBakeType == LightmapBakeType.Baked) continue;
+
+                    if((lights[j].renderMode == LightRenderMode.Auto || lights[j].renderMode == LightRenderMode.ForcePixel)) pixelLightCount += 1;
+                    if(lights[j].renderMode == LightRenderMode.ForceVertex) hasVertexLights = true;
+                    if(lights[j].cookie != null) hasCookie = true;
+                    if(lights[j].shadows != LightShadows.None) hasShadows = true;
+                    if(lights[j].shadows == LightShadows.Soft) hasSoftShadows = true;
+                    if(lights[j].type == LightType.Spot) hasSpotLight = true;
+                    if(lights[j].type == LightType.Point) hasPointLight = true;
+                } 
+
+                if(pixelLightCount > 4) hasVertexLights = true;
+
+                if(!hasPointLight) skipVariants.Append("POINT ");
+                if(!hasVertexLights) skipVariants.Append("VERTEXLIGHT_ON ");
+                if(!hasCookie) skipVariants.Append("DIRECTIONAL_COOKIE POINT_COOKIE ");
+                if(!hasShadows) skipVariants.Append("SHADOWS_SCREEN ");
+                if(!hasSoftShadows) skipVariants.Append("SHADOWS_SOFT ");
+                if(!hasSpotLight) skipVariants.Append("SPOT ");
+
+                if(!Lightmapping.realtimeGI) skipVariants.Append("DYNAMICLIGHTMAP_ON ");
+                if(!RenderSettings.fog) skipVariants.Append("FOG_LINEAR FOG_EXP FOG_EXP2 ");
+
+                definesSB.Append(skipVariants.ToString());
+                definesSB.Append(Environment.NewLine);
+            }
+
             foreach (MaterialProperty prop in props)
             {
                 if (prop == null) continue;
