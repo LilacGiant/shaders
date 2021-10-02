@@ -122,7 +122,6 @@ namespace z3y
         // Set to false if you want to keep UNITY_BRANCH and [branch]
         public static bool RemoveUnityBranches = true;
 
-        public static readonly bool BakeUnityGlobalKeywords = false;
 
         // LOD Crossfade Dithing doesn't have multi_compile keyword correctly toggled at build time (its always included) so
         // this hard-coded material property will uncomment //#pragma multi_compile _ LOD_FADE_CROSSFADE in optimized .shader files
@@ -130,7 +129,6 @@ namespace z3y
 
 
         
-        public static readonly string VertexLightPropertyName = "_VertexLights";
 
         // Material property suffix that controls whether the property of the same name gets baked into the optimized shader
         // e.g. if _Color exists and _ColorAnimated = 1, _Color will not be baked in
@@ -150,12 +148,12 @@ namespace z3y
 
         private static bool ReplaceAnimatedParameters = false;
 
-        public static void LockMaterial(Material mat, bool applyLater, Material sharedMaterial)
+        public static void LockMaterial(Material mat, bool applyLater, Material sharedMaterial, string unityKeywords)
         {
 
             mat.SetFloat(ShaderOptimizerEnabled, 1);
             MaterialProperty[] props = MaterialEditor.GetMaterialProperties(new UnityEngine.Object[] { mat });
-            if (!ShaderOptimizer.Lock(mat, props, applyLater, sharedMaterial)) // Error locking shader, revert property
+            if (!ShaderOptimizer.Lock(mat, props, applyLater, sharedMaterial, unityKeywords)) // Error locking shader, revert property
                 mat.SetFloat(ShaderOptimizerEnabled, 0);
         }
 
@@ -210,6 +208,8 @@ namespace z3y
             
             AssetDatabase.StartAssetEditing();
             Dictionary<string, Material> MaterialsPropertyHash = new Dictionary<string, Material>();
+
+            string unityKeywords = UnityGlobalKeywords();
 
 
             for (int i=0; i<progress; i++)
@@ -281,7 +281,7 @@ namespace z3y
                     MaterialsPropertyHash.Add(matPropHash, mats[i]);
                 }
                 
-                LockMaterial(mats[i], true, sharedMaterial);
+                LockMaterial(mats[i], true, sharedMaterial, unityKeywords);
             }
             
             EditorUtility.ClearProgressBar();
@@ -646,13 +646,54 @@ namespace z3y
             public Vector2 offset;
         }
 
+        public static string UnityGlobalKeywords()
+        {
+            StringBuilder skipVariants = new StringBuilder("#pragma skip_variants ");
+
+                var lights = UnityEngine.Object.FindObjectsOfType<Light>();
+                int pixelLightCount = 0;
+                bool hasVertexLights = false;
+                bool hasCookie = false;
+                bool hasShadows = false;
+                bool hasSoftShadows = false;
+                bool hasSpotLight = false;
+                bool hasPointLight = false;
+
+                for (int j = 0; j < lights.Length; j++)
+                {
+                    if(lights[j].lightmapBakeType == LightmapBakeType.Baked) continue;
+
+                    if((lights[j].renderMode == LightRenderMode.Auto || lights[j].renderMode == LightRenderMode.ForcePixel)) pixelLightCount += 1;
+                    if(lights[j].renderMode == LightRenderMode.ForceVertex) hasVertexLights = true;
+                    if(lights[j].cookie != null) hasCookie = true;
+                    if(lights[j].shadows != LightShadows.None) hasShadows = true;
+                    if(lights[j].shadows == LightShadows.Soft) hasSoftShadows = true;
+                    if(lights[j].type == LightType.Spot) hasSpotLight = true;
+                    if(lights[j].type == LightType.Point) hasPointLight = true;
+                } 
+
+                if(pixelLightCount > 4) hasVertexLights = true;
+
+                if(!hasPointLight) skipVariants.Append("POINT ");
+                if(!hasVertexLights) skipVariants.Append("VERTEXLIGHT_ON ");
+                if(!hasCookie) skipVariants.Append("DIRECTIONAL_COOKIE POINT_COOKIE ");
+                if(!hasShadows) skipVariants.Append("SHADOWS_SCREEN ");
+                if(!hasSoftShadows) skipVariants.Append("SHADOWS_SOFT ");
+                if(!hasSpotLight) skipVariants.Append("SPOT ");
+
+                if(!Lightmapping.realtimeGI) skipVariants.Append("DYNAMICLIGHTMAP_ON ");
+                if(!RenderSettings.fog) skipVariants.Append("FOG_LINEAR FOG_EXP FOG_EXP2 ");
+
+                return skipVariants.ToString();
+        }
+
         public static bool Lock(Material material, MaterialProperty[] props)
         {
-            Lock(material, props, false, null);
+            Lock(material, props, false, null, null);
             return true;
         }
 
-        public static bool Lock(Material material, MaterialProperty[] props, bool applyShaderLater, Material sharedMaterial)
+        public static bool Lock(Material material, MaterialProperty[] props, bool applyShaderLater, Material sharedMaterial, string unityKeywords)
         {
  
             Shader shader = material.shader;
@@ -695,45 +736,11 @@ namespace z3y
             List<PropertyData> constantProps = new List<PropertyData>();
             List<string> animatedProps = new List<string>();
 
-            if(BakeUnityGlobalKeywords)
+            MaterialProperty bakeUnityKeywords = Array.Find(props, x => x.name == "_BakeUnityKeywords");
+
+            if(bakeUnityKeywords.floatValue == 1)
             {
-                StringBuilder skipVariants = new StringBuilder("#pragma skip_variants ");
-
-                var lights = UnityEngine.Object.FindObjectsOfType<Light>();
-                int pixelLightCount = 0;
-                bool hasVertexLights = false;
-                bool hasCookie = false;
-                bool hasShadows = false;
-                bool hasSoftShadows = false;
-                bool hasSpotLight = false;
-                bool hasPointLight = false;
-
-                for (int j = 0; j < lights.Length; j++)
-                {
-                    if(lights[j].lightmapBakeType == LightmapBakeType.Baked) continue;
-
-                    if((lights[j].renderMode == LightRenderMode.Auto || lights[j].renderMode == LightRenderMode.ForcePixel)) pixelLightCount += 1;
-                    if(lights[j].renderMode == LightRenderMode.ForceVertex) hasVertexLights = true;
-                    if(lights[j].cookie != null) hasCookie = true;
-                    if(lights[j].shadows != LightShadows.None) hasShadows = true;
-                    if(lights[j].shadows == LightShadows.Soft) hasSoftShadows = true;
-                    if(lights[j].type == LightType.Spot) hasSpotLight = true;
-                    if(lights[j].type == LightType.Point) hasPointLight = true;
-                } 
-
-                if(pixelLightCount > 4) hasVertexLights = true;
-
-                if(!hasPointLight) skipVariants.Append("POINT ");
-                if(!hasVertexLights) skipVariants.Append("VERTEXLIGHT_ON ");
-                if(!hasCookie) skipVariants.Append("DIRECTIONAL_COOKIE POINT_COOKIE ");
-                if(!hasShadows) skipVariants.Append("SHADOWS_SCREEN ");
-                if(!hasSoftShadows) skipVariants.Append("SHADOWS_SOFT ");
-                if(!hasSpotLight) skipVariants.Append("SPOT ");
-
-                if(!Lightmapping.realtimeGI) skipVariants.Append("DYNAMICLIGHTMAP_ON ");
-                if(!RenderSettings.fog) skipVariants.Append("FOG_LINEAR FOG_EXP FOG_EXP2 ");
-
-                definesSB.Append(skipVariants.ToString());
+                definesSB.Append(String.IsNullOrEmpty(unityKeywords) ? UnityGlobalKeywords(): unityKeywords);
                 definesSB.Append(Environment.NewLine);
             }
 
@@ -867,15 +874,7 @@ namespace z3y
                             if (crossfadeProp != null && crossfadeProp.floatValue == 0)
                                 psf.lines[i] = psf.lines[i].Replace("#pragma", "//#pragma");
                         }
-
-                        else if (trimmedLine.StartsWith("#pragma multi_compile _ VERTEXLIGHT_ON"))
-                        {
-                            MaterialProperty crossfadeProp = Array.Find(props, x => x.name == VertexLightPropertyName);
-                            if (crossfadeProp != null && crossfadeProp.floatValue == 0)
-                                psf.lines[i] = psf.lines[i].Replace("#pragma", "//#pragma");
-                        }
            
-
                         else if (trimmedLine.StartsWith("CGINCLUDE"))
                         {
                             for (int j=i+1; j<psf.lines.Length;j++)
