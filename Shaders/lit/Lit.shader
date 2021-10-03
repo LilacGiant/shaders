@@ -50,6 +50,7 @@ Shader "z3y/lit"
 
         [ToggleUI] _EnableEmission ("Emission", Float) = 0
             _EmissionMap ("Emission Map", 2D) = "white" {}
+            [ToggleUI] _EmissionMultBase ("Multiply Base", Int) = 0
             [HDR] _EmissionColor ("Emission Color", Color) = (0,0,0)
             [Enum(UV 0 Locked, 0, UV 1, 1, UV 2, 2, UV 0 Unlocked, 3, Triplanar, 4, Stochastic, 5)]  _EmissionMapUV ("UV Type", Int) = 0
 

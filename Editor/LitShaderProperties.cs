@@ -50,6 +50,7 @@ namespace z3y
         protected MaterialProperty _EmissionColor = null;
         protected MaterialProperty _EmissionMapUV = null;
         protected MaterialProperty _EnableEmission = null;
+        protected MaterialProperty _EmissionMultBase = null;
         protected MaterialProperty _EnableNormalMap = null;
         protected MaterialProperty _HemiOctahedron = null;
         protected MaterialProperty _SpecularHighlights = null;
@@ -291,6 +292,8 @@ namespace z3y
                             
                         });
                         me.LightmapEmissionProperty();
+                        prop(_EmissionMultBase);
+
 
                         if(_EnableAudioLink.floatValue == 1)
                         {

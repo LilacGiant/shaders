@@ -337,6 +337,9 @@ void applyEmission()
         emissionMap = SampleTexture(_EmissionMap, _EmissionMap_ST, _EmissionMapUV);
     #endif
 
+    UNITY_BRANCH
+    if(_EmissionMultBase) emissionMap.rgb *= surface.albedo.rgb;
+
     #if defined(ENABLE_AUDIOLINK)
         float4 alEmissionMap = 1;
         #if defined(PROP_ALEMISSIONMAP)

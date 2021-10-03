@@ -117,6 +117,7 @@ uniform half _LightmapMultiplier;
 uniform half _SpecularOcclusion;
 
 uniform half _EnableEmission;
+uniform int _EmissionMultBase;
 DECLARE_TEX2D_CUSTOM(_EmissionMap);
 uniform half3 _EmissionColor;
 
