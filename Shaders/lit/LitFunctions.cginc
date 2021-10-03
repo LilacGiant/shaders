@@ -87,7 +87,8 @@ float4 SampleTexture(Texture2D tex, float4 st, sampler s, int type)
                                 mul(tex.SampleGrad(s, (uvs[0] * st.xy + st.zw) + hash2D2D(BW_vx[1].xy), dxu, dyu), BW_vx[3].y) + 
                                 mul(tex.SampleGrad(s, (uvs[0] * st.xy + st.zw) + hash2D2D(BW_vx[2].xy), dxu, dyu), BW_vx[3].z);
             break;
-        case 6: // only for maintex
+        case 6:
+            // not sure what this does, I copied it directly from bgolus
             // https://bgolus.medium.com/sharper-mipmapping-using-shader-based-supersampling-ed7aadb47bec
             // per pixel partial derivatives
             float2 dx = ddx(uvs[0] * st.xy + st.zw + pixel.parallaxOffset);
@@ -471,7 +472,7 @@ float3 Unity_NormalReconstructZ_float(float2 In)
 #if !defined(UNITY_PASS_SHADOWCASTER)
 void initLighting(v2f i, float3 worldNormal, float3 viewDir, half NoV, float3 tangentNormal)
 {
-    light.direction = normalize(UnityWorldSpaceLightDir(i.worldPos));
+    light.direction = Unity_SafeNormalize(UnityWorldSpaceLightDir(i.worldPos));
     light.color = _LightColor0.rgb;
     light.halfVector = Unity_SafeNormalize(light.direction + viewDir);
     light.NoL = saturate(dot(worldNormal, light.direction));

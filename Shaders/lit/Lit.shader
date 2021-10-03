@@ -153,18 +153,12 @@ Shader "z3y/lit"
     SubShader
     {
 
-        Tags
-        {
-            "RenderType" = "Opaque" "Queue" = "Geometry"
-        }
+        Tags { "RenderType"="Opaque" "Queue"="Geometry" }
 
         Pass
         {
             Name "FORWARD"
-            Tags
-            {
-                "LightMode"="ForwardBase"
-            }
+            Tags { "LightMode"="ForwardBase" }
             
             ZWrite [_ZWrite]
             Cull [_Cull]
@@ -211,10 +205,8 @@ Shader "z3y/lit"
         Pass
         {
             Name "FWDADD"
-            Tags
-            {
-                "LightMode"="ForwardAdd"
-            }
+            Tags { "LightMode"="ForwardAdd" }
+            Fog { Color (0,0,0,0) }
             ZWrite Off
             BlendOp [_BlendOp], [_BlendOpAlpha]
             Blend One One
@@ -250,10 +242,7 @@ Shader "z3y/lit"
         Pass
         {
             Name "ShadowCaster"
-            Tags
-            {
-                "LightMode"="ShadowCaster"
-            }
+            Tags { "LightMode"="ShadowCaster" }
             AlphaToMask Off
             ZWrite On
             Cull [_Cull]
@@ -266,9 +255,9 @@ Shader "z3y/lit"
             #pragma multi_compile_shadowcaster
             #pragma multi_compile_instancing
             #pragma multi_compile _ LOD_FADE_CROSSFADE
-            #pragma shader_feature_local ENABLE_DISPLACEMENT
-            
             #pragma skip_variants FOG_LINEAR FOG_EXP FOG_EXP2
+            
+            #pragma shader_feature_local ENABLE_DISPLACEMENT
 
             #ifndef UNITY_PASS_SHADOWCASTER
                 #define UNITY_PASS_SHADOWCASTER
@@ -282,7 +271,6 @@ Shader "z3y/lit"
         {
             Name "META"
             Tags { "LightMode"="Meta" }
-
             Cull Off
 
             CGPROGRAM
