@@ -170,18 +170,27 @@ half4 frag(v2f i) : SV_Target
     #endif
     
     alpha -= mainTex.a * 0.00001; // fix main tex sampler without changing the color;
+    
+    UNITY_BRANCH
     if(_Mode == 3)
     {
         surface.albedo.rgb *= alpha;
         alpha = lerp(alpha, 1, surface.metallic);
     }
+    else if(_Mode == 2)
+    {
+        light.finalLight *= alpha;
+        light.directSpecular *= alpha;
+    }
+
 
     if(_FlatShading) light.finalLight = saturate(light.color + vertexLightColor) * light.attenuation;
 
 
+
  
     half4 finalColor = half4( surface.albedo * surface.oneMinusMetallic * (light.indirectDiffuse * surface.occlusion + (light.finalLight + vLight + subsurfaceColor)) + light.indirectSpecular + light.directSpecular + surface.emission, alpha);
-
+    
     #ifdef UNITY_PASS_META
         return getMeta(surface, light, alpha);
     #endif
