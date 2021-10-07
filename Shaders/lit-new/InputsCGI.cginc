@@ -8,3 +8,11 @@ DECLARE_TEX2D_CUSTOM(_MetallicGlossMap);
 float _Metallic;
 float _Glossiness;
 float _Occlusion;
+
+DECLARE_TEX2D_CUSTOM_SAMPLER(_BumpMap);
+float _BumpScale;
+
+float _specularAntiAliasingVariance;
+float _specularAntiAliasingThreshold;
+float _Reflectance;
+float4 _FresnelColor;

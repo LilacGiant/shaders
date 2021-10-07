@@ -4,10 +4,25 @@
 #include "Lighting.cginc"
 
 #include "ConfigCGI.cginc"
+#include "InputsCGI.cginc"
 #include "FunctionsCGI.cginc"
 
 #if defined(DYNAMICLIGHTMAP_ON)
     #define NEEDS_UV2
+#endif
+
+#if defined(NORMALMAP)
+    #ifndef NEEDS_TANGENT_BITANGENT
+        #define NEEDS_TANGENT_BITANGENT
+    #endif
+#endif
+
+#if defined(SPECULAR_HIGHLIGHTS) || defined(REFLECTIONS)
+    #ifdef UNITY_PASS_FORWARDBASE
+        #ifndef NEEDS_TANGENT_BITANGENT
+            #define NEEDS_TANGENT_BITANGENT
+        #endif
+    #endif
 #endif
 
 struct appdata
@@ -23,6 +38,10 @@ struct appdata
     #endif
 
     #if defined(UNITY_PASS_FORWARDBASE) || defined(UNITY_PASS_FORWARDADD)
+
+        #if defined (NEEDS_TANGENT_BITANGENT)
+            half4 tangent : TANGENT;
+        #endif
 
     #endif
 
@@ -44,6 +63,11 @@ struct v2f
         float4 worldPos : TEXCOORD3;
         UNITY_SHADOW_COORDS(4)
 
+        #if defined(NEEDS_TANGENT_BITANGENT)
+            float3 bitangent : TEXCOORD5;
+            float3 tangent : TEXCOORD6;
+        #endif
+
         #if defined(LIGHTMAP_SHADOW_MIXING) && defined(SHADOWS_SHADOWMASK) && defined(SHADOWS_SCREEN) && defined(LIGHTMAP_ON)
             float4 screenPos : TEXCOORD10;
         #endif
@@ -60,7 +84,7 @@ struct v2f
 //     UNITY_DEFINE_INSTANCED_PROP(float4, _Color)
 // UNITY_INSTANCING_BUFFER_END(Props)
 
-#include "InputsCGI.cginc"
+
 
 v2f vert (appdata v)
 {
@@ -81,6 +105,11 @@ v2f vert (appdata v)
         o.pos = UnityObjectToClipPos(v.vertex);
         o.worldNormal = UnityObjectToWorldNormal(v.normal);
         o.worldPos = mul(unity_ObjectToWorld, v.vertex);
+
+        #if defined(NEEDS_TANGENT_BITANGENT)
+            o.tangent = UnityObjectToWorldDir(v.tangent);
+            o.bitangent = cross(o.tangent.xyz, o.worldNormal) * v.tangent.w;
+        #endif
 
         #if defined(LIGHTMAP_SHADOW_MIXING) && defined(SHADOWS_SHADOWMASK) && defined(SHADOWS_SCREEN) && defined(LIGHTMAP_ON)
             o.screenPos = ComputeScreenPos(o.pos);

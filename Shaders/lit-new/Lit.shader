@@ -6,10 +6,29 @@
         _Color ("Base Color", Color) = (1,1,1,1)
 
         [Space(10)]
+        [Toggle(MASKMAP)] _EnableMaskMap ("_EnableMaskMap", Float) = 0
         _MetallicGlossMap ("Mask Map:Metallic(R), Occlusion(G), Detail Mask(B), Smoothness(A)", 2D) = "white" {}
-        _Metallic ("Metallic", Range(0,1)) = 0
+        [Gamma] _Metallic ("Metallic", Range(0,1)) = 0
         _Glossiness ("Smoothness", Range(0,1)) = 0.5
         _Occlusion ("Occlusion", Range(0,1)) = 0
+
+        [Space(10)]
+        [Toggle(NORMALMAP)] _EnableNormalMap ("_EnableNormalMap", Float) = 0
+        [Normal] _BumpMap ("Normal Map", 2D) = "bump" {}
+        _BumpScale ("Bump Scale", Range(0,10)) = 1
+
+
+
+        [Space(10)]
+        [Toggle(SPECULAR_HIGHLIGHTS)] _SpecularHighlights ("Specular Highlights", Float) = 1
+        [Toggle(REFLECTIONS)] _GlossyReflections ("Reflections", Float) = 1
+        _Reflectance ("Reflectance", Range(0,1)) = 0.5
+        _FresnelColor ("Base Color", Color) = (1,1,1,1)
+
+        [Space(10)]
+        [Toggle(GEOMETRIC_SPECULAR_AA)] _GSAA ("Geometric Specular AA", Int) = 0
+        [PowerSlider(3)] _specularAntiAliasingVariance ("Variance", Range(0.0, 1.0)) = 0.15
+        [PowerSlider(3)] _specularAntiAliasingThreshold ("Threshold", Range(0.0, 1.0)) = 0.1
 
         [Space(10)]
         [Enum(UnityEngine.Rendering.BlendOp)] _BlendOp ("Blend Op", Int) = 0
@@ -35,7 +54,7 @@
             ZWrite [_ZWrite]
             Cull [_Cull]
             ZTest [_ZTest]
-             AlphaToMask [_AlphaToMask]
+            AlphaToMask [_AlphaToMask]
             BlendOp [_BlendOp], [_BlendOpAlpha]
             Blend [_SrcBlend] [_DstBlend]
 
@@ -48,6 +67,12 @@
             #pragma multi_compile_instancing
             #pragma multi_compile_fog
             #pragma multi_compile _ VERTEXLIGHT_ON
+
+            #pragma shader_feature_local MASKMAP
+            #pragma shader_feature_local NORMALMAP
+            #pragma shader_feature_local SPECULAR_HIGHLIGHTS
+            #pragma shader_feature_local REFLECTIONS
+            #pragma shader_feature_local GEOMETRIC_SPECULAR_AA
 
             #include "PassCGI.cginc"
             ENDCG
@@ -73,6 +98,10 @@
             #pragma multi_compile_fwdadd_fullshadows
             #pragma multi_compile_instancing
             #pragma multi_compile_fog
+
+            #pragma shader_feature_local MASKMAP
+            #pragma shader_feature_local NORMALMAP
+            #pragma shader_feature_local SPECULAR_HIGHLIGHTS
 
             #include "PassCGI.cginc"
             ENDCG

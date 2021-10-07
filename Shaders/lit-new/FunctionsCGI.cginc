@@ -60,6 +60,12 @@ float Fd_Burley(float roughness, float NoV, float NoL, float LoH)
         fixed destName = tex2D(_LightTexture0, lightCoord).w;
 #endif
 
+#define SAMPLE_TEX2D_SAMPLER(tex,samplertex,coord) \
+        tex.Sample (sampler##samplertex,coord)
+
+#define SAMPLE_TEX2D(tex,coord) \
+        tex.Sample (sampler##tex,coord)
+
 // w0, w1, w2, and w3 are the four cubic B-spline basis functions
 float w0(float a)
 {
@@ -144,4 +150,51 @@ float3 tex2DFastBicubicLightmap(float2 uv, inout float4 bakedColorTex)
     bakedColorTex = UNITY_SAMPLE_TEX2D(unity_Lightmap, uv);
     return DecodeLightmap(bakedColorTex);
     #endif
+}
+
+float3 getBoxProjection (float3 direction, float3 position, float4 cubemapPosition, float3 boxMin, float3 boxMax)
+{
+     #if defined(UNITY_SPECCUBE_BOX_PROJECTION)
+        if (cubemapPosition.w > 0) {
+            float3 factors = ((direction > 0 ? boxMax : boxMin) - position) / direction;
+            float scalar = min(min(factors.x, factors.y), factors.z);
+            direction = direction * scalar + (position - cubemapPosition);
+        }
+    #endif
+    return direction;
+}
+
+float GSAA_Filament(float3 worldNormal,float perceptualRoughness) {
+    // Kaplanyan 2016, "Stable specular highlights"
+    // Tokuyoshi 2017, "Error Reduction and Simplification for Shading Anti-Aliasing"
+    // Tokuyoshi and Kaplanyan 2019, "Improved Geometric Specular Antialiasing"
+
+    // This implementation is meant for deferred rendering in the original paper but
+    // we use it in forward rendering as well (as discussed in Tokuyoshi and Kaplanyan
+    // 2019). The main reason is that the forward version requires an expensive transform
+    // of the half vector by the tangent frame for every light. This is therefore an
+    // approximation but it works well enough for our needs and provides an improvement
+    // over our original implementation based on Vlachos 2015, "Advanced VR Rendering".
+
+    float3 du = ddx(worldNormal);
+    float3 dv = ddy(worldNormal);
+
+    float variance = _specularAntiAliasingVariance * (dot(du, du) + dot(dv, dv));
+
+    float roughness = perceptualRoughness * perceptualRoughness;
+    float kernelRoughness = min(2.0 * variance, _specularAntiAliasingThreshold);
+    float squareRoughness = saturate(roughness * roughness + kernelRoughness);
+
+    return sqrt(sqrt(squareRoughness));
+}
+
+float computeSpecularAO(float NoV, float ao, float roughness) {
+    return clamp(pow(NoV + ao, exp2(-16.0 * roughness - 1.0)) - 1.0 + ao, 0.0, 1.0);
+}
+
+float V_SmithGGXCorrelated(float NoV, float NoL, float roughness) {
+    float a2 = roughness * roughness;
+    float GGXV = NoL * sqrt(NoV * NoV * (1.0 - a2) + a2);
+    float GGXL = NoV * sqrt(NoL * NoL * (1.0 - a2) + a2);
+    return 0.5 / (GGXV + GGXL);
 }
