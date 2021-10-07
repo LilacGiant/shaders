@@ -17,6 +17,7 @@
     #define PROP_DISPLACEMENTNOISE
     #define PROP_SPECGLOSSMAP
     #define NEEDS_UV2
+    #define PROP_THICKNESSMAP
 #endif
 
 #define NEEDS_UV1
@@ -146,6 +147,14 @@ uniform int _RandomizePosition;
 uniform float2 _DisplacementNoisePan;
 
 #endif
+
+float _Scale;
+float _Power;
+float _Distortion;
+int _SubsurfaceScattering;
+float4 _SubsurfaceTint;
+DECLARE_TEX2D_CUSTOM(_ThicknessMap);
+
 
 
 //sampler2D_float _CameraDepthTexture;

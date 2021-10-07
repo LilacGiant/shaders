@@ -325,7 +325,7 @@ float4 getMeta(Surface surface, Lighting light, float alpha)
     UNITY_INITIALIZE_OUTPUT(UnityMetaInput, metaInput);
     metaInput.Emission = surface.emission;
     metaInput.Albedo = surface.albedo;
-    metaInput.SpecularColor = light.directSpecular;
+    // metaInput.SpecularColor = light.directSpecular;
     return float4(UnityMetaFragment(metaInput).rgb, alpha);
 }
 #endif
@@ -471,19 +471,61 @@ float3 Unity_NormalReconstructZ_float(float2 In)
     float3 normalVector = float3(In.x, In.y, reconstructZ);
     return normalize(normalVector);
 }
+// https://github.com/DarthShader/Kaj-Unity-Shaders/blob/926f07a0bf3dc950db4d7346d022c89f9dfdb440/Shaders/Kaj/KajCore.cginc#L1041
+#ifdef POINT
+#define LIGHT_ATTENUATION_NO_SHADOW_MUL(destName, input, worldPos) \
+        unityShadowCoord3 lightCoord = mul(unity_WorldToLight, unityShadowCoord4(worldPos, 1)).xyz; \
+        fixed shadow = UNITY_SHADOW_ATTENUATION(input, worldPos); \
+        fixed destName = tex2D(_LightTexture0, dot(lightCoord, lightCoord).rr).r;
+#endif
+#ifdef SPOT
+#define LIGHT_ATTENUATION_NO_SHADOW_MUL(destName, input, worldPos) \
+        DECLARE_LIGHT_COORD(input, worldPos); \
+        fixed shadow = UNITY_SHADOW_ATTENUATION(input, worldPos); \
+        fixed destName = (lightCoord.z > 0) * UnitySpotCookie(lightCoord) * UnitySpotAttenuate(lightCoord.xyz);
+#endif
+#ifdef DIRECTIONAL
+#define LIGHT_ATTENUATION_NO_SHADOW_MUL(destName, input, worldPos) \
+        fixed shadow = UNITY_SHADOW_ATTENUATION(input, worldPos); \
+        fixed destName = 1;
+#endif
+#ifdef POINT_COOKIE
+#define LIGHT_ATTENUATION_NO_SHADOW_MUL(destName, input, worldPos) \
+        DECLARE_LIGHT_COORD(input, worldPos); \
+        fixed shadow = UNITY_SHADOW_ATTENUATION(input, worldPos); \
+        fixed destName = tex2D(_LightTextureB0, dot(lightCoord, lightCoord).rr).r * texCUBE(_LightTexture0, lightCoord).w;
+#endif
+#ifdef DIRECTIONAL_COOKIE
+#define LIGHT_ATTENUATION_NO_SHADOW_MUL(destName, input, worldPos) \
+        DECLARE_LIGHT_COORD(input, worldPos); \
+        fixed shadow = UNITY_SHADOW_ATTENUATION(input, worldPos); \
+        fixed destName = tex2D(_LightTexture0, lightCoord).w;
+#endif
 
 #if !defined(UNITY_PASS_SHADOWCASTER)
-void initLighting(v2f i, float3 worldNormal, float3 viewDir, half NoV, float3 tangentNormal)
+void initLighting(v2f i, float3 worldNormal, float3 viewDir, half NoV, float3 tangentNormal, inout float3 subsurfaceColor)
 {
     light.direction = Unity_SafeNormalize(UnityWorldSpaceLightDir(i.worldPos));
     light.color = _LightColor0.rgb;
     light.halfVector = Unity_SafeNormalize(light.direction + viewDir);
     light.NoL = saturate(dot(worldNormal, light.direction));
     light.LoH = saturate(dot(light.direction, light.halfVector));
-    UNITY_LIGHT_ATTENUATION(lightAttenuation, i, i.worldPos.xyz);
-    light.attenuation = lightAttenuation;
+    LIGHT_ATTENUATION_NO_SHADOW_MUL(lightAttenNoShadows, i, i.worldPos.xyz);
+    light.attenuation = lightAttenNoShadows * shadow;
     light.finalLight = (light.NoL * light.attenuation * light.color);
     light.finalLight *= Fd_Burley(surface.perceptualRoughness, NoV, light.NoL, light.LoH);
+
+    UNITY_BRANCH
+    if(_SubsurfaceScattering)
+    {
+        // https://www.alanzucconi.com/2017/08/30/fast-subsurface-scattering-2/
+        float VomL = pow(saturate(dot(viewDir, -light.direction)), _Power) * _Scale;
+        float4 thicknessMap = 1;
+        #ifdef PROP_THICKNESSMAP
+            thicknessMap = SampleTexture(_ThicknessMap, _ThicknessMap_ST, _ThicknessMapUV);
+        #endif
+        subsurfaceColor = VomL * light.color * lightAttenNoShadows * thicknessMap * _SubsurfaceTint;
+    }
 }
 #endif
 

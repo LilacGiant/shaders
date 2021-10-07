@@ -21,6 +21,7 @@ half4 frag(v2f i) : SV_Target
     half2 lightmapUV = 0;
     float3 vLight = 0;
     float3 vertexLightColor = 0;
+    float3 subsurfaceColor = 0;
     pixel.anisotropicDirection = 0.5;
 
     #ifdef CENTROID_NORMAL
@@ -72,7 +73,7 @@ half4 frag(v2f i) : SV_Target
 
 
     #if !defined(LIGHTMAP_ON) || defined(USING_LIGHT_MULTI_COMPILE)
-        initLighting(i, worldNormal, viewDir, NoV, tangentNormal);
+        initLighting(i, worldNormal, viewDir, NoV, tangentNormal, subsurfaceColor);
     #endif
 
     #if defined(VERTEXLIGHT_ON) && defined(UNITY_PASS_FORWARDBASE)
@@ -179,7 +180,7 @@ half4 frag(v2f i) : SV_Target
 
 
  
-    half4 finalColor = half4( surface.albedo * surface.oneMinusMetallic * (light.indirectDiffuse * surface.occlusion + (light.finalLight + vLight)) + light.indirectSpecular + light.directSpecular + surface.emission, alpha);
+    half4 finalColor = half4( surface.albedo * surface.oneMinusMetallic * (light.indirectDiffuse * surface.occlusion + (light.finalLight + vLight + subsurfaceColor)) + light.indirectSpecular + light.directSpecular + surface.emission, alpha);
 
     #ifdef UNITY_PASS_META
         return getMeta(surface, light, alpha);

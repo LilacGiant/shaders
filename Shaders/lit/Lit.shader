@@ -146,6 +146,13 @@ Shader "z3y/lit"
             [ToggleUI] _RandomizePosition ("Randomize Panning", Int) = 0
 
 
+            [ToggleUI] _SubsurfaceScattering ("Subsurface Scattering", Int) = 0
+                _Scale ("Scale", Float) = 1
+                _Power ("Power", Float) = 1
+                _ThicknessMap ("Thickness Map", 2D) = "white" {}
+                [Enum(UV 0 Locked, 0, UV 1, 1, UV 2, 2, UV 0 Unlocked, 3)]  _ThicknessMapUV ("UV Type", Int) = 0
+                _SubsurfaceTint ("Subsurface Tint", Color) = (1,1,1,1)
+
 
 
 

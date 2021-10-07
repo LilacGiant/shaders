@@ -140,6 +140,13 @@ namespace z3y
 
         protected MaterialProperty _BakeUnityKeywords = null;
 
+        protected MaterialProperty _SubsurfaceScattering = null;
+        protected MaterialProperty _Scale = null;
+        protected MaterialProperty _Power = null;
+        protected MaterialProperty _ThicknessMap = null;
+        protected MaterialProperty _ThicknessMapUV = null;
+        protected MaterialProperty _SubsurfaceTint = null;
+
 
 
 
@@ -367,6 +374,19 @@ namespace z3y
                         if(!material.enableInstancing && _RandomizePosition.floatValue==1) EditorGUILayout.LabelField("Enable GPU Instancing or disable batching to use random panning", EditorStyles.boldLabel);
                     });
                 }
+
+                prop(_SubsurfaceScattering);
+                if(_SubsurfaceScattering.floatValue == 1){
+                    Func.PropertyGroup(() => {
+                        prop(_ThicknessMap, _SubsurfaceTint);
+                        Func.sRGBWarning(_ThicknessMap);
+                        prop(_ThicknessMapUV);
+                        if(_ThicknessMapUV.floatValue != 0) propTileOffset(_ThicknessMap);
+                        prop(_Scale);
+                        prop(_Power);
+
+                    });
+                };
 
             });
 
