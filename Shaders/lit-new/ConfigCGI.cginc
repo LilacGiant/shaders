@@ -1,0 +1,4 @@
+
+#define BICUBIC_LIGHTMAP
+
+// #define DITHERED_LODCROSSFADE
