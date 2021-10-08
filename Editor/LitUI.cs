@@ -16,33 +16,19 @@ namespace z3y
         public bool ShowBakedLight = false;
         public bool ShowShaderFeatures = false;
 
-        public bool Show_MainTex = false;
-        public bool Show_MetallicGlossMap = false;
-        public bool Show_BumpMap = false;
-        public bool Show_EmissionMap = false;
-        public bool Show_DetailMap = false;
-        public bool Show_AnisotropyMap = false;
-
-        public bool Show_MetallicMap = false;
-        public bool Show_SmoothnessMap = false;
-        public bool Show_OcclusionMap = false;
-
-
     }
     
     public class LitUI : ShaderGUI
     {
+        protected MaterialProperty _Saturation = null;
         protected MaterialProperty _Color = null;
         protected MaterialProperty _MainTex = null;
-        protected MaterialProperty _EnableMaskMap = null;
         protected MaterialProperty _MetallicGlossMap = null;
         protected MaterialProperty _Metallic = null;
         protected MaterialProperty _Glossiness = null;
         protected MaterialProperty _Occlusion = null;
-        protected MaterialProperty _EnableNormalMap = null;
         protected MaterialProperty _BumpMap = null;
         protected MaterialProperty _BumpScale = null;
-        protected MaterialProperty _EnableEmissionMap = null;
         protected MaterialProperty _EmissionMap = null;
         protected MaterialProperty _EnableEmissionBase = null;
         protected MaterialProperty _EmissionColor = null;
@@ -50,8 +36,6 @@ namespace z3y
         protected MaterialProperty _GlossyReflections = null;
         protected MaterialProperty _Reflectance = null;
         protected MaterialProperty _FresnelColor = null;
-        protected MaterialProperty _EnableDetailMap = null;
-        protected MaterialProperty _EnableDetailMapUV1 = null;
         protected MaterialProperty _DetailMap = null;
         protected MaterialProperty _DetailAlbedoScale = null;
         protected MaterialProperty _DetailNormalScale = null;
@@ -69,6 +53,7 @@ namespace z3y
         protected MaterialProperty _AlphaToMask = null;
         protected MaterialProperty _Mode = null;
         protected MaterialProperty _Cutoff = null;
+        protected MaterialProperty _DetailMapUV = null;
 
 
 
@@ -97,6 +82,7 @@ namespace z3y
                 prop(_MainTex, _Color);
 
 
+                prop(_Saturation);
                 prop(_Metallic);
                 prop(_Glossiness);
 
@@ -104,28 +90,33 @@ namespace z3y
 
                 
                 prop(_MetallicGlossMap);
-
                 Func.sRGBWarning(_MetallicGlossMap);
-
-
-
-
 
                 prop(_BumpMap, _BumpMap.textureValue ? _BumpScale : null);
 
+                prop(_EmissionMap, _EmissionColor);
+                EditorGUI.indentLevel++;
+                EditorGUI.indentLevel++;
+                me.LightmapEmissionProperty();
+                prop(_EnableEmissionBase);
+                EditorGUI.indentLevel--;
+                EditorGUI.indentLevel--;
+
+
                 propTileOffset(_MainTex);
 
-                
+                EditorGUILayout.Space();
                 prop(_DetailMap);
-                propTileOffset(_DetailMap);
-                prop(_DetailAlbedoScale);
-                prop(_DetailNormalScale);
-                prop(_DetailSmoothnessScale);
+                Func.sRGBWarning(_DetailMap);
 
-
-
-                
-
+                if(_DetailMap.textureValue)
+                Func.PropertyGroup(() => {
+                    prop(_DetailMapUV);
+                    propTileOffset(_DetailMap);
+                    prop(_DetailAlbedoScale);
+                    prop(_DetailNormalScale);
+                    prop(_DetailSmoothnessScale);
+                });
 
             });
 
@@ -199,22 +190,40 @@ namespace z3y
         }
 
         // On inspector change
-        private void ApplyChanges()
+        private void ApplyChanges(Material material)
         {
-            float emissionEnabled = 0;
-            _EnableMaskMap.floatValue = _MetallicGlossMap.textureValue ? 1 : 0;
-            _EnableNormalMap.floatValue = _BumpMap.textureValue ? 1 : 0;
-            if(_EnableEmissionBase.floatValue == 0) {
-                _EnableEmissionMap.floatValue = _EmissionMap.textureValue ? 1 : 0;
-                emissionEnabled = _EnableEmissionMap.floatValue == 1 ? 1 : 0;
-            } else {
-                _EnableEmissionMap.floatValue = 0;
-                emissionEnabled = 1;
+            ToggleKeyword(material, _MetallicGlossMap.textureValue, "MASKMAP");
+            ToggleKeyword(material, _BumpMap.textureValue, "NORMALMAP");
+            if(_EnableEmissionBase.floatValue == 0)
+            {
+                ToggleKeyword(material, _EmissionMap.textureValue, "EMISSIONMAP");
+            } 
+            else
+            {
+                ToggleKeyword(material, false, "EMISSIONMAP");
             }
 
-            Func.SetupGIFlags(emissionEnabled, material);
+            if(_DetailMap.textureValue)
+            {
+                ToggleKeyword(material, _DetailMapUV.floatValue == 0, "DETAILMAP");
+                ToggleKeyword(material, _DetailMapUV.floatValue == 1, "DETAILMAP_UV1");
+            }
+            else
+            {
+                ToggleKeyword(material, false, "DETAILMAP");
+                ToggleKeyword(material, false, "DETAILMAP_UV1");
+            }
             
 
+            // Func.SetupGIFlags(emissionEnabled, material);
+            
+
+        }
+
+        private void ToggleKeyword(Material material, bool toggle, string keyword)
+        {
+            if(toggle) material.EnableKeyword(keyword);
+            else material.DisableKeyword(keyword);
         }
 
         protected static Dictionary<Material, LitFoldoutDictionary> md = new Dictionary<Material, LitFoldoutDictionary>();
@@ -236,20 +245,40 @@ namespace z3y
             if (m_FirstTimeApply)
             {
                 m_FirstTimeApply = false;
+                ApplyChanges(material);
             }
             
             EditorGUI.BeginChangeCheck();
-            EditorGUI.indentLevel++;
+            // EditorGUI.indentLevel++;
 
             ShaderPropertiesGUI(material);
 
             if (EditorGUI.EndChangeCheck()) {
-                ApplyChanges();
+                ApplyChanges(material);
             };
         }
 
-        private void prop(MaterialProperty property) => Func.MaterialProp(property, null, me, false, material);
-        private void prop(MaterialProperty property, MaterialProperty extraProperty) => Func.MaterialProp(property, extraProperty, me, false, material);
+        private void prop(MaterialProperty property) => MaterialProp(property, null, null, me);
+        private void prop(MaterialProperty property, MaterialProperty extraProperty) => MaterialProp(property, extraProperty, null, me);
+
+        public static void MaterialProp(MaterialProperty property, MaterialProperty extraProperty, MaterialProperty extraProperty2, MaterialEditor me)
+        {
+ 
+            if( property.type == MaterialProperty.PropType.Range ||
+                property.type == MaterialProperty.PropType.Float ||
+                property.type == MaterialProperty.PropType.Vector ||
+                property.type == MaterialProperty.PropType.Color)
+            {
+                me.ShaderProperty(property, property.displayName);
+            }
+
+            if(property.type == MaterialProperty.PropType.Texture) 
+            {
+                string[] p = property.displayName.Split(':');
+
+                me.TexturePropertySingleLine(new GUIContent(p[0], p.Length == 2 ? p[1] : null), property, extraProperty);
+            }
+        }
         
         private void propTileOffset(MaterialProperty property) => Func.propTileOffset(property, false, me, material);
         private bool Foldout(string foldoutText, bool foldoutName, Action action) => Func.Foldout(foldoutText, foldoutName, action);

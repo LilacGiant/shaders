@@ -1,4 +1,4 @@
-﻿Shader "Custom/Lit"
+﻿Shader "z3y/Simple Lit"
 {
     Properties
     {
@@ -8,23 +8,23 @@
 
         _MainTex ("Base Map", 2D) = "white" {}
         _Color ("Base Color", Color) = (1,1,1,1)
-        
+        _Saturation ("Saturation", Range(-1,1)) = 0
 
         
-        [Toggle(MASKMAP)] _EnableMaskMap ("_EnableMaskMap", Int) = 0
+        // [Toggle(MASKMAP)] _EnableMaskMap ("_EnableMaskMap", Int) = 0
         _MetallicGlossMap ("Mask Map:Metallic(R), Occlusion(G), Detail Mask(B), Smoothness(A)", 2D) = "white" {}
         [Gamma] _Metallic ("Metallic", Range(0,1)) = 0
         _Glossiness ("Smoothness", Range(0,1)) = 0.5
         _Occlusion ("Occlusion", Range(0,1)) = 0
 
         
-        [Toggle(NORMALMAP)] _EnableNormalMap ("_EnableNormalMap", Int) = 0
+        // [Toggle(NORMALMAP)] _EnableNormalMap ("_EnableNormalMap", Int) = 0
         [Normal] _BumpMap ("Normal Map", 2D) = "bump" {}
         _BumpScale ("Bump Scale", Range(0,10)) = 1
 
-        [Toggle(EMISSIONMAP)] _EnableEmissionMap ("_EnableEmissionMap", Int) = 0
+        // [Toggle(EMISSIONMAP)] _EnableEmissionMap ("_EnableEmissionMap", Int) = 0
         _EmissionMap ("Emission Map", 2D) = "white" {}
-        [Toggle(EMISSION_BASE)] _EnableEmissionBase ("_EnableEmissionBase", Int) = 0
+        [Toggle(EMISSION_BASE)] _EnableEmissionBase ("Multiply Base", Int) = 0
         [HDR] _EmissionColor ("Emission Color", Color) = (0,0,0)
 
 
@@ -35,8 +35,9 @@
         _FresnelColor ("Reflections Tint", Color) = (1,1,1,1)
 
         
-        [Toggle(DETAILMAP)] _EnableDetailMap ("_EnableDetailMap", Int) = 0
-        [Toggle(DETAILMAP_UV1)] _EnableDetailMapUV1 ("_EnableDetailMapUV1", Int) = 0
+        // [Toggle(DETAILMAP)] _EnableDetailMap ("_EnableDetailMap", Int) = 0
+        // [Toggle(DETAILMAP_UV1)] _EnableDetailMapUV1 ("_EnableDetailMapUV1", Int) = 0
+        [Enum(UV0, 0, UV1, 1)] _DetailMapUV ("Detail UV", Int) = 0
         _DetailMap ("Detail Map:Desaturated Albedo(R), Normal Y(G), Smoothness(B), Normal X(A)", 2D) = "linearGrey" {}
         _DetailAlbedoScale ("Albedo Scale", Range(0.0, 2.0)) = 1
         _DetailNormalScale ("Normal Scale", Range(0.0, 2.0)) = 0
