@@ -1,18 +1,30 @@
-#define DECLARE_TEX2D_CUSTOM_SAMPLER(tex) SamplerState sampler##tex; Texture2D tex; float4 tex##_ST
-#define DECLARE_TEX2D_CUSTOM(tex)                                    Texture2D tex; float4 tex##_ST
 
-DECLARE_TEX2D_CUSTOM_SAMPLER(_MainTex);
+float _Cutoff;
+
+Texture2D _MainTex;
+SamplerState sampler_MainTex;
+float4 _MainTex_ST;
 float4 _Color;
 
-DECLARE_TEX2D_CUSTOM(_MetallicGlossMap);
+Texture2D _MetallicGlossMap;
 float _Metallic;
 float _Glossiness;
 float _Occlusion;
 
-DECLARE_TEX2D_CUSTOM_SAMPLER(_BumpMap);
+Texture2D _BumpMap;
+SamplerState sampler_BumpMap;
 float _BumpScale;
 
 float _specularAntiAliasingVariance;
 float _specularAntiAliasingThreshold;
 float _Reflectance;
 float4 _FresnelColor;
+
+Texture2D _EmissionMap;
+float3 _EmissionColor;
+
+Texture2D _DetailMap;
+float4 _DetailMap_ST;
+float _DetailAlbedoScale;
+float _DetailNormalScale;
+float _DetailSmoothnessScale;

@@ -1,3 +1,4 @@
+
 #include "UnityCG.cginc"
 #include "UnityCG.cginc"
 #include "AutoLight.cginc"
@@ -11,7 +12,11 @@
     #define NEEDS_UV2
 #endif
 
-#if defined(NORMALMAP)
+#ifdef DETAILMAP_UV1
+    #define DETAILMAP
+#endif
+
+#if defined(NORMALMAP) || defined(DETAILMAP)
     #ifndef NEEDS_TANGENT_BITANGENT
         #define NEEDS_TANGENT_BITANGENT
     #endif
@@ -23,6 +28,11 @@
             #define NEEDS_TANGENT_BITANGENT
         #endif
     #endif
+#endif
+
+
+#if defined(FOG_LINEAR) || defined(FOG_EXP) || defined(FOG_EXP2)
+    #define FOG
 #endif
 
 struct appdata
@@ -45,8 +55,10 @@ struct appdata
 
     #endif
 
-    uint vertexId : SV_VertexID;
-    UNITY_VERTEX_INPUT_INSTANCE_ID
+    #ifdef INSTANCING_ON
+        uint vertexId : SV_VertexID;
+        UNITY_VERTEX_INPUT_INSTANCE_ID
+    #endif
 };
 
 struct v2f
@@ -61,6 +73,7 @@ struct v2f
     #if defined(UNITY_PASS_FORWARDBASE) || defined(UNITY_PASS_FORWARDADD)
         float3 worldNormal : TEXCOORD2;
         float4 worldPos : TEXCOORD3;
+
         UNITY_SHADOW_COORDS(4)
 
         #if defined(NEEDS_TANGENT_BITANGENT)
@@ -74,10 +87,13 @@ struct v2f
     #endif
 
     
-
-    UNITY_FOG_COORDS(1)
-    UNITY_VERTEX_INPUT_INSTANCE_ID
-	UNITY_VERTEX_OUTPUT_STEREO
+    #ifdef FOG
+        UNITY_FOG_COORDS(1)
+    #endif
+    #ifdef INSTANCING_ON
+        UNITY_VERTEX_INPUT_INSTANCE_ID
+	    UNITY_VERTEX_OUTPUT_STEREO
+    #endif
 };
 
 // UNITY_INSTANCING_BUFFER_START(Props)
@@ -90,11 +106,13 @@ v2f vert (appdata v)
 {
     v2f o;
     // UNITY_INITIALIZE_OUTPUT(v2f, o);
-    UNITY_SETUP_INSTANCE_ID(v);
-    UNITY_TRANSFER_INSTANCE_ID(v, o);
-    UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
+    #ifdef INSTANCING_ON
+        UNITY_SETUP_INSTANCE_ID(v);
+        UNITY_TRANSFER_INSTANCE_ID(v, o);
+        UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
+    #endif
     
-    o.coord0.xy = TRANSFORM_TEX(v.uv0, _MainTex);
+    o.coord0.xy = v.uv0;
     o.coord0.zw = v.uv1;
 
     #ifdef NEEDS_UV2
@@ -122,7 +140,9 @@ v2f vert (appdata v)
         TRANSFER_SHADOW_CASTER_NOPOS(o, o.pos);
     #endif
 
-    UNITY_TRANSFER_FOG(o,o.vertex);
+    #ifdef FOG
+        UNITY_TRANSFER_FOG(o,o.vertex);
+    #endif
     return o;
 }
 

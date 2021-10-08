@@ -1,6 +1,8 @@
 float4 frag (v2f i) : SV_Target
 {
-    UNITY_SETUP_INSTANCE_ID(i);
+    #ifdef INSTANCING_ON
+        UNITY_SETUP_INSTANCE_ID(i);
+    #endif
     float2 parallaxOffset = 0;
     float3 emission = 0;
     float3 indirectSpecular = 0;
@@ -8,10 +10,15 @@ float4 frag (v2f i) : SV_Target
     float3 vertexLight = 0;
     float3 indirectDiffuse = 1;
 
-    float2 textureUV = i.coord0.xy + parallaxOffset;
+    
+    float2 textureUV = TRANSFORM_TEX(i.coord0.xy, _MainTex) + parallaxOffset;
     
 
     float4 mainTexture = SAMPLE_TEX2D(_MainTex, textureUV) * _Color;
+
+
+            
+
     float alpha = mainTexture.a;
 
     #if defined(UNITY_PASS_SHADOWCASTER)
@@ -21,6 +28,27 @@ float4 frag (v2f i) : SV_Target
 
 
     #if defined(UNITY_PASS_FORWARDBASE) || defined(UNITY_PASS_FORWARDADD)
+
+        #ifdef CUTOUT
+            clip(alpha - _Cutoff);
+        #endif
+        #ifdef A2C_SHARPENED
+            alpha = (alpha - _Cutoff) / max(fwidth(alpha), 0.0001) + 0.5;
+        #endif
+
+
+        #if defined(UNITY_PASS_FORWARDBASE)
+            #if defined(EMISSION_BASE)
+                emission = mainTexture.rgb * pow(_EmissionColor, 2.2);
+            #endif
+            #if defined(EMISSIONMAP)
+                float3 emissionMap = SAMPLE_TEX2D_SAMPLER(_EmissionMap, _MainTex, textureUV).rgb;
+                emission = emissionMap * pow(_EmissionColor, 2.2);
+            #endif
+            #if !defined(EMISSIONMAP) && !defined(EMISSION_BASE)
+                emission = pow(_EmissionColor, 2.2);
+            #endif
+        #endif
 
         float4 albedo = mainTexture;
 
@@ -35,7 +63,7 @@ float4 frag (v2f i) : SV_Target
         float detailMask = 1;
 
         #ifdef MASKMAP
-            float4 maskMap = SAMPLE_TEX2D_SAMPLER(_MetallicGlossMap, sampler_MainTex, textureUV);
+            float4 maskMap = SAMPLE_TEX2D_SAMPLER(_MetallicGlossMap, _MainTex, textureUV);
             metallicMap = maskMap.r;
             detailMask = maskMap.b;
             occlusionMap = maskMap.g;
@@ -46,7 +74,40 @@ float4 frag (v2f i) : SV_Target
         float metallic = _Metallic * metallicMap;
         float oneMinusMetallic = 1 - metallic;
         float occlusion = lerp(1, occlusionMap, _Occlusion);
-        
+
+        #ifdef DETAILMAP
+            #ifndef DETAILMAP_UV1
+                float4 detailMap = SAMPLE_TEX2D_SAMPLER(_DetailMap, _MainTex, TRANSFORM_TEX(i.coord0.xy, _DetailMap) + parallaxOffset);
+            #else
+                float4 detailMap = SAMPLE_TEX2D_SAMPLER(_DetailMap, _MainTex, TRANSFORM_TEX(i.coord0.zw, _DetailMap) + parallaxOffset);
+            #endif
+
+            float detailAlbedo = detailMap.r * 2.0 - 1.0;
+            float detailSmoothness = (detailMap.b * 2.0 - 1.0);
+            float4 detailNormalMap = float4(detailMap.a, detailMap.g, 1, 1);
+            detailNormalMap = lerp(float4(0.5, 0.5, 0.5, 1), detailNormalMap, detailMask);
+            
+
+            // Goal: we want the detail albedo map to be able to darken down to black and brighten up to white the surface albedo.
+            // The scale control the speed of the gradient. We simply remap detailAlbedo from [0..1] to [-1..1] then perform a lerp to black or white
+            // with a factor based on speed.
+            // For base color we interpolate in sRGB space (approximate here as square) as it get a nicer perceptual gradient
+
+            float albedoDetailSpeed = saturate(abs(detailAlbedo) * _DetailAlbedoScale);
+            float3 baseColorOverlay = lerp(sqrt(albedo.rgb), (detailAlbedo < 0.0) ? float3(0.0, 0.0, 0.0) : float3(1.0, 1.0, 1.0), albedoDetailSpeed * albedoDetailSpeed);
+            baseColorOverlay *= baseColorOverlay;							   
+            // Lerp with details mask
+            albedo.rgb = lerp(albedo.rgb, saturate(baseColorOverlay), detailMask);
+
+            float perceptualSmoothness = (1 - perceptualRoughness);
+            // See comment for baseColorOverlay
+            float smoothnessDetailSpeed = saturate(abs(detailSmoothness) * _DetailSmoothnessScale);
+            float smoothnessOverlay = lerp(perceptualSmoothness, (detailSmoothness < 0.0) ? 0.0 : 1.0, smoothnessDetailSpeed);
+            // Lerp with details mask
+            perceptualSmoothness = lerp(perceptualSmoothness, saturate(smoothnessOverlay), detailMask);
+
+            perceptualRoughness = (1 - perceptualSmoothness);
+        #endif
         
 
         
@@ -61,7 +122,19 @@ float4 frag (v2f i) : SV_Target
                 float4 normalMap = float4(0.5, 0.5, 0.5, 1);
                 _BumpScale = 0;
             #endif
+
             float3 tangentNormal = UnpackScaleNormal(normalMap, _BumpScale);
+
+            #if defined(DETAILMAP) && defined(NORMALMAP)
+                half3 detailNormal = UnpackScaleNormal(detailNormalMap, _DetailNormalScale);
+                tangentNormal = BlendNormals(tangentNormal, detailNormal);
+            #endif
+
+            #if defined(DETAILMAP) && !defined(NORMALMAP)
+                half3 detailNormal = UnpackScaleNormal(detailNormalMap, _DetailNormalScale);
+                tangentNormal = detailNormal;
+            #endif
+
             tangentNormal.g *= -1;
 
             half3 calcedNormal = normalize
@@ -187,10 +260,19 @@ float4 frag (v2f i) : SV_Target
 
             directSpecular += max(0, (D * V) * F) * lightFinal * UNITY_PI;
         #endif
+
+        #ifdef TRANSPARENT
+            albedo.rgb *= alpha;
+        #endif
         
 
         float4 finalColor = float4( albedo * oneMinusMetallic * (indirectDiffuse * occlusion + (lightFinal + vertexLight)) + indirectSpecular + directSpecular + emission, alpha);
-        UNITY_APPLY_FOG(i.fogCoord, finalColor);
+        #ifdef FADE
+            finalColor.rgb *= alpha;
+        #endif
+        #ifdef FOG
+            UNITY_APPLY_FOG(i.fogCoord, finalColor);
+        #endif
         return finalColor;
 
     #endif
