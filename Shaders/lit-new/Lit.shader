@@ -8,7 +8,7 @@
 
         _MainTex ("Base Map", 2D) = "white" {}
         _Color ("Base Color", Color) = (1,1,1,1)
-        _Saturation ("Saturation", Range(-1,1)) = 0
+        _BaseSaturation ("Saturation", Float) = 1
 
         
         // [Toggle(MASKMAP)] _EnableMaskMap ("_EnableMaskMap", Int) = 0

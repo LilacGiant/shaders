@@ -15,12 +15,13 @@ namespace z3y
         public bool ShowAdvanced = false;
         public bool ShowBakedLight = false;
         public bool ShowShaderFeatures = false;
+        public bool ShowDetail = false;
 
     }
     
     public class LitUI : ShaderGUI
     {
-        protected MaterialProperty _Saturation = null;
+        protected MaterialProperty _BaseSaturation = null;
         protected MaterialProperty _Color = null;
         protected MaterialProperty _MainTex = null;
         protected MaterialProperty _MetallicGlossMap = null;
@@ -82,7 +83,7 @@ namespace z3y
                 prop(_MainTex, _Color);
 
 
-                prop(_Saturation);
+                prop(_BaseSaturation);
                 prop(_Metallic);
                 prop(_Glossiness);
 
@@ -129,6 +130,7 @@ namespace z3y
                 prop(_GlossyReflections);
                 prop(_SpecularHighlights);
             });
+
 
             md[material].ShowShaderFeatures = Foldout("Shader Features", md[material].ShowShaderFeatures, ()=> {
 

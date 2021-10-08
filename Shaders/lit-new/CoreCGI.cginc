@@ -28,8 +28,8 @@ float4 frag (v2f i) : SV_Target
 
 
     #if defined(UNITY_PASS_FORWARDBASE) || defined(UNITY_PASS_FORWARDADD)
-    
-        mainTexture.rgb = lerp(dot(mainTexture.rgb, grayscaleVec), mainTexture.rgb, (_Saturation+1));
+
+        mainTexture.rgb = lerp(dot(mainTexture.rgb, grayscaleVec), mainTexture.rgb, _BaseSaturation);
 
         #ifdef CUTOUT
             clip(alpha - _Cutoff);

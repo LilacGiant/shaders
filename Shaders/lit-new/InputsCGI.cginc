@@ -5,7 +5,7 @@ Texture2D _MainTex;
 SamplerState sampler_MainTex;
 float4 _MainTex_ST;
 float4 _Color;
-float _Saturation;
+float _BaseSaturation;
 
 Texture2D _MetallicGlossMap;
 float _Metallic;

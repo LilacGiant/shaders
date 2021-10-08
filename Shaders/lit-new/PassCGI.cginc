@@ -141,7 +141,7 @@ v2f vert (appdata v)
     #endif
 
     #ifdef FOG
-        UNITY_TRANSFER_FOG(o,o.vertex);
+        UNITY_TRANSFER_FOG(o,o.pos);
     #endif
     return o;
 }
