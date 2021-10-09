@@ -15,7 +15,7 @@ A shader I put together to use in vrchat worlds.
 - shader lock in optimizer
 
 #### Currently known missing features and bugs:
-
+- fade mode slightly broken
 - dithered shadow with transparency
 - generating materials for bakery might leave some material slots empty (probably fixed)
 
