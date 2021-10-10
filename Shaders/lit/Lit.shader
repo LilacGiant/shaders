@@ -4,7 +4,6 @@ Shader "z3y/lit"
     Properties
     {
         wAg6H2wQzc7UbxaL ("Is Locked", Int) = 0
-        [ToggleUI] _BakeUnityKeywords ("Bake Unity Keywords", Int) = 0
 
 
         [Enum(Opaque, 0, Cutout, 1, Fade, 2, Transparent, 3)] _Mode("Rendering Mode", Int) = 0

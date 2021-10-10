@@ -123,6 +123,7 @@ namespace z3y
         {
 
             EditorGUI.BeginDisabledGroup(isLocked);
+            if(property is null) return;
 
             string animatedPropName = null;
 
