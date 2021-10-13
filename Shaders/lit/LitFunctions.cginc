@@ -609,7 +609,7 @@ void getIndirectDiffuse(float3 worldNormal, float2 parallaxOffset, inout half2 l
 {
     #if defined(LIGHTMAP_ON)
 
-        lightmapUV = uvs[1] * unity_LightmapST.xy + unity_LightmapST.zw + parallaxOffset;
+        lightmapUV = uvs[1] * unity_LightmapST.xy + unity_LightmapST.zw;
         float4 bakedColorTex = 0;
 
         half3 lightMap = tex2DFastBicubicLightmap(lightmapUV, bakedColorTex) * (_LightmapMultiplier);

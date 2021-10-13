@@ -167,7 +167,7 @@ float3 getAnisotropicReflectionVector(float3 viewDir, float3 bitangent, float3 t
 #ifdef DYNAMICLIGHTMAP_ON
 float3 getRealtimeLightmap(float2 uv, float3 worldNormal, float2 parallaxOffset)
 {
-    float2 realtimeUV = uv * unity_DynamicLightmapST.xy + unity_DynamicLightmapST.zw + parallaxOffset;
+    float2 realtimeUV = uv * unity_DynamicLightmapST.xy + unity_DynamicLightmapST.zw;
     half4 bakedCol = UNITY_SAMPLE_TEX2D(unity_DynamicLightmap, realtimeUV);
     float3 realtimeLightmap = DecodeRealtimeLightmap(bakedCol);
 
