@@ -1,5 +1,5 @@
 #if !defined(UNITY_PASS_SHADOWCASTER)
-half4 frag(v2f i) : SV_Target
+half4 frag(v2f i, uint facing : SV_IsFrontFace) : SV_Target
 {
     UNITY_SETUP_INSTANCE_ID(i);
     #if defined(LOD_FADE_CROSSFADE)
@@ -27,6 +27,15 @@ half4 frag(v2f i) : SV_Target
     #ifdef CENTROID_NORMAL
         if (dot(i.worldNormal.xyz, i.worldNormal.xyz) >= 1.01) i.worldNormal.xyz = i.centroidWorldNormal.xyz;
     #endif
+
+    if (!facing) 
+	{
+        i.worldNormal *= -1;
+        #if defined(ENABLE_REFLECTIONS) || defined(ENABLE_SPECULAR_HIGHLIGHTS) || defined (PROP_BUMPMAP) || defined(UNITY_PASS_META)
+        i.tangent *= -1;
+        i.bitangent *= -1;
+        #endif
+    }
 
     float3 worldNormal = normalize(i.worldNormal);
     pixel.worldNormal = worldNormal;
