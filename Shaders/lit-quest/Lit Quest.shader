@@ -141,4 +141,5 @@ Shader "Mobile/Lit Quest"
             ENDCG
         }
     }
+    FallBack "VRChat/Mobile/Lightmapped"
 }
