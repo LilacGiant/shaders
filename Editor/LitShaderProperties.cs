@@ -151,11 +151,6 @@ namespace z3y
 
         public void ShaderPropertiesGUI(Material material)
         {
-            #if UNITY_ANDROID && (VRC_SDK_VRCSDK2 || VRC_SDK_VRCSDK3)
-            EditorGUILayout.HelpBox("This shader is not supported on Quest", MessageType.Warning);
-            EditorGUILayout.Space();
-            #endif
-            
             
             md[material].ShowSurfaceInputs = Foldout("Surface Inputs", md[material].ShowSurfaceInputs, ()=> {
 

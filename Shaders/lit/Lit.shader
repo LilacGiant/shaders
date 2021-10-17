@@ -178,6 +178,7 @@ Shader "z3y/lit"
             #pragma target 5.0
             #pragma vertex vert
             #pragma fragment frag
+            #pragma exclude_renderers gles3
             #pragma fragmentoption ARB_precision_hint_fastest
             #pragma multi_compile_fwdbase
             #pragma multi_compile_instancing
@@ -225,6 +226,7 @@ Shader "z3y/lit"
             #pragma target 5.0
             #pragma vertex vert
             #pragma fragment frag
+            #pragma exclude_renderers gles3
             #pragma multi_compile_fwdadd_fullshadows
             #pragma multi_compile_instancing
             #pragma multi_compile_fog
@@ -258,6 +260,7 @@ Shader "z3y/lit"
             CGPROGRAM
             #pragma target 5.0
             #pragma vertex vert
+            #pragma exclude_renderers gles3
             #pragma fragment ShadowCasterfrag
             #pragma multi_compile_shadowcaster
             #pragma multi_compile_instancing
@@ -299,6 +302,6 @@ Shader "z3y/lit"
         }
 
     }
-    FallBack "Mobile/Unlit (Supports Lightmap)"
+    FallBack "Mobile/Lit Quest"
     CustomEditor "z3y.LitShaderEditor"
 }
