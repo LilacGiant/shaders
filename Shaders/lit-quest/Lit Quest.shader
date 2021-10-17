@@ -25,6 +25,7 @@ Shader "Mobile/Lit Quest"
             #pragma multi_compile_instancing
             // #pragma multi_compile DIRECTIONAL LIGHTMAP_ON
             #pragma multi_compile_fwdbase
+            #pragma skip_variants SHADOWS_SHADOWMASK SHADOWS_SCREEN SHADOWS_DEPTH SHADOWS_CUBE
             // #pragma skip_variants DIRLIGHTMAP_COMBINED DYNAMICLIGHTMAP_ON SHADOWS_SCREEN SHADOWS_SHADOWMASK LIGHTMAP_SHADOW_MIXING VERTEXLIGHT_ON
             #pragma fragmentoption ARB_precision_hint_fastest
 
