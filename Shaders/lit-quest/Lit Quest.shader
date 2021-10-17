@@ -23,17 +23,15 @@ Shader "Mobile/Lit Quest"
             #pragma fragment frag
             #pragma multi_compile_fog
             #pragma multi_compile_instancing
-            #pragma multi_compile DIRECTIONAL LIGHTMAP_ON
-            // #pragma multi_compile_fwdbase
-            // #pragma skip_variants DIRLIGHTMAP_COMBINED DYNAMICLIGHTMAP_ON SHADOWS_SCREEN SHADOWS_SHADOWMASK LIGHTMAP_SHADOW_MIXING LIGHTPROBE_SH
+            // #pragma multi_compile DIRECTIONAL LIGHTMAP_ON
+            #pragma multi_compile_fwdbase
+            // #pragma skip_variants DIRLIGHTMAP_COMBINED DYNAMICLIGHTMAP_ON SHADOWS_SCREEN SHADOWS_SHADOWMASK LIGHTMAP_SHADOW_MIXING VERTEXLIGHT_ON
             #pragma fragmentoption ARB_precision_hint_fastest
 
             #pragma shader_feature_local EMISSION
 
             #include "UnityCG.cginc"
-            #if defined(DIRECTIONAL)
             #include "Lighting.cginc"
-            #endif
             // #include "AutoLight.cginc"
 
             
