@@ -67,7 +67,9 @@ namespace z3y
 
         bool IVRCSDKBuildRequestedCallback.OnBuildRequested(VRCSDKRequestedBuildType requestedBuildType)
         {
-            ShaderOptimizer.LockAllMaterials();
+            #if !UNITY_ANDROID
+                ShaderOptimizer.LockAllMaterials();
+            #endif
             return true;
         }
     }
@@ -94,6 +96,15 @@ namespace z3y
             {
                 if (shouldStrip) data.RemoveAt(i);
             }
+        }
+    }
+
+    public class UnlockOnPlatformChange : IActiveBuildTargetChanged
+    {
+        public int callbackOrder { get { return 69; } }
+        public void OnActiveBuildTargetChanged(BuildTarget previousTarget, BuildTarget newTarget)
+        {
+            ShaderOptimizer.UnlockAllMaterials();
         }
     }
 
@@ -197,10 +208,10 @@ namespace z3y
         [MenuItem("Tools/Shader Optimizer/Lock Materials In Scene")]
         public static void LockAllMaterials()
         {
-            #if BAKERY_INCLUDED
-                ftLightmapsStorage storage = ftRenderLightmap.FindRenderSettingsStorage();
-                if(storage.renderSettingsRenderDirMode == 3 || storage.renderSettingsRenderDirMode == 4) HandleBakeryPropertyBlocks();
-            #endif
+            // #if BAKERY_INCLUDED
+            //     ftLightmapsStorage storage = ftRenderLightmap.FindRenderSettingsStorage();
+            //     if(storage.renderSettingsRenderDirMode == 3 || storage.renderSettingsRenderDirMode == 4) HandleBakeryPropertyBlocks();
+            // #endif
             Material[] mats = GetMaterialsUsingOptimizer(false);
             float progress = mats.Length;
 
