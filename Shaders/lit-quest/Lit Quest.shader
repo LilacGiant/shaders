@@ -10,10 +10,13 @@ Shader "Mobile/Lit Quest"
         [Toggle(EMISSION)] _EnableEmission ("Enable Emission", Int) = 0
         [HDR] _EmissionColor ("Emission Color", Color) = (0,0,0)
         _EmissionMap ("Emission Map", 2D) = "white" {}
+
+        [Enum(UnityEngine.Rendering.CullMode)] _Cull ("Cull", Int) = 2
     }
     SubShader
     {
         Tags { "LightMode" = "ForwardBase" "RenderType"="Opaque" }
+        Cull [_Cull]
 
         Pass
         {

@@ -1,0 +1,142 @@
+#pragma warning (default : 3206)
+
+#include "UnityCG.cginc"
+#include "AutoLight.cginc"
+#include "Lighting.cginc"
+
+#include "InputsCGI.cginc"
+
+struct appdata
+{
+    float4 vertex : POSITION;
+    float3 normal : NORMAL;
+    float2 uv0 : TEXCOORD0;
+    float2 uv1 : TEXCOORD1;
+
+    #ifdef NEED_UV2
+        float2 uv2 : TEXCOORD2;
+    #endif
+
+    #ifdef NEED_TANGENT_BITANGENT
+        float4 tangent : TANGENT;
+    #endif
+
+    #ifdef NEED_VERTEX_COLOR
+        float4 color : COLOR;
+    #endif
+
+    uint vertexId : SV_VertexID;
+    UNITY_VERTEX_INPUT_INSTANCE_ID
+};
+
+struct v2f
+{
+    float4 pos : SV_POSITION;
+    float4 coord0 : TEXCOORD0;
+
+    #ifdef NEED_UV2
+        float2 coord1 : TEXCOORD1;
+    #endif
+
+    #ifdef NEED_TANGENT_BITANGENT
+        float3 bitangent : TEXCOORD2;
+        float3 tangent : TEXCOORD3;
+    #endif
+
+    #ifdef NEED_WORLD_NORMAL
+        float3 worldNormal : TEXCOORD4;
+    #endif
+
+    #ifdef NEED_WORLD_POS
+        float4 worldPos : TEXCOORD5;
+    #endif
+
+    #ifdef NEED_PARALLAX_DIR
+        float3 parallaxViewDir : TEXCOORD8;
+    #endif
+
+    #ifdef NEED_VERTEX_COLOR
+        centroid half4 color : COLOR;
+    #endif
+
+    #ifdef NEED_CENTROID_NORMAL
+        centroid float3 centroidWorldNormal : TEXCOORD9;
+    #endif
+
+    #ifdef NEED_SCREEN_POS
+        float4 screenPos : TEXCOORD10;
+    #endif
+
+    #ifdef NEED_FOG
+        UNITY_FOG_COORDS(11)
+    #endif
+
+    #if !defined(UNITY_PASS_SHADOWCASTER)
+        UNITY_SHADOW_COORDS(12)
+    #endif
+
+    UNITY_VERTEX_INPUT_INSTANCE_ID
+	UNITY_VERTEX_OUTPUT_STEREO
+};
+
+v2f vert (appdata v)
+{
+    v2f o;
+    UNITY_INITIALIZE_OUTPUT(v2f, o);
+    UNITY_SETUP_INSTANCE_ID(v);
+    UNITY_TRANSFER_INSTANCE_ID(v, o);
+    UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
+
+    #ifdef UNITY_PASS_META
+        o.pos = UnityMetaVertexPosition(v.vertex, v.uv1.xy, v.uv2.xy, unity_LightmapST, unity_DynamicLightmapST);
+    #else
+        #if !defined(UNITY_PASS_SHADOWCASTER)
+            o.pos = UnityObjectToClipPos(v.vertex);
+        #endif
+    #endif
+
+    o.coord0.xy = v.uv0;
+    o.coord0.zw = v.uv1;
+
+    #ifdef NEED_UV2
+        o.coord1.xy = v.uv2;
+    #endif
+
+
+    #ifdef NEED_WORLD_NORMAL
+        o.worldNormal = UnityObjectToWorldNormal(v.normal);
+    #endif
+
+    #ifdef NEED_TANGENT_BITANGENT
+        o.tangent = UnityObjectToWorldDir(v.tangent);
+        o.bitangent = cross(o.tangent, o.worldNormal) * v.tangent.w;
+    #endif
+
+    #ifdef NEED_WORLD_POS
+        o.worldPos = mul(unity_ObjectToWorld, v.vertex);
+    #endif
+
+    #ifdef NEED_PARALLAX_DIR
+        TANGENT_SPACE_ROTATION;
+        o.viewDirForParallax = mul (rotation, ObjSpaceViewDir(v.vertex));
+    #endif
+
+    #ifdef UNITY_PASS_SHADOWCASTER
+        o.pos = UnityClipSpaceShadowCasterPos(v.vertex, v.normal);
+        o.pos = UnityApplyLinearShadowBias(o.pos);
+        TRANSFER_SHADOW_CASTER_NOPOS(o, o.pos);
+    #else
+        UNITY_TRANSFER_SHADOW(o, o.texcoord0.zw);
+    #endif
+
+    #ifdef NEED_FOG
+        UNITY_TRANSFER_FOG(o,o.vertex);
+    #endif
+
+
+    return o;
+}
+static v2f input;
+
+#include "FunctionsCGI.cginc"
+#include "CoreCGI.cginc"
