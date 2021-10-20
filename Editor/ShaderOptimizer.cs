@@ -78,7 +78,7 @@ namespace z3y
 
     public class OnShaderPreprocess : IPreprocessShaders
     {
-        public int callbackOrder { get { return 69; } }
+        public int callbackOrder => 69;
 
         public void OnProcessShader(Shader shader, ShaderSnippetData snippet, IList<ShaderCompilerData> data)
         {
@@ -1021,7 +1021,16 @@ namespace z3y
                     string[] materialProperties = Regex.Split(lineParsed.Replace("//#if", ""), ",");
                     try
                     {
-                        if(!materialProperties.Any(x => mat.GetFloat(x) != 0))
+                        bool all = true;
+                        foreach (var x in materialProperties)
+                        {
+                            if (mat.GetFloat(x) != 0)
+                            {
+                                all = false;
+                                break;
+                            }
+                        }
+                        if(all)
                         {
                             i++;
                             fileLines[i] = fileLines[i].Insert(0, "//");
