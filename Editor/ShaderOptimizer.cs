@@ -22,30 +22,31 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using UnityEditor;
-using System;
-using System.IO;
-using System.Text.RegularExpressions;
-using System.Text;
-using System.Globalization;
-using UnityEditor.Build;
-using UnityEditor.Build.Reporting;
-using UnityEditor.Rendering;
-using System.Linq;
-using UnityEngine.SceneManagement;
-
+#region
 #if VRC_SDK_VRCSDK3
-using VRC.SDKBase;
 #endif
 #if VRC_SDK_VRCSDK2
 using VRCSDK2;
 #endif
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
+using System.Text.RegularExpressions;
+using UnityEditor;
+using UnityEditor.Build;
+using UnityEditor.Build.Reporting;
+using UnityEditor.Rendering;
+using UnityEngine;
+using UnityEngine.SceneManagement;
+using Object = UnityEngine.Object;
 #if VRC_SDK_VRCSDK2 || VRC_SDK_VRCSDK3
 using VRC.SDKBase.Editor.BuildPipeline;
 #endif
+#endregion
 
 
 namespace z3y
@@ -53,7 +54,7 @@ namespace z3y
     
     class AutoLockOnBuild : IPreprocessBuildWithReport
     {
-        public int callbackOrder { get { return 69; } }
+        public int callbackOrder => 69;
         public void OnPreprocessBuild(BuildReport report)
         {
             ShaderOptimizer.LockAllMaterials();
@@ -157,14 +158,14 @@ namespace z3y
         public static readonly string OptimizerEnabledKeyword = "OPTIMIZER_ENABLED";
 
 
-        private static bool ReplaceAnimatedParameters = false;
+        private static readonly bool ReplaceAnimatedParameters = false;
 
         public static void LockMaterial(Material mat, bool applyLater, Material sharedMaterial)
         {
 
             mat.SetFloat(ShaderOptimizerEnabled, 1);
-            MaterialProperty[] props = MaterialEditor.GetMaterialProperties(new UnityEngine.Object[] { mat });
-            if (!ShaderOptimizer.Lock(mat, props, applyLater, sharedMaterial)) // Error locking shader, revert property
+            MaterialProperty[] props = MaterialEditor.GetMaterialProperties(new Object[] { mat });
+            if (!Lock(mat, props, applyLater, sharedMaterial)) // Error locking shader, revert property
                 mat.SetFloat(ShaderOptimizerEnabled, 0);
         }
 
@@ -185,8 +186,7 @@ namespace z3y
             }
         }
 
-        public static readonly string[] PropertiesToSkip = new string[]
-        {
+        public static readonly string[] PropertiesToSkip = {
             ShaderOptimizerEnabled,
             "_BlendOp",
             "_BlendOpAlpha",
@@ -198,8 +198,7 @@ namespace z3y
             "_MainTex"
         };
 
-        public static readonly string[] TexelSizeCheck = new string[]
-        {
+        public static readonly string[] TexelSizeCheck = {
             "_RNM0",
             "_RNM1",
             "_RNM2"
@@ -313,7 +312,7 @@ namespace z3y
             List<Material> materials = new List<Material>();
             Scene scene = SceneManager.GetActiveScene();
             string[] materialPaths = AssetDatabase.GetDependencies(scene.path).Where(x => x.EndsWith(".mat")).ToArray();
-            var renderers = UnityEngine.Object.FindObjectsOfType<Renderer>();
+            var renderers = Object.FindObjectsOfType<Renderer>();
             
             for (int i = 0; i < materialPaths.Length; i++)
             {
@@ -342,7 +341,7 @@ namespace z3y
             Scene scene = SceneManager.GetActiveScene();
 
             string[] materialPaths = AssetDatabase.GetDependencies(scene.path).Where(x => x.EndsWith(".mat")).ToArray();
-            var renderers = UnityEngine.Object.FindObjectsOfType<Renderer>();
+            var renderers = Object.FindObjectsOfType<Renderer>();
 
             for (int i = 0; i < materialPaths.Length; i++)
             {
@@ -379,7 +378,7 @@ namespace z3y
                 }
                 else
                 {
-                    if(!materials.Contains(mat) && mat.GetTag(OriginalShaderTag, false) != String.Empty)
+                    if(!materials.Contains(mat) && mat.GetTag(OriginalShaderTag, false) != string.Empty)
                         if(isLocked)
                             materials.Add(mat);
                 }
@@ -418,7 +417,7 @@ namespace z3y
             const string newMaterialPath = "Assets/GeneratedMaterials/";
             if (!Directory.Exists(newMaterialPath)) Directory.CreateDirectory(newMaterialPath);
 
-            MeshRenderer[] mr = UnityEngine.Object.FindObjectsOfType<MeshRenderer>();
+            MeshRenderer[] mr = Object.FindObjectsOfType<MeshRenderer>();
             Dictionary<string, Material> generatedMaterialList = new Dictionary<string, Material>();
             
 
@@ -449,14 +448,14 @@ namespace z3y
                             }
                             catch {}
                             
-                            if  (usingOptimizer && material.GetTag("OriginalMaterialPath", false) == String.Empty && (material.shaderKeywords.Contains("BAKERY_SH") || material.shaderKeywords.Contains("BAKERY_RNM")))
+                            if  (usingOptimizer && material.GetTag("OriginalMaterialPath", false) == string.Empty && (material.shaderKeywords.Contains("BAKERY_SH") || material.shaderKeywords.Contains("BAKERY_RNM")))
                             {
                                 string materialPath = AssetDatabase.GetAssetPath(material);
                                 string textureName = AssetDatabase.GetAssetPath(RNM0) + "_" + AssetDatabase.GetAssetPath(RNM1) + "_" + AssetDatabase.GetAssetPath(RNM2);
                                 string matTexHash = ComputeMD5(materialPath + textureName);
 
 
-                                Material newMaterial = null;
+                                Material newMaterial;
 
                                 generatedMaterialList.TryGetValue(matTexHash, out newMaterial);
                                 if (newMaterial == null)
@@ -505,7 +504,7 @@ namespace z3y
         #endif
         public static void RevertHandleBakeryPropertyBlocks()
         {
-            var renderers = UnityEngine.Object.FindObjectsOfType<MeshRenderer>();
+            var renderers = Object.FindObjectsOfType<MeshRenderer>();
 
             if(renderers != null) foreach (var rend in renderers)
             {
@@ -518,7 +517,7 @@ namespace z3y
 
                         if( rend.sharedMaterials[i] != null)
                         {
-                            string originalMatPath = rend.sharedMaterials[i].GetTag("OriginalMaterialPath", false, String.Empty);
+                            string originalMatPath = rend.sharedMaterials[i].GetTag("OriginalMaterialPath", false, string.Empty);
                             if(originalMatPath != "")
                             {
                                 try
@@ -546,16 +545,15 @@ namespace z3y
         // https://forum.unity.com/threads/hash-function-for-game.452779/
         private static string ComputeMD5(string str)
         {
-            System.Text.ASCIIEncoding encoding = new System.Text.ASCIIEncoding();
+            ASCIIEncoding encoding = new ASCIIEncoding();
             byte[] bytes = encoding.GetBytes(str);
-            var sha = new System.Security.Cryptography.MD5CryptoServiceProvider();
+            var sha = new MD5CryptoServiceProvider();
             return BitConverter.ToString(sha.ComputeHash(bytes)).Replace("-", "").ToLower();
         }
 
         // Would be better to dynamically parse the "C:\Program Files\UnityXXXX\Editor\Data\CGIncludes\" folder
         // to get version specific includes but eh
-        public static readonly string[] DefaultUnityShaderIncludes = new string[]
-        {
+        public static readonly string[] DefaultUnityShaderIncludes = {
             "UnityUI.cginc",
             "AutoLight.cginc",
             "GLSLSupport.glslinc",
@@ -600,10 +598,9 @@ namespace z3y
             "UnityStandardUtils.cginc"
         };
 
-        public static readonly char[] ValidSeparators = new char[] {' ','\t','\r','\n',';',',','.','(',')','[',']','{','}','>','<','=','!','&','|','^','+','-','*','/','#','?' };
+        public static readonly char[] ValidSeparators = {' ','\t','\r','\n',';',',','.','(',')','[',']','{','}','>','<','=','!','&','|','^','+','-','*','/','#','?' };
 
-        public static readonly string[] ValidPropertyDataTypes = new string[]
-        {
+        public static readonly string[] ValidPropertyDataTypes = {
             "float",
             "float2",
             "float3",
@@ -734,7 +731,7 @@ namespace z3y
 
                 if (
                   prop.name.EndsWith(AnimatedPropertySuffix) ||
-                 (material.GetTag(prop.name.ToString() + AnimatedPropertySuffix, false) == String.Empty ? false : true))
+                 (material.GetTag(prop.name + AnimatedPropertySuffix, false) != string.Empty))
                     continue;
 
 
@@ -870,11 +867,11 @@ namespace z3y
                             string animatedPropName = animatedProps.Find(x => trimmedLine.Contains(x));
                             if (animatedPropName != null)
                             {
-                                int parameterIndex = trimmedLine.IndexOf(animatedPropName);
+                                int parameterIndex = trimmedLine.IndexOf(animatedPropName, StringComparison.Ordinal);
                                 char charLeft = trimmedLine[parameterIndex-1];
                                 char charRight = trimmedLine[parameterIndex + animatedPropName.Length];
                                 if (Array.Exists(ValidSeparators, x => x == charLeft) && Array.Exists(ValidSeparators, x => x == charRight))
-                                    psf.lines[i] = psf.lines[i].Replace(animatedPropName, animatedPropName + material.GetTag("AnimatedParametersSuffix", false, String.Empty));
+                                    psf.lines[i] = psf.lines[i].Replace(animatedPropName, animatedPropName + material.GetTag("AnimatedParametersSuffix", false, string.Empty));
                             }
                         }
                     }
@@ -904,7 +901,7 @@ namespace z3y
                 }
                 catch (IOException e)
                 {
-                    Debug.LogError("[Kaj Shader Optimizer] Processed shader file " + newShaderDirectory + newDirectory + " could not be written.  " + e.ToString());
+                    Debug.LogError("[Kaj Shader Optimizer] Processed shader file " + newShaderDirectory + newDirectory + " could not be written.  " + e);
                     return false;
                 }
             }
@@ -926,7 +923,7 @@ namespace z3y
             return ReplaceShader(applyLater);
         }
 
-        private static Dictionary<Material, ApplyLater> applyStructsLater = new Dictionary<Material, ApplyLater>();
+        private static readonly Dictionary<Material, ApplyLater> applyStructsLater = new Dictionary<Material, ApplyLater>();
 
         private struct ApplyLater
         {
@@ -936,12 +933,12 @@ namespace z3y
             public string newShaderName;
         }
         
-        private static bool LockApplyShader(Material material)
+        private static void LockApplyShader(Material material)
         {
-            if (applyStructsLater.ContainsKey(material) == false) return false;
+            if (applyStructsLater.ContainsKey(material) == false) return;
             ApplyLater applyStruct = applyStructsLater[material];
             applyStructsLater.Remove(material);
-            return ReplaceShader(applyStruct);
+            ReplaceShader(applyStruct);
         }
 
 
@@ -955,7 +952,7 @@ namespace z3y
 
             // For some reason when shaders are swapped on a material the RenderType override tag gets completely deleted and render queue set back to -1
             // So these are saved as temp values and reassigned after switching shaders
-            string renderType = applyLater.material.GetTag("RenderType", false, String.Empty);
+            string renderType = applyLater.material.GetTag("RenderType", false, string.Empty);
             int renderQueue = applyLater.material.renderQueue;
 
             // Actually switch the shader
@@ -973,7 +970,7 @@ namespace z3y
 
             // Remove ALL keywords
             foreach (string keyword in applyLater.material.shaderKeywords)
-            applyLater.material.DisableKeyword(keyword);
+                applyLater.material.DisableKeyword(keyword);
 
             return true;
         }
@@ -993,7 +990,7 @@ namespace z3y
             filesParsed.Add(psf);
 
             // Read file
-            string fileContents = null;
+            string fileContents;
             try
             {
                 StreamReader sr = new StreamReader(filePath);
@@ -1002,17 +999,17 @@ namespace z3y
             }
             catch (FileNotFoundException e)
             {
-                Debug.LogError("[Kaj Shader Optimizer] Shader file " + filePath + " not found.  " + e.ToString());
+                Debug.LogError("[Kaj Shader Optimizer] Shader file " + filePath + " not found.  " + e);
                 return false;
             }
             catch (IOException e)
             {
-                Debug.LogError("[Kaj Shader Optimizer] Error reading shader file.  " + e.ToString());
+                Debug.LogError("[Kaj Shader Optimizer] Error reading shader file.  " + e);
                 return false;
             }
 
             // Parse file line by line
-            List<String> macrosList = new List<string>();
+            List<string> macrosList = new List<string>();
             string[] fileLines = Regex.Split(fileContents, "\r\n|\r|\n");
             for (int i=0; i<fileLines.Length; i++)
             {
@@ -1028,7 +1025,6 @@ namespace z3y
                         {
                             i++;
                             fileLines[i] = fileLines[i].Insert(0, "//");
-                            continue;
                         }
                     }
                     catch
@@ -1126,7 +1122,7 @@ namespace z3y
                 {
                     // Expects only one instance of a macro per line!
                     int macroIndex;
-                    if ((macroIndex = lines[i].IndexOf(macro.name + "(")) != -1)
+                    if ((macroIndex = lines[i].IndexOf(macro.name + "(", StringComparison.Ordinal)) != -1)
                     {
                         // Macro exists on this line, make sure its not the definition
                         string lineParsed = lineTrimmed.Replace(" ", "").Replace("\t", "");
@@ -1148,7 +1144,7 @@ namespace z3y
                             // ERROR: This method of one-by-one argument replacement will infinitely loop
                             // if one of the arguments to paste into the macro definition has the same name
                             // as one of the macro arguments!
-                            while ((argIndex = newContents.IndexOf(macro.args[j], lastIndex)) != -1)
+                            while ((argIndex = newContents.IndexOf(macro.args[j], lastIndex, StringComparison.Ordinal)) != -1)
                             {
                                 lastIndex = argIndex+1;
                                 char charLeft = ' ';
@@ -1185,7 +1181,7 @@ namespace z3y
                     int constantIndex;
                     int lastIndex = 0;
                     bool declarationFound = false;
-                    while ((constantIndex = lines[i].IndexOf(constant.name, lastIndex)) != -1)
+                    while ((constantIndex = lines[i].IndexOf(constant.name, lastIndex, StringComparison.Ordinal)) != -1)
                     {
                         lastIndex = constantIndex+1;
                         char charLeft = ' ';
@@ -1245,7 +1241,7 @@ namespace z3y
                     {
                         int nameIndex;
                         int lastIndex = 0;
-                        while ((nameIndex = lines[i].IndexOf(animPropName, lastIndex)) != -1)
+                        while ((nameIndex = lines[i].IndexOf(animPropName, lastIndex, StringComparison.Ordinal)) != -1)
                         {
                             lastIndex = nameIndex+1;
                             char charLeft = ' ';
@@ -1260,7 +1256,7 @@ namespace z3y
                             
                             StringBuilder sb = new StringBuilder(lines[i].Length * 2);
                             sb.Append(lines[i], 0, nameIndex);
-                            sb.Append(animPropName + "_" + material.GetTag("AnimatedParametersSuffix", false, String.Empty));
+                            sb.Append(animPropName + "_" + material.GetTag("AnimatedParametersSuffix", false, string.Empty));
                             sb.Append(lines[i], nameIndex+animPropName.Length, lines[i].Length-nameIndex-animPropName.Length);
                             lines[i] = sb.ToString();
                         }
@@ -1270,7 +1266,7 @@ namespace z3y
 
         public static bool Unlock (Material material)
         {
-            string originalShaderName = material.GetTag(OriginalShaderTag, false, String.Empty);
+            string originalShaderName = material.GetTag(OriginalShaderTag, false, string.Empty);
             if (originalShaderName == "")
             {
                 Debug.LogError("[Kaj Shader Optimizer] Original shader not saved to material, could not unlock shader");
@@ -1284,7 +1280,7 @@ namespace z3y
             }
             // For some reason when shaders are swapped on a material the RenderType override tag gets completely deleted and render queue set back to -1
             // So these are saved as temp values and reassigned after switching shaders
-            string renderType = material.GetTag("RenderType", false, String.Empty);
+            string renderType = material.GetTag("RenderType", false, string.Empty);
             int renderQueue = material.renderQueue;
             material.shader = orignalShader;
             material.SetOverrideTag("RenderType", renderType);
