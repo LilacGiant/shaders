@@ -9,31 +9,197 @@ Material:
   m_PrefabAsset: {fileID: 0}
   m_Name: z3y_new lit
   m_Shader: {fileID: 4800000, guid: 4b6d2e49ea33a3742b587eae47fb1326, type: 3}
-  m_ShaderKeywords: _MODE_OPAQUE _WORKFLOW_METALLIC
+  m_ShaderKeywords: ENABLE_PACKED_MODE _MODE_OPAQUE _WORKFLOW_METALLIC
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
   m_CustomRenderQueue: -1
-  stringTagMap: {}
+  stringTagMap:
+    OptimizedShaderFolder: 8acb96b91e7dec5458ce118b550604b4
+    OriginalShaderTag: z3y/lit
   disabledShaderPasses: []
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
+    - _ALEmissionMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _AnisotropyMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _AudioTexture:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _BumpMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _DetailAlbedoMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _DetailMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _DetailMask:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _DetailNormalMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _DisplacementMask:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _DisplacementNoise:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _EmissionMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _MainTex:
-        m_Texture: {fileID: 2800000, guid: 5fb787fb7dd30d849837c095d7bf8e01, type: 3}
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _MetallicGlossMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _MetallicMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _OcclusionMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _ParallaxMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _RNM0:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _RNM1:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _RNM2:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SmoothnessMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SpecGlossMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _ThicknessMap:
+        m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Floats:
+    - _ALEmissionBand: 0
+    - _ALEmissionType: 0
+    - _ALSmoothing: 0.5
     - _AlphaToMask: 0
+    - _Anisotropy: 0
+    - _BAKERY_LMSPEC: 0
+    - _BAKERY_RNM: 0
+    - _BAKERY_SH: 0
+    - _BAKERY_SHNONLINEAR: 0
+    - _BicubicLightmap: 0
     - _BlendOp: 0
     - _BlendOpAlpha: 0
+    - _BumpMapUV: 0
+    - _BumpScale: 1
+    - _CentroidNormal: 0
     - _Cull: 2
+    - _Cutoff: 0.5
+    - _DetailAlbedoScale: 1
+    - _DetailMapUV: 0
+    - _DetailNormalMapScale: 1
+    - _DetailNormalScale: 0
+    - _DetailSmoothnessScale: 1
+    - _DisplacementIntensity: 0
+    - _DisplacementMaskUV: 0
+    - _DisplacementScale: 1
     - _DstBlend: 0
+    - _EmissionMapUV: 0
+    - _EmissionMultBase: 0
+    - _EnableAnisotropy: 0
+    - _EnableAudioLink: 0
+    - _EnableDisplacement: 0
+    - _EnableEmission: 0
+    - _EnablePackedMode: 1
+    - _EnableParallax: 0
+    - _EnableVertexColor: 0
+    - _FlatShading: 0
+    - _GSAA: 0
+    - _GlossMapScale: 1
+    - _Glossiness: 1
+    - _GlossinessInvert: 0
+    - _GlossyReflections: 0
+    - _HemiOctahedron: 0
+    - _LightProbeMethod: 0
+    - _LightmapMultiplier: 1
+    - _LodCrossFade: 0
+    - _MainTexUV: 0
+    - _MainTex_STAnimated: 1
     - _MainTex_UV: 0
+    - _Metallic: 0
+    - _MetallicGlossMapUV: 0
+    - _MetallicMapUV: 0
     - _Mode: 0
+    - _NormalMapOrientation: 0
+    - _Occlusion: 0
+    - _OcclusionMapUV: 0
+    - _OcclusionStrength: 1
+    - _Parallax: 0.02
+    - _ParallaxOffset: 0
+    - _ParallaxSteps: 25
+    - _Power: 1
+    - _RandomizePosition: 0
+    - _Reflectance: 0.5
+    - _Saturation: 0
+    - _Scale: 1
+    - _SheenRoughness: 0.004
+    - _SmoothnessMapUV: 0
+    - _SmoothnessTextureChannel: 0
+    - _SpecGlossMapUV: 0
+    - _SpecularHighlights: 0
+    - _SpecularOcclusion: 0
+    - _SpecularOcclusionSensitivity: 0
+    - _SpecularWorkflow: 0
     - _SrcBlend: 1
+    - _SubsurfaceScattering: 0
+    - _SuperSamplingBias: -1
+    - _ThicknessMapUV: 0
+    - _UVSec: 0
     - _Workflow: 0
     - _ZTest: 4
     - _ZWrite: 1
+    - _specularAntiAliasingThreshold: 0.1
+    - _specularAntiAliasingVariance: 0.15
+    - bakeryLightmapMode: 0
+    - wAg6H2wQzc7UbxaL: 0
     m_Colors:
     - _Color: {r: 1, g: 1, b: 1, a: 1}
+    - _DisplacementNoisePan: {r: 1, g: 1, b: 0, a: 1}
+    - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
+    - _FresnelColor: {r: 1, g: 1, b: 1, a: 1}
+    - _SheenColor: {r: 0.5, g: 0.5, b: 0.5, a: 0.5}
+    - _SpecColor: {r: 0.5, g: 0.5, b: 0.5, a: 0.5}
+    - _SpecularDirection: {r: 0, g: 1, b: 0, a: 1}
+    - _SubsurfaceTint: {r: 1, g: 1, b: 1, a: 1}

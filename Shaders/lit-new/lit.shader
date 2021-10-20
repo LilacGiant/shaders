@@ -2,13 +2,17 @@
 {
     Properties
     {
+        wAg6H2wQzc7UbxaL ("Is Locked", Int) = 0
+
         [KeywordEnum(Metallic, Specular, Anisotropic, Triplanar, Unpacked)] _Workflow ("Workflow", Int) = 0
         [KeywordEnum(Opaque, Cutout, Fade, Transparent, A2C, A2C Sharpened)] _Mode ("Rendering Mode", Int) = 0
 
 
-        _MainTex ("Texture", 2D) = "white" {}
+        _MainTex ("Base Map", 2D) = "white" {}
             [Enum(UV 0, 0, UV 1, 1, UV 2, 2, Stochastic, 4)] _MainTex_UV ("UV Type", Int) = 0
             _Color ("Base Color", Color) = (1,1,1,1)
+
+        [Toggle(BICUBIC_LIGHTMAP)] _BicubicLightmap ("Bicubic Lightmap", Float) = 0
 
 
         [Enum(UnityEngine.Rendering.BlendOp)] _BlendOp ("Blend Op", Int) = 0
@@ -49,6 +53,7 @@
 
             #pragma shader_feature_local _MODE_CUTOUT _MODE_FADE _MODE_TRANSPARENT _MODE_A2C _MODE_A2C_SHARPENED
             #pragma shader_feature_local _WORKFLOW_SPECULAR _WORKFLOW_ANISOTROPIC _WORKFLOW_TRIPLANAR _WORKFLOW_UNPACKED
+            #pragma shader_feature_local BICUBIC_LIGHTMAP
 
 
             #include "PassCGI.cginc"
@@ -113,6 +118,6 @@
             ENDCG
         }
     }
-    // CustomEditor "z3y.LitUI"
+    CustomEditor "z3y.LitUI"
     FallBack "Mobile/Lit Quest"
 }
