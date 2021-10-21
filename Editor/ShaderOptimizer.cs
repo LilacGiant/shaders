@@ -417,17 +417,16 @@ namespace z3y
             string newShaderName = $"Hidden/{shader.name}/{smallguid}";
             string newShaderDirectory = $"Assets/OptimizedShaders/{smallguid}/";
             string newShaderPath = $"{newShaderDirectory}{Path.GetFileName(shaderFilePath)}";
-            ApplyLater applyLater = new ApplyLater();
+            ReplaceStruct replaceStruct = new ReplaceStruct();
             
             
             if(!(sharedMaterial is null))
             {
-                applyLater.material = material;
-                applyLater.shader = sharedMaterial.shader;
-                applyLater.smallguid = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(sharedMaterial));
-                applyLater.newShaderName = $"Hidden/{shader.name}/{applyLater.smallguid}";
-                applyLater.newShaderPath = $"Assets/OptimizedShaders/{applyLater.smallguid}/{Path.GetFileName(AssetDatabase.GetAssetPath(sharedMaterial.shader))}";
-                applyStructsLater.Add(material, applyLater);
+                replaceStruct.Material = material;
+                replaceStruct.Shader = sharedMaterial.shader;
+                replaceStruct.SmallGuid = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(sharedMaterial));
+                replaceStruct.NewShaderPath = $"Assets/OptimizedShaders/{replaceStruct.SmallGuid}/{Path.GetFileName(AssetDatabase.GetAssetPath(sharedMaterial.shader))}";
+                ReplaceStructs.Add(material, replaceStruct);
                 return true;
 
             }
@@ -657,75 +656,71 @@ namespace z3y
             }
             
 
-            applyLater.material = material;
-            applyLater.shader = shader;
-            applyLater.smallguid = smallguid;
-            applyLater.newShaderName = newShaderName;
-            applyLater.newShaderPath = newShaderPath;
+            replaceStruct.Material = material;
+            replaceStruct.Shader = shader;
+            replaceStruct.SmallGuid = smallguid;
+            replaceStruct.NewShaderPath = newShaderPath;
 
             if (applyShaderLater)
             {
-                applyStructsLater.Add(material, applyLater);
+                ReplaceStructs.Add(material, replaceStruct);
                 return true;
             }
 
             AssetDatabase.Refresh();
 
-            return ReplaceShader(applyLater);
+            return ReplaceShader(replaceStruct);
         }
 
-        private static readonly Dictionary<Material, ApplyLater> applyStructsLater = new Dictionary<Material, ApplyLater>();
+        private static readonly Dictionary<Material, ReplaceStruct> ReplaceStructs = new Dictionary<Material, ReplaceStruct>();
 
-        private struct ApplyLater
+        private struct ReplaceStruct
         {
-            public Material material;
-            public Shader shader;
-            public string smallguid;
-            public string newShaderName;
-            public string newShaderPath;
+            public Material Material;
+            public Shader Shader;
+            public string SmallGuid;
+            public string NewShaderPath;
         }
-        
-        private static Dictionary<Material, string> replaceDictionary = new Dictionary<Material, string>();
-        
+
         private static void LockApplyShader(Material material)
         {
-            if (applyStructsLater.ContainsKey(material) == false) return;
-            ApplyLater applyStruct = applyStructsLater[material];
-            applyStructsLater.Remove(material);
+            if (ReplaceStructs.ContainsKey(material) == false) return;
+            ReplaceStruct applyStruct = ReplaceStructs[material];
+            ReplaceStructs.Remove(material);
             ReplaceShader(applyStruct);
         }
 
 
-        private static bool ReplaceShader(ApplyLater applyLater)
+        private static bool ReplaceShader(ReplaceStruct replaceStruct)
         {
 
             // Write original shader to override tag
-            applyLater.material.SetOverrideTag(OriginalShaderTag, applyLater.shader.name);
+            replaceStruct.Material.SetOverrideTag(OriginalShaderTag, replaceStruct.Shader.name);
             // Write the new shader folder name in an override tag so it will be deleted 
-            applyLater.material.SetOverrideTag("OptimizedShaderFolder", applyLater.smallguid);
+            replaceStruct.Material.SetOverrideTag("OptimizedShaderFolder", replaceStruct.SmallGuid);
 
             // For some reason when shaders are swapped on a material the RenderType override tag gets completely deleted and render queue set back to -1
             // So these are saved as temp values and reassigned after switching shaders
-            string renderType = applyLater.material.GetTag("RenderType", false, string.Empty);
-            int renderQueue = applyLater.material.renderQueue;
+            string renderType = replaceStruct.Material.GetTag("RenderType", false, string.Empty);
+            int renderQueue = replaceStruct.Material.renderQueue;
 
             // Actually switch the shader
             // Shader newShader = Shader.Find(applyLater.newShaderName);
-            Shader newShader = AssetDatabase.LoadAssetAtPath<Shader>(applyLater.newShaderPath);
+            Shader newShader = AssetDatabase.LoadAssetAtPath<Shader>(replaceStruct.NewShaderPath);
             
             if (newShader is null)
             {
                // LockMaterial(applyLater.material, false, null);
-                Debug.LogError("[Kaj Shader Optimizer] Generated shader " + applyLater.newShaderName + " for " + applyLater.material +" could not be found ");
+                Debug.LogError("[Kaj Shader Optimizer] Generated shader " + replaceStruct.NewShaderPath + " for " + replaceStruct.Material +" could not be found ");
                 return false;
             }
-            applyLater.material.shader = newShader;
-            applyLater.material.SetOverrideTag("RenderType", renderType);
-            applyLater.material.renderQueue = renderQueue;
+            replaceStruct.Material.shader = newShader;
+            replaceStruct.Material.SetOverrideTag("RenderType", renderType);
+            replaceStruct.Material.renderQueue = renderQueue;
 
             // Remove ALL keywords
-            foreach (string keyword in applyLater.material.shaderKeywords)
-                applyLater.material.DisableKeyword(keyword);
+            foreach (string keyword in replaceStruct.Material.shaderKeywords)
+                replaceStruct.Material.DisableKeyword(keyword);
 
             return true;
         }
