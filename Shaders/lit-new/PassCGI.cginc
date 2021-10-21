@@ -108,7 +108,7 @@ v2f vert (appdata v)
     #endif
 
     #ifdef NEED_TANGENT_BITANGENT
-        o.tangent = UnityObjectToWorldDir(v.tangent);
+        o.tangent = UnityObjectToWorldDir(v.tangent.xyz);
         o.bitangent = cross(o.tangent, o.worldNormal) * v.tangent.w;
     #endif
 

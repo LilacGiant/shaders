@@ -30,6 +30,13 @@
             [Enum(UV 0 Locked, 0, UV 1, 1, UV 2, 2, UV 0 Unlocked, 3, Stochastic, 4)]  _OcclusionMap_UV ("UV Type", Int) = 0
 
 
+        [Normal] _BumpMap ("Normal Map", 2D) = "bump" {}
+            _BumpScale ("Bump Scale", Range(0,10)) = 0
+            [Enum(OpenGL, 0, Direct3D, 1)] _NormalMapOrientation ("Orientation", Int) = 0
+            [Enum(UV 0 Locked, 0, UV 1, 1, UV 2, 2, UV 0 Unlocked, 3, Stochastic, 4)] _BumpMap_UV ("UV Type", Int) = 0
+            [ToggleUI] _HemiOctahedron ("Hemi Octahedron", Int) = 0
+
+
         [Toggle(SPECULAR_HIGHLIGHTS)] _SpecularHighlights("Specular Highlights", Float) = 1
         [Toggle(REFLECTIONS)] _GlossyReflections("Reflections", Float) = 1
             // _FresnelColor ("Tint", Color) = (1,1,1,1)
@@ -41,6 +48,11 @@
 
         [Toggle(BICUBIC_LIGHTMAP)] _BicubicLightmap ("Bicubic Lightmap", Int) = 0
         [ToggleUI] _InvertSmoothness ("Invert Smoothness", Int) = 0
+
+        [ToggleUI] _GSAA ("Geometric Specular AA", Int) = 0
+            [PowerSlider(3)] _specularAntiAliasingVariance ("Variance", Range(0.0, 1.0)) = 0.15
+            [PowerSlider(3)] _specularAntiAliasingThreshold ("Threshold", Range(0.0, 1.0)) = 0.1
+        
 
         [Enum(UnityEngine.Rendering.BlendOp)] _BlendOp ("Blend Op", Int) = 0
         [Enum(UnityEngine.Rendering.BlendOp)] _BlendOpAlpha ("Blend Op Alpha", Int) = 0

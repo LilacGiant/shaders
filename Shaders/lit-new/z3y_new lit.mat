@@ -9,7 +9,8 @@ Material:
   m_PrefabAsset: {fileID: 0}
   m_Name: z3y_new lit
   m_Shader: {fileID: 4800000, guid: 4b6d2e49ea33a3742b587eae47fb1326, type: 3}
-  m_ShaderKeywords: REFLECTIONS SPECULAR_HIGHLIGHTS _MODE_OPAQUE _WORKFLOW_METALLIC
+  m_ShaderKeywords: ENABLE_PACKED_MODE ENABLE_REFLECTIONS ENABLE_SPECULAR_HIGHLIGHTS
+    REFLECTIONS SPECULAR_HIGHLIGHTS _MODE_OPAQUE _WORKFLOW_METALLIC
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -21,6 +22,10 @@ Material:
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
+    - _BumpMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _MainTex:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
@@ -46,18 +51,23 @@ Material:
     - _BicubicLightmap: 0
     - _BlendOp: 0
     - _BlendOpAlpha: 0
+    - _BumpMap_UV: 0
+    - _BumpScale: 0
     - _Cull: 2
     - _DstBlend: 0
     - _FresnelIntensity: 1
-    - _Glossiness: 0.778
+    - _GSAA: 1
+    - _Glossiness: 1
     - _GlossinessInvert: 0
     - _GlossyReflections: 1
+    - _HemiOctahedron: 0
     - _InvertSmoothness: 0
     - _MainTex_UV: 0
     - _Metallic: 0
     - _MetallicGlossMap_UV: 0
     - _MetallicMap_UV: 0
     - _Mode: 0
+    - _NormalMapOrientation: 0
     - _Occlusion: 0
     - _OcclusionMap_UV: 0
     - _Reflectance: 0.5
@@ -68,6 +78,8 @@ Material:
     - _Workflow: 0
     - _ZTest: 4
     - _ZWrite: 1
+    - _specularAntiAliasingThreshold: 0.1
+    - _specularAntiAliasingVariance: 0.15
     - wAg6H2wQzc7UbxaL: 0
     m_Colors:
     - _Color: {r: 1, g: 1, b: 1, a: 1}

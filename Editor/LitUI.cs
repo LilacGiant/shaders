@@ -49,10 +49,8 @@ namespace z3y
         protected MaterialProperty _BicubicLightmap = null;
         protected MaterialProperty _MetallicGlossMap = null;
         protected MaterialProperty _MetallicGlossMap_UV = null;
-
         protected MaterialProperty _FresnelIntensity = null;
         protected MaterialProperty _SpecularOcclusion = null;
-
         protected MaterialProperty _BlendOp = null;
         protected MaterialProperty _BlendOpAlpha = null;
         protected MaterialProperty _SrcBlend = null;
@@ -67,9 +65,14 @@ namespace z3y
         protected MaterialProperty _MetallicMap_UV = null;
         protected MaterialProperty _OcclusionMap = null;
         protected MaterialProperty _OcclusionMap_UV = null;
-
-
-
+        protected MaterialProperty _BumpMap = null;
+        protected MaterialProperty _BumpScale = null;
+        protected MaterialProperty _BumpMap_UV = null;
+        protected MaterialProperty _NormalMapOrientation = null;
+        protected MaterialProperty _HemiOctahedron = null;
+        protected MaterialProperty _GSAA = null;
+        protected MaterialProperty _specularAntiAliasingVariance = null;
+        protected MaterialProperty _specularAntiAliasingThreshold = null;
 
 
         public void ShaderPropertiesGUI(Material material)
@@ -149,6 +152,15 @@ namespace z3y
 
                 }
 
+                prop(_BumpMap, _BumpMap.textureValue ? _BumpScale : null);
+                md[material].Show_BumpMap = Func.TriangleFoldout(md[material].Show_BumpMap, ()=> {
+                    prop(_BumpMap_UV);
+                    if(_BumpMap_UV.floatValue != 0) propTileOffset(_BumpMap);
+                    
+                    prop(_NormalMapOrientation);
+                    prop(_HemiOctahedron);
+                });
+
 
             });
 
@@ -158,9 +170,18 @@ namespace z3y
                 prop(_Reflectance);
                 prop(_FresnelIntensity);
                 prop(_SpecularOcclusion);
+
+                prop(_GSAA);
+                if(_GSAA.floatValue == 1){
+                    Func.PropertyGroup(() => {
+                        prop(_specularAntiAliasingVariance);
+                        prop(_specularAntiAliasingThreshold);
+                    });
+                };
             });
 
             md[material].ShowShaderFeatures = Foldout("Shader Features", md[material].ShowShaderFeatures, ()=> {
+                
 
             });
 

@@ -19,9 +19,20 @@ float4 frag (v2f i, bool facing : SV_IsFrontFace) : SV_Target
     float3 indirectSpecular = 0;
     float3 directSpecular = 0;
 
-    float3 worldNormal = normalize(i.worldNormal);
-    float3 viewDir = normalize(_WorldSpaceCameraPos - i.worldPos.xyz);
-    float NoV = abs(dot(worldNormal, viewDir)) + 1e-5;
+    float3 worldNormal = i.worldNormal;
+    #ifdef NEED_TANGENT_BITANGENT
+        float3 bitangent = i.bitangent;
+        float3 tangent = i.tangent;
+    #endif
+    if(!facing)
+    {
+        worldNormal *= -1;
+        #ifdef NEED_TANGENT_BITANGENT
+            bitangent *= -1;
+            tangent *= -1;
+        #endif
+    }
+    
 
     float4 maskMap = 1;
     float metallicMap = 1;
@@ -59,6 +70,42 @@ float4 frag (v2f i, bool facing : SV_IsFrontFace) : SV_Target
     perceptualRoughness = isRoughness ? smoothness : 1-smoothness;
     metallic = metallicMap * _Metallic * _Metallic;
     occlusion = lerp(1,occlusionMap , _Occlusion);
+
+    UNITY_BRANCH
+    if(_GSAA) perceptualRoughness = GSAA_Filament(worldNormal, perceptualRoughness);
+
+    #ifdef PROP_BUMPMAP
+        float4 normalMap = SampleTexture(_BumpMap, _BumpMap_ST, sampler_BumpMap, _BumpMap_UV);
+        #define CALC_TANGENT_BITANGENT
+    #else 
+        float4 normalMap = float4(0.5, 0.5, 1, 1);
+    #endif
+
+    #if defined(CALC_TANGENT_BITANGENT) && defined(NEED_TANGENT_BITANGENT)
+        float3 tangentNormal = UnpackScaleNormal(normalMap, _BumpScale);
+
+        tangentNormal.g *= _NormalMapOrientation ? 1 : -1;
+
+        half3 calcedNormal = normalize
+        (
+            tangentNormal.x * tangent +
+            tangentNormal.y * bitangent +
+            tangentNormal.z * worldNormal
+        );
+
+        worldNormal = calcedNormal;
+        tangent = normalize(cross(worldNormal, bitangent));
+        bitangent = normalize(cross(worldNormal, tangent));
+    #else
+        worldNormal = normalize(worldNormal);
+        #if defined(NEED_TANGENT_BITANGENT)
+            tangent = normalize(bitangent);
+            bitangent = normalize(tangent);
+        #endif
+    #endif
+
+    float3 viewDir = normalize(_WorldSpaceCameraPos - i.worldPos.xyz);
+    float NoV = abs(dot(worldNormal, viewDir)) + 1e-5;
 
     #ifdef USING_LIGHT_MULTI_COMPILE
         float3 lightDirection = Unity_SafeNormalize(UnityWorldSpaceLightDir(i.worldPos.xyz));
@@ -137,7 +184,7 @@ float4 frag (v2f i, bool facing : SV_IsFrontFace) : SV_Target
     #endif
 
     #if defined(SPECULAR_HIGHLIGHTS)
-        half NoH = saturate(dot(worldNormal, lightHalfVector));
+        float NoH = saturate(dot(worldNormal, lightHalfVector));
         half roughness = max(perceptualRoughness * perceptualRoughness, 0.002);
 
         #ifndef ANISOTROPY

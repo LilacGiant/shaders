@@ -16,6 +16,15 @@ float _SpecularOcclusion;
 
 uint _GlossinessInvert;
 
+DECLARE_TEX2D_CUSTOM_SAMPLER(_BumpMap);
+float _BumpScale;
+uint _NormalMapOrientation;
+uint _HemiOctahedron;
+
+uint _GSAA;
+float _specularAntiAliasingVariance;
+float _specularAntiAliasingThreshold;
+
 DECLARE_TEX2D_CUSTOM(_MetallicGlossMap);
 DECLARE_TEX2D_CUSTOM(_MetallicMap);
 DECLARE_TEX2D_CUSTOM(_SmoothnessMap);
@@ -55,14 +64,14 @@ static float2 parallaxOffset;
 
 
 #ifdef UNITY_PASS_FORWARDBASE
-    #define NEED_TANGENT (defined(REFLECTIONS) || defined(SPECULAR_HIGHLIGHTS) || defined(PROP_BUMPMAP))
+    #define NEED_TANGENT_BITANGENT (defined(REFLECTIONS) || defined(SPECULAR_HIGHLIGHTS) || defined(PROP_BUMPMAP))
     #define NEED_WORLD_POS
     #define NEED_WORLD_NORMAL
 #endif
 
 
 #ifdef UNITY_PASS_FORWARDADD
-    #define NEED_TANGENT (defined(REFLECTIONS) || defined(SPECULAR_HIGHLIGHTS) || defined(PROP_BUMPMAP))
+    #define NEED_TANGENT_BITANGENT (defined(REFLECTIONS) || defined(SPECULAR_HIGHLIGHTS) || defined(PROP_BUMPMAP))
     #define NEED_WORLD_POS
     #define NEED_WORLD_NORMAL
     #undef REFLECTIONS
