@@ -239,3 +239,49 @@ float3 tex2DFastBicubicLightmap(float2 uv, inout float4 bakedColorTex)
     return DecodeLightmap(bakedColorTex);
     #endif
 }
+
+float3 getBoxProjection (float3 direction, float3 position, float4 cubemapPosition, float3 boxMin, float3 boxMax)
+{
+    #if defined(UNITY_SPECCUBE_BOX_PROJECTION)
+        if (cubemapPosition.w > 0) {
+            float3 factors = ((direction > 0 ? boxMax : boxMin) - position) / direction;
+            float scalar = min(min(factors.x, factors.y), factors.z);
+            direction = direction * scalar + (position - cubemapPosition.xyz);
+        }
+    #endif
+
+    return direction;
+}
+
+float computeSpecularAO(float NoV, float ao, float roughness) {
+    return clamp(pow(NoV + ao, exp2(-16.0 * roughness - 1.0)) - 1.0 + ao, 0.0, 1.0);
+}
+
+float D_GGX_Anisotropic(float at, float ab, float ToH, float BoH, float NoH) {
+    // Burley 2012, "Physically-Based Shading at Disney"
+
+    // The values at and ab are perceptualRoughness^2, a2 is therefore perceptualRoughness^4
+    // The dot product below computes perceptualRoughness^8. We cannot fit in fp16 without clamping
+    // the roughness to too high values so we perform the dot product and the division in fp32
+    float a2 = at * ab;
+    float3 d = float3(ab * ToH, at * BoH, a2 * NoH);
+    float d2 = dot(d, d);
+    float b2 = a2 / d2;
+    return a2 * b2 * b2 * (1.0 / UNITY_PI);
+}
+
+float V_SmithGGXCorrelated(float NoV, float NoL, float roughness) {
+    float a2 = roughness * roughness;
+    float GGXV = NoL * sqrt(NoV * NoV * (1.0 - a2) + a2);
+    float GGXL = NoV * sqrt(NoL * NoL * (1.0 - a2) + a2);
+    return 0.5 / (GGXV + GGXL);
+}
+
+float V_SmithGGXCorrelated_Anisotropic(float at, float ab, float ToV, float BoV, float ToL, float BoL, float NoV, float NoL) {
+    // Heitz 2014, "Understanding the Masking-Shadowing Function in Microfacet-Based BRDFs"
+    // TODO: lambdaV can be pre-computed for all the lights, it should be moved out of this function
+    float lambdaV = NoL * length(float3(at * ToV, ab * BoV, NoV));
+    float lambdaL = NoV * length(float3(at * ToL, ab * BoL, NoL));
+    float v = 0.5 / (lambdaV + lambdaL);
+    return saturate(v);
+}

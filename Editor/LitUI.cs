@@ -47,12 +47,26 @@ namespace z3y
         protected MaterialProperty _AlphaToMask = null;
         protected MaterialProperty _Cutoff = null;
         protected MaterialProperty _BicubicLightmap = null;
+        protected MaterialProperty _MetallicGlossMap = null;
+        protected MaterialProperty _MetallicGlossMap_UV = null;
+
+        protected MaterialProperty _FresnelIntensity = null;
+        protected MaterialProperty _SpecularOcclusion = null;
 
         protected MaterialProperty _BlendOp = null;
         protected MaterialProperty _BlendOpAlpha = null;
         protected MaterialProperty _SrcBlend = null;
         protected MaterialProperty _DstBlend = null;
         protected MaterialProperty _Cull = null;
+        protected MaterialProperty _ZWrite = null;
+        protected MaterialProperty _ZTest = null;
+        protected MaterialProperty _SmoothnessMap = null;
+        protected MaterialProperty _SmoothnessMap_UV = null;
+        protected MaterialProperty _GlossinessInvert = null;
+        protected MaterialProperty _MetallicMap = null;
+        protected MaterialProperty _MetallicMap_UV = null;
+        protected MaterialProperty _OcclusionMap = null;
+        protected MaterialProperty _OcclusionMap_UV = null;
 
 
 
@@ -85,12 +99,55 @@ namespace z3y
                 EditorGUILayout.Space();;
 
                 prop(_MainTex, _Color);
-
                 md[material].Show_MainTex = Func.TriangleFoldout(md[material].Show_MainTex, ()=> {
                     prop(_MainTex_UV);
                     propTileOffset(_MainTex);
                     prop(_Saturation);
                 });
+
+                
+
+                if(_Workflow.floatValue != 3)
+                {
+                    prop(_Metallic);
+                    prop(_Glossiness);
+                    if(_MetallicGlossMap.textureValue) prop(_Occlusion);
+
+                    prop(_MetallicGlossMap);
+                    md[material].Show_MetallicGlossMap = Func.TriangleFoldout(md[material].Show_MetallicGlossMap, ()=> {
+                        prop(_MetallicGlossMap_UV);
+                        if(_MetallicGlossMap_UV.floatValue != 0) propTileOffset(_MetallicGlossMap);
+                    });
+                }
+                Func.sRGBWarning(_MetallicGlossMap);
+
+                if(_Workflow.floatValue == 3)
+                {
+                    prop(_MetallicMap, _Metallic);
+                    md[material].Show_MetallicMap = Func.TriangleFoldout(md[material].Show_MetallicMap, ()=> {
+                        prop(_MetallicMap_UV);
+                        if(_MetallicMap_UV.floatValue != 0)  propTileOffset(_MetallicMap);
+                    });
+                    Func.sRGBWarning(_MetallicMap);
+                    
+                    prop(_SmoothnessMap, _Glossiness);
+                    md[material].Show_SmoothnessMap = Func.TriangleFoldout(md[material].Show_SmoothnessMap, ()=> {
+                        prop(_SmoothnessMap_UV);
+                        if(_SmoothnessMap_UV.floatValue != 0) propTileOffset(_SmoothnessMap);
+                        
+                        prop(_GlossinessInvert);
+                    });
+                    Func.sRGBWarning(_SmoothnessMap);
+                    
+                    prop(_OcclusionMap, _Occlusion);
+                    md[material].Show_OcclusionMap = Func.TriangleFoldout(md[material].Show_OcclusionMap, ()=> {
+                        prop(_OcclusionMap_UV);
+                        if(_OcclusionMap_UV.floatValue != 0) propTileOffset(_OcclusionMap);
+                        
+                    });
+                    Func.sRGBWarning(_OcclusionMap);
+
+                }
 
 
             });
@@ -98,6 +155,9 @@ namespace z3y
             md[material].ShowSpecular = Foldout("Specular Reflections", md[material].ShowSpecular, ()=> {
                 prop(_GlossyReflections);
                 prop(_SpecularHighlights);
+                prop(_Reflectance);
+                prop(_FresnelIntensity);
+                prop(_SpecularOcclusion);
             });
 
             md[material].ShowShaderFeatures = Foldout("Shader Features", md[material].ShowShaderFeatures, ()=> {
@@ -111,14 +171,17 @@ namespace z3y
 
             md[material].ShowAdvanced = Foldout("Advanced", md[material].ShowAdvanced, ()=> {
                 Func.PropertyGroup(() => {
-                prop(_BlendOp);
-                prop(_BlendOpAlpha);
-                prop(_SrcBlend);
-                prop(_DstBlend);
+                    EditorGUILayout.LabelField("Rendering Options", EditorStyles.boldLabel);
+                    prop(_BlendOp);
+                    prop(_BlendOpAlpha);
+                    prop(_SrcBlend);
+                    prop(_DstBlend);
+                    prop(_ZWrite);
+                    prop(_ZTest);
+                    prop(_Cull);
                 });
                 EditorGUILayout.Space();
 
-                prop(_Cull);
                 me.DoubleSidedGIField();
                 me.EnableInstancingField();
                 me.RenderQueueField();

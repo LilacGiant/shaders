@@ -6,9 +6,20 @@ CBUFFER_START(UnityPerMaterial)
 
 DECLARE_TEX2D_CUSTOM_SAMPLER(_MainTex);
 float4 _Color;
+float _Reflectance;
+float _FresnelIntensity;
+float _Glossiness;
+float _Metallic;
+float _Occlusion;
 
+float _SpecularOcclusion;
 
+uint _GlossinessInvert;
 
+DECLARE_TEX2D_CUSTOM(_MetallicGlossMap);
+DECLARE_TEX2D_CUSTOM(_MetallicMap);
+DECLARE_TEX2D_CUSTOM(_SmoothnessMap);
+DECLARE_TEX2D_CUSTOM(_OcclusionMap);
 
 
 CBUFFER_END
@@ -18,6 +29,22 @@ UNITY_INSTANCING_BUFFER_START(Props)
     //UNITY_DEFINE_INSTANCED_PROP(float4, _Color)
 UNITY_INSTANCING_BUFFER_END(Props)
 
+#if !defined(OPTIMIZER_ENABLED) // defined if texture gets used
+    #define PROP_BUMPMAP
+    #define PROP_METALLICMAP
+    #define PROP_SMOOTHNESSMAP
+    #define PROP_OCCLUSIONMAP
+    #define PROP_EMISSIONMAP
+    #define PROP_METALLICGLOSSMAP
+    #define PROP_DETAILMAP
+    #define PROP_ALEMISSIONMAP
+    #define PROP_ENABLEVERTEXCOLOR
+    #define PROP_ANISOTROPYMAP
+    #define PROP_DISPLACEMENTMASK
+    #define PROP_DISPLACEMENTNOISE
+    #define PROP_SPECGLOSSMAP
+    #define PROP_THICKNESSMAP
+#endif
 
 static float2 parallaxOffset;
 
@@ -38,9 +65,10 @@ static float2 parallaxOffset;
     #define NEED_TANGENT (defined(REFLECTIONS) || defined(SPECULAR_HIGHLIGHTS) || defined(PROP_BUMPMAP))
     #define NEED_WORLD_POS
     #define NEED_WORLD_NORMAL
+    #undef REFLECTIONS
 #endif
 
 
 #ifdef UNITY_PASS_SHADOWCASTER
-
+    #undef REFLECTIONS
 #endif

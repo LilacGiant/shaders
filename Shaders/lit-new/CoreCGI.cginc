@@ -10,7 +10,7 @@ float4 frag (v2f i, bool facing : SV_IsFrontFace) : SV_Target
 
     float alpha = 1;
     float3 emission = 0;
-    float perceptualRoughness = 0;
+    float perceptualRoughness = 0.5;
     float metallic = 0;
     float occlusion = 1;
     float3 indirectDiffuse = 1;
@@ -18,11 +18,47 @@ float4 frag (v2f i, bool facing : SV_IsFrontFace) : SV_Target
     float3 vertexLight = 0;
     float3 indirectSpecular = 0;
     float3 directSpecular = 0;
-    float2 lightmapUV = 0;
 
     float3 worldNormal = normalize(i.worldNormal);
     float3 viewDir = normalize(_WorldSpaceCameraPos - i.worldPos.xyz);
     float NoV = abs(dot(worldNormal, viewDir)) + 1e-5;
+
+    float4 maskMap = 1;
+    float metallicMap = 1;
+    float smoothnessMap = 1;
+    float occlusionMap = 1;
+    bool isRoughness = _GlossinessInvert;
+
+    #ifdef _WORKFLOW_UNPACKED
+
+        #ifdef PROP_METALLICMAP
+            metallicMap = SampleTexture(_MetallicMap, _MetallicMap_ST, _MetallicMap_UV);
+        #endif
+
+        #ifdef PROP_SMOOTHNESSMAP
+            smoothnessMap = SampleTexture(_SmoothnessMap, _SmoothnessMap_ST, _SmoothnessMap_UV);
+        #endif
+
+        #ifdef PROP_OCCLUSIONMAP
+            occlusionMap = SampleTexture(_OcclusionMap, _OcclusionMap_ST, _OcclusionMap_UV);
+        #endif
+
+    #else
+
+        #ifdef PROP_METALLICGLOSSMAP
+            maskMap = SampleTexture(_MetallicGlossMap, _MetallicGlossMap_ST, _MetallicGlossMap_UV);
+        #endif
+        
+        metallicMap = maskMap.r;
+        smoothnessMap = maskMap.a;
+        occlusionMap = maskMap.g;
+        isRoughness = 0;
+    #endif
+
+    float smoothness = _Glossiness * smoothnessMap;
+    perceptualRoughness = isRoughness ? smoothness : 1-smoothness;
+    metallic = metallicMap * _Metallic * _Metallic;
+    occlusion = lerp(1,occlusionMap , _Occlusion);
 
     #ifdef USING_LIGHT_MULTI_COMPILE
         float3 lightDirection = Unity_SafeNormalize(UnityWorldSpaceLightDir(i.worldPos.xyz));
@@ -37,7 +73,7 @@ float4 frag (v2f i, bool facing : SV_IsFrontFace) : SV_Target
 
     #if defined(LIGHTMAP_ON)
 
-        lightmapUV = i.coord0.zw * unity_LightmapST.xy + unity_LightmapST.zw;
+        float2 lightmapUV = i.coord0.zw * unity_LightmapST.xy + unity_LightmapST.zw;
         float4 bakedColorTex = 0;
 
         float3 lightMap = tex2DFastBicubicLightmap(lightmapUV, bakedColorTex);
@@ -61,6 +97,56 @@ float4 frag (v2f i, bool facing : SV_IsFrontFace) : SV_Target
         indirectDiffuse = lightMap;
     #else
         indirectDiffuse = max(0, ShadeSH9(float4(worldNormal, 1)));
+    #endif
+
+
+
+    float3 f0 = 0.16 * _Reflectance * _Reflectance * (1 - metallic) + mainTexture.rgb * metallic;
+    float3 fresnel = lerp(f0, F_Schlick(NoV, f0) , _FresnelIntensity);
+    fresnel *= lerp(1, saturate(pow(length(indirectDiffuse), _SpecularOcclusion)), _SpecularOcclusion);
+    
+    #if defined(UNITY_PASS_FORWARDBASE)
+
+        #if defined(REFLECTIONS)
+            float3 reflDir = reflect(-viewDir, worldNormal);
+            
+            // if(_EnableAnisotropy) reflViewDir = getAnisotropicReflectionVector(viewDir, bitangent, tangent, worldNormal, surface.perceptualRoughness);
+            Unity_GlossyEnvironmentData envData;
+            envData.roughness = perceptualRoughness;
+            envData.reflUVW = getBoxProjection(reflDir, i.worldPos.xyz, unity_SpecCube0_ProbePosition, unity_SpecCube0_BoxMin, unity_SpecCube0_BoxMax);
+
+            float3 probe0 = Unity_GlossyEnvironment(UNITY_PASS_TEXCUBE(unity_SpecCube0), unity_SpecCube0_HDR, envData);
+            indirectSpecular = probe0;
+
+            #if defined(UNITY_SPECCUBE_BLENDING)
+                UNITY_BRANCH
+                if (unity_SpecCube0_BoxMin.w < 0.99999)
+                {
+                    envData.reflUVW = getBoxProjection(reflDir, i.worldPos.xyz, unity_SpecCube1_ProbePosition, unity_SpecCube1_BoxMin, unity_SpecCube1_BoxMax);
+                    float3 probe1 = Unity_GlossyEnvironment(UNITY_PASS_TEXCUBE_SAMPLER(unity_SpecCube1, unity_SpecCube0), unity_SpecCube1_HDR, envData);
+                    indirectSpecular = lerp(probe1, probe0, unity_SpecCube0_BoxMin.w);
+                }
+            #endif
+
+            float horizon = min(1 + dot(reflDir, worldNormal), 1);
+            indirectSpecular = indirectSpecular * lerp(fresnel, f0, perceptualRoughness) * horizon * horizon;
+
+        #endif
+
+        indirectSpecular *= computeSpecularAO(NoV, occlusion, perceptualRoughness * perceptualRoughness);
+    #endif
+
+    #if defined(SPECULAR_HIGHLIGHTS)
+        half NoH = saturate(dot(worldNormal, lightHalfVector));
+        half roughness = max(perceptualRoughness * perceptualRoughness, 0.002);
+
+        #ifndef ANISOTROPY
+            float3 F = F_Schlick(lightLoH, f0);
+            float D = GGXTerm(NoH, roughness);
+            float V = V_SmithGGXCorrelated ( NoV, lightNoL, roughness);
+        #endif
+        
+        directSpecular += max(0, (D * V) * F) * pixelLight * UNITY_PI;
     #endif
 
 
