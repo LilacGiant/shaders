@@ -43,7 +43,7 @@ float4 frag (v2f i, bool facing : SV_IsFrontFace) : SV_Target
         float3 lightMap = tex2DFastBicubicLightmap(lightmapUV, bakedColorTex);
 
         #if defined(DIRLIGHTMAP_COMBINED)
-            lightMapDirection = UNITY_SAMPLE_TEX2D_SAMPLER (unity_LightmapInd, unity_Lightmap, lightmapUV);
+            float4 lightMapDirection = UNITY_SAMPLE_TEX2D_SAMPLER (unity_LightmapInd, unity_Lightmap, lightmapUV);
             lightMap = DecodeDirectionalLightmap(lightMap, lightMapDirection, worldNormal);
         #endif
 

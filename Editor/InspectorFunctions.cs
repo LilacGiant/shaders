@@ -261,9 +261,6 @@ namespace z3y
                     }
                     else
                     {
-                        #if BAKERY_INCLUDED
-                            ShaderOptimizer.RevertHandleBakeryPropertyBlocks();
-                        #endif
                         foreach (Material m in materialEditor.targets)
                             if (!ShaderOptimizer.Unlock(m))
                                 m.SetFloat(shaderOptimizer.name, 1);

@@ -512,33 +512,6 @@ namespace z3y
                 }
             }
         }
-        public static string litShaderName = "z3y/lit";
-
-       // [MenuItem("Tools/Lit/Standard -> Lit")]
-        public static void SwitchToLit()
-        {
-            Material[] mats = ShaderOptimizer.GetAllMaterialsWithShader("Standard");
-
-            Shader lit = Shader.Find(litShaderName);
-
-            for (int i=0; i<mats.Length; i++)
-            {
-                Func.SetupMaterialWithBlendMode(mats[i], mats[i].GetFloat("_Mode"));
-                mats[i].shader = lit;
-            }
-        }
-
-       // [MenuItem("Tools/Lit/Lit -> Standard")]
-        public static void SwitchToStandard()
-        {
-            Material[] mats = ShaderOptimizer.GetAllMaterialsWithShader(litShaderName);
-
-            Shader standard = Shader.Find("Standard");
-
-            for (int i=0; i<mats.Length; i++)
-            {
-                mats[i].shader = standard;
-            }
-        }
+        
     }
 }
