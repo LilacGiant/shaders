@@ -73,6 +73,11 @@ namespace z3y
         protected MaterialProperty _GSAA = null;
         protected MaterialProperty _specularAntiAliasingVariance = null;
         protected MaterialProperty _specularAntiAliasingThreshold = null;
+        protected MaterialProperty _EnableEmission = null;
+        protected MaterialProperty _EmissionColor = null;
+        protected MaterialProperty _EmissionMap_UV = null;
+        protected MaterialProperty _EmissionMultBase = null;
+        protected MaterialProperty _EmissionMap = null;
 
 
         public void ShaderPropertiesGUI(Material material)
@@ -161,6 +166,22 @@ namespace z3y
                     prop(_HemiOctahedron);
                 });
 
+                prop(_EnableEmission);
+                if(_EnableEmission.floatValue == 1)
+                {
+                    Func.PropertyGroup(() => {
+                        prop(_EmissionMap, _EmissionColor);
+
+                        md[material].Show_EmissionMap = Func.TriangleFoldout(md[material].Show_EmissionMap, ()=> {
+                            prop(_EmissionMap_UV);
+                            if(_EmissionMap_UV.floatValue != 0) propTileOffset(_EmissionMap);
+                            
+                        });
+                        me.LightmapEmissionProperty();
+                        prop(_EmissionMultBase);
+                    });
+                }
+
 
             });
 
@@ -222,7 +243,7 @@ namespace z3y
         // On inspector change
         private void ApplyChanges()
         {
-            // Func.SetupGIFlags(_EnableEmission.floatValue, material);
+            Func.SetupGIFlags(_EnableEmission.floatValue, material);
 
             if(wAg6H2wQzc7UbxaL.floatValue != 0) return;
         }

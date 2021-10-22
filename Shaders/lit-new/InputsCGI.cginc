@@ -32,6 +32,10 @@ DECLARE_TEX2D_CUSTOM(_MetallicMap);
 DECLARE_TEX2D_CUSTOM(_SmoothnessMap);
 DECLARE_TEX2D_CUSTOM(_OcclusionMap);
 
+DECLARE_TEX2D_CUSTOM(_EmissionMap);
+uint _EmissionMultBase;
+float3 _EmissionColor;
+
 
 CBUFFER_END
 
@@ -77,9 +81,11 @@ static float2 parallaxOffset;
     #define NEED_WORLD_POS
     #define NEED_WORLD_NORMAL
     #undef REFLECTIONS
+    #undef EMISSION
 #endif
 
 
 #ifdef UNITY_PASS_SHADOWCASTER
     #undef REFLECTIONS
+    #undef EMISSION
 #endif

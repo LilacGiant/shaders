@@ -53,6 +53,12 @@
         [ToggleUI] _GSAA ("Geometric Specular AA", Int) = 0
             [PowerSlider(3)] _specularAntiAliasingVariance ("Variance", Range(0.0, 1.0)) = 0.15
             [PowerSlider(3)] _specularAntiAliasingThreshold ("Threshold", Range(0.0, 1.0)) = 0.1
+
+        [Toggle(EMISSION)] _EnableEmission ("Emission", Int) = 0
+            _EmissionMap ("Emission Map", 2D) = "white" {}
+            [ToggleUI] _EmissionMultBase ("Multiply Base", Int) = 0
+            [HDR] _EmissionColor ("Emission Color", Color) = (0,0,0)
+            [Enum(UV 0 Locked, 0, UV 1, 1, UV 2, 2, UV 0 Unlocked, 3, Stochastic, 4)]  _EmissionMap_UV ("UV Type", Int) = 0
         
 
         [Enum(UnityEngine.Rendering.BlendOp)] _BlendOp ("Blend Op", Int) = 0
@@ -96,6 +102,7 @@
             #pragma shader_feature_local BICUBIC_LIGHTMAP
             #pragma shader_feature_local SPECULAR_HIGHLIGHTS
             #pragma shader_feature_local REFLECTIONS
+            #pragma shader_feature_local EMISSION
 
 
             #include "PassCGI.cginc"

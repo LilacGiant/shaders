@@ -221,7 +221,14 @@ float4 frag (v2f i, bool facing : SV_IsFrontFace) : SV_Target
 
 
 
-
+    #ifdef EMISSION
+        float3 emissionMap = 1;
+        #ifdef PROP_EMISSIONMAP
+        emissionMap = SampleTexture(_EmissionMap, _EmissionMap_ST, _EmissionMap_UV).rgb;
+        #endif
+        if(_EmissionMultBase) emissionMap *= mainTexture.rgb;
+        emission = emissionMap * pow(_EmissionColor, 2.2);
+    #endif
 
     
     // alpha -= mainTexture.a * 0.00001;
