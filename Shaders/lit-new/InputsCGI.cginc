@@ -36,6 +36,18 @@ DECLARE_TEX2D_CUSTOM(_EmissionMap);
 uint _EmissionMultBase;
 float3 _EmissionColor;
 
+DECLARE_TEX2D_CUSTOM(_DetailMap);
+float _DetailAlbedoScale;
+float _DetailNormalScale;
+float _DetailSmoothnessScale;
+
+#ifdef PARALLAX
+DECLARE_TEX2D_CUSTOM(_ParallaxMap);
+float _ParallaxSteps;
+float _ParallaxOffset;
+float _Parallax;
+#endif
+
 
 CBUFFER_END
 
@@ -70,22 +82,27 @@ static float2 parallaxOffset;
 
 
 #ifdef UNITY_PASS_FORWARDBASE
-    #define NEED_TANGENT_BITANGENT (defined(REFLECTIONS) || defined(SPECULAR_HIGHLIGHTS) || defined(PROP_BUMPMAP))
+    #define NEED_TANGENT_BITANGENT (defined(REFLECTIONS) || defined(SPECULAR_HIGHLIGHTS) || defined(PROP_BUMPMAP) || defined(PROP_DETALMAP))
     #define NEED_WORLD_POS
     #define NEED_WORLD_NORMAL
+    #define NEED_PARALLAX_DIR (defined(PARALLAX))
 #endif
 
 
 #ifdef UNITY_PASS_FORWARDADD
-    #define NEED_TANGENT_BITANGENT (defined(REFLECTIONS) || defined(SPECULAR_HIGHLIGHTS) || defined(PROP_BUMPMAP))
+    #define NEED_TANGENT_BITANGENT (defined(REFLECTIONS) || defined(SPECULAR_HIGHLIGHTS) || defined(PROP_BUMPMAP) || defined(PROP_DETALMAP))
     #define NEED_WORLD_POS
     #define NEED_WORLD_NORMAL
+    #define NEED_PARALLAX_DIR (defined(PARALLAX))
     #undef REFLECTIONS
     #undef EMISSION
+    #undef BICUBIC_LIGHTMAP
 #endif
 
 
 #ifdef UNITY_PASS_SHADOWCASTER
     #undef REFLECTIONS
     #undef EMISSION
+    #undef BICUBIC_LIGHTMAP
+    #undef PARALLAX
 #endif

@@ -118,7 +118,7 @@ v2f vert (appdata v)
 
     #ifdef NEED_PARALLAX_DIR
         TANGENT_SPACE_ROTATION;
-        o.viewDirForParallax = mul (rotation, ObjSpaceViewDir(v.vertex));
+        o.parallaxViewDir = mul (rotation, ObjSpaceViewDir(v.vertex));
     #endif
 
     #ifdef UNITY_PASS_SHADOWCASTER

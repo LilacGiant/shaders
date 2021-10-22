@@ -1,6 +1,10 @@
 float4 frag (v2f i, bool facing : SV_IsFrontFace) : SV_Target
 {
     input = i;
+
+    #if defined(PARALLAX)
+        parallaxOffset = ParallaxOffset(i.parallaxViewDir);
+    #endif
     
     float4 mainTexture = SampleTexture(_MainTex, _MainTex_ST, sampler_MainTex, _MainTex_UV) * _Color;
     float alpha = mainTexture.a;
@@ -91,6 +95,35 @@ float4 frag (v2f i, bool facing : SV_IsFrontFace) : SV_Target
     metallic = metallicMap * _Metallic * _Metallic;
     occlusion = lerp(1,occlusionMap , _Occlusion);
 
+    #if defined(PROP_DETAILMAP)
+        float4 detailMap = SampleTexture(_DetailMap, _DetailMap_ST, _DetailMap_UV);
+
+        float detailMask = maskMap.a;
+        float detailAlbedo = detailMap.r * 2.0 - 1.0;
+        float detailSmoothness = (detailMap.b * 2.0 - 1.0);
+
+        // Goal: we want the detail albedo map to be able to darken down to black and brighten up to white the surface albedo.
+        // The scale control the speed of the gradient. We simply remap detailAlbedo from [0..1] to [-1..1] then perform a lerp to black or white
+        // with a factor based on speed.
+        // For base color we interpolate in sRGB space (approximate here as square) as it get a nicer perceptual gradient
+
+        float albedoDetailSpeed = saturate(abs(detailAlbedo) * _DetailAlbedoScale);
+        float3 baseColorOverlay = lerp(sqrt(mainTexture.rgb), (detailAlbedo < 0.0) ? float3(0.0, 0.0, 0.0) : float3(1.0, 1.0, 1.0), albedoDetailSpeed * albedoDetailSpeed);
+        baseColorOverlay *= baseColorOverlay;							   
+        // Lerp with details mask
+        mainTexture.rgb = lerp(mainTexture.rgb, saturate(baseColorOverlay), detailMask);
+
+        float perceptualSmoothness = (1 - perceptualRoughness);
+        // See comment for baseColorOverlay
+        float smoothnessDetailSpeed = saturate(abs(detailSmoothness) * _DetailSmoothnessScale);
+        float smoothnessOverlay = lerp(perceptualSmoothness, (detailSmoothness < 0.0) ? 0.0 : 1.0, smoothnessDetailSpeed);
+        // Lerp with details mask
+        perceptualSmoothness = lerp(perceptualSmoothness, saturate(smoothnessOverlay), detailMask);
+
+        perceptualRoughness = (1 - perceptualSmoothness);
+        #define CALC_TANGENT_BITANGENT
+    #endif
+
     UNITY_BRANCH
     if(_GSAA) perceptualRoughness = GSAA_Filament(worldNormal, perceptualRoughness);
 
@@ -101,8 +134,17 @@ float4 frag (v2f i, bool facing : SV_IsFrontFace) : SV_Target
         float4 normalMap = float4(0.5, 0.5, 1, 1);
     #endif
 
+    
+
     #if defined(CALC_TANGENT_BITANGENT) && defined(NEED_TANGENT_BITANGENT)
         float3 tangentNormal = UnpackScaleNormal(normalMap, _BumpScale);
+
+        #if defined(PROP_DETAILMAP)
+            float4 detailNormalMap = float4(detailMap.a, detailMap.g, 1, 1);
+            detailNormalMap.g = 1-detailNormalMap.g;
+            float3 detailNormal = UnpackScaleNormal(detailNormalMap, _DetailNormalScale);
+            tangentNormal = BlendNormals(tangentNormal, detailNormal);
+        #endif
 
         tangentNormal.g *= _NormalMapOrientation ? 1 : -1;
 
@@ -231,7 +273,6 @@ float4 frag (v2f i, bool facing : SV_IsFrontFace) : SV_Target
     #endif
 
     
-    // alpha -= mainTexture.a * 0.00001;
     #if defined(_MODE_TRANSPARENT)
         mainTexture.rgb *= alpha;
         alpha = lerp(alpha, 1, metallic);

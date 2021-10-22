@@ -309,3 +309,63 @@ float GSAA_Filament(float3 worldNormal,float perceptualRoughness) {
 
     return sqrt(sqrt(squareRoughness));
 }
+
+#ifdef PARALLAX
+float3 CalculateTangentViewDir(float3 tangentViewDir)
+{
+    tangentViewDir = Unity_SafeNormalize(tangentViewDir);
+    tangentViewDir.xy /= (tangentViewDir.z + 0.42);
+	return tangentViewDir;
+}
+
+// uwu https://github.com/MochiesCode/Mochies-Unity-Shaders/blob/7d48f101d04dac11bd4702586ee838ca669f426b/Mochie/Standard%20Shader/MochieStandardParallax.cginc#L13
+float2 ParallaxOffsetMultiStep(float surfaceHeight, float strength, float2 uv, float3 tangentViewDir)
+{
+    float2 uvOffset = 0;
+	float2 prevUVOffset = 0;
+	float stepSize = 1.0/_ParallaxSteps;
+	float stepHeight = 1;
+	float2 uvDelta = tangentViewDir.xy * (stepSize * strength);
+	float prevStepHeight = stepHeight;
+	float prevSurfaceHeight = surfaceHeight;
+
+    [unroll(50)]
+    for (int j = 1; j <= _ParallaxSteps && stepHeight > surfaceHeight; j++){
+        prevUVOffset = uvOffset;
+        prevStepHeight = stepHeight;
+        prevSurfaceHeight = surfaceHeight;
+        uvOffset -= uvDelta;
+        stepHeight -= stepSize;
+        surfaceHeight = _ParallaxMap.Sample(sampler_MainTex, (uv + uvOffset)) + _ParallaxOffset;
+    }
+    [unroll(3)]
+    for (int k = 0; k < 3; k++) {
+        uvDelta *= 0.5;
+        stepSize *= 0.5;
+
+        if (stepHeight < surfaceHeight) {
+            uvOffset += uvDelta;
+            stepHeight += stepSize;
+        }
+        else {
+            uvOffset -= uvDelta;
+            stepHeight -= stepSize;
+        }
+        surfaceHeight = _ParallaxMap.Sample(sampler_MainTex, (uv + uvOffset)) + _ParallaxOffset;
+    }
+
+    return uvOffset;
+}
+
+float2 ParallaxOffset (float3 viewDirForParallax)
+{
+    viewDirForParallax = CalculateTangentViewDir(viewDirForParallax);
+
+    float2 parallaxUV = input.coord0.xy * _MainTex_ST.xy + _MainTex_ST.zw;
+    float h = _ParallaxMap.Sample(sampler_MainTex, parallaxUV);
+    h = clamp(h, 0, 0.999);
+    float2 offset = ParallaxOffsetMultiStep(h, _Parallax, parallaxUV, viewDirForParallax);
+
+	return offset;
+}
+#endif

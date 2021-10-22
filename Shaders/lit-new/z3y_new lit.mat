@@ -9,16 +9,17 @@ Material:
   m_PrefabAsset: {fileID: 0}
   m_Name: z3y_new lit
   m_Shader: {fileID: 4800000, guid: 4b6d2e49ea33a3742b587eae47fb1326, type: 3}
-  m_ShaderKeywords: ENABLE_PACKED_MODE ENABLE_REFLECTIONS ENABLE_SPECULAR_HIGHLIGHTS
-    REFLECTIONS SPECULAR_HIGHLIGHTS _MODE_A2C _WORKFLOW_METALLIC
+  m_ShaderKeywords: REFLECTIONS SPECULAR_HIGHLIGHTS _MODE_OPAQUE _SPECULARWORKFLOW_METALLIC
+    _WORKFLOW_PACKED
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
-  m_CustomRenderQueue: -1
+  m_CustomRenderQueue: 2000
   stringTagMap:
     : 
     OptimizedShaderFolder: 8acb96b91e7dec5458ce118b550604b4
-    OriginalShaderTag: z3y/lit
+    OriginalShaderTag: z3y/new lit
+    RenderType: Opaque
   disabledShaderPasses: []
   m_SavedProperties:
     serializedVersion: 3
@@ -36,10 +37,22 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _BumpMap:
+        m_Texture: {fileID: 2800000, guid: 262a4b4a1fe3d7c43949f85ce4d53226, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _DetailAlbedoMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _DetailMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _DetailMask:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _DetailNormalMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
@@ -56,7 +69,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MainTex:
-        m_Texture: {fileID: 2800000, guid: e9c4642eaa083a54ab91406d8449e6ac, type: 3}
+        m_Texture: {fileID: 2800000, guid: 0c79bf62e441d6443bf64ec01c41761a, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MetallicGlossMap:
@@ -103,7 +116,7 @@ Material:
     - _ALEmissionBand: 0
     - _ALEmissionType: 0
     - _ALSmoothing: 0.5
-    - _AlphaToMask: 1
+    - _AlphaToMask: 0
     - _Anisotropy: 0
     - _BAKERY_LMSPEC: 0
     - _BAKERY_RNM: 0
@@ -120,6 +133,8 @@ Material:
     - _Cutoff: 0.5
     - _DetailAlbedoScale: 1
     - _DetailMapUV: 0
+    - _DetailMap_UV: 0
+    - _DetailNormalMapScale: 1
     - _DetailNormalScale: 0
     - _DetailSmoothnessScale: 1
     - _DisplacementIntensity: 0
@@ -127,6 +142,7 @@ Material:
     - _DisplacementScale: 1
     - _DstBlend: 0
     - _EmissionMapUV: 0
+    - _EmissionMap_UV: 0
     - _EmissionMultBase: 0
     - _EnableAnisotropy: 0
     - _EnableAudioLink: 0
@@ -138,7 +154,8 @@ Material:
     - _FlatShading: 0
     - _FresnelIntensity: 1
     - _GSAA: 0
-    - _Glossiness: 1
+    - _GlossMapScale: 1
+    - _Glossiness: 0
     - _GlossinessInvert: 0
     - _GlossyReflections: 1
     - _HemiOctahedron: 0
@@ -154,11 +171,12 @@ Material:
     - _MetallicGlossMap_UV: 0
     - _MetallicMapUV: 0
     - _MetallicMap_UV: 0
-    - _Mode: 4
+    - _Mode: 0
     - _NormalMapOrientation: 0
     - _Occlusion: 0
     - _OcclusionMapUV: 0
     - _OcclusionMap_UV: 0
+    - _OcclusionStrength: 1
     - _Parallax: 0.02
     - _ParallaxOffset: 0
     - _ParallaxSteps: 25
@@ -170,6 +188,7 @@ Material:
     - _SheenRoughness: 0.004
     - _SmoothnessMapUV: 0
     - _SmoothnessMap_UV: 0
+    - _SmoothnessTextureChannel: 0
     - _SpecGlossMapUV: 0
     - _SpecularHighlights: 1
     - _SpecularOcclusion: 0
@@ -179,6 +198,7 @@ Material:
     - _SubsurfaceScattering: 0
     - _SuperSamplingBias: -1
     - _ThicknessMapUV: 0
+    - _UVSec: 0
     - _Workflow: 0
     - _ZTest: 4
     - _ZWrite: 1

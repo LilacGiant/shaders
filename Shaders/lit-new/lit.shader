@@ -4,7 +4,7 @@
     {
         wAg6H2wQzc7UbxaL ("Is Locked", Int) = 0
 
-        [KeywordEnum(Metallic, Specular, Triplanar, Unpacked)] _Workflow ("Workflow", Int) = 0
+        [KeywordEnum(Packed, Unpacked, Triplanar, Specular)] _Workflow ("Workflow", Int) = 0
         [KeywordEnum(Opaque, Cutout, Fade, Transparent, A2C, A2C Sharpened)] _Mode ("Rendering Mode", Int) = 0
         _Cutoff ("Alpha Cuttoff", Range(0, 1)) = 0.5
 
@@ -40,6 +40,7 @@
 
         [Toggle(SPECULAR_HIGHLIGHTS)] _SpecularHighlights("Specular Highlights", Float) = 1
         [Toggle(REFLECTIONS)] _GlossyReflections("Reflections", Float) = 1
+            [KeywordEnum(Metallic, Specular, Triplanar)] _SpecularWorkflow ("Specular Workflow", Int) = 0
             // _FresnelColor ("Tint", Color) = (1,1,1,1)
             _FresnelIntensity ("Fresnel Intensity", Range(0,1)) = 1
             _Reflectance ("Reflectance", Range(0,1)) = 0.5
@@ -59,6 +60,18 @@
             [ToggleUI] _EmissionMultBase ("Multiply Base", Int) = 0
             [HDR] _EmissionColor ("Emission Color", Color) = (0,0,0)
             [Enum(UV 0 Locked, 0, UV 1, 1, UV 2, 2, UV 0 Unlocked, 3, Stochastic, 4)]  _EmissionMap_UV ("UV Type", Int) = 0
+
+        _DetailMap ("Detail Map:Desaturated Albedo(R), Normal Y(G), Smoothness(B), Normal X(A)", 2D) = "linearGrey" {}
+            [Enum(UV 0 Locked, 0, UV 1, 1, UV 2, 2, UV 0 Unlocked, 3, Stochastic, 4)]  _DetailMap_UV ("UV Type", Int) = 0
+            _DetailAlbedoScale ("Albedo Scale", Range(0.0, 2.0)) = 1
+            _DetailNormalScale ("Normal Scale", Range(0.0, 2.0)) = 0
+            _DetailSmoothnessScale ("Smoothness Scale", Range(0.0, 2.0)) = 1
+
+        [Toggle(PARALLAX)] _EnableParallax ("Parallax", Int) = 0
+            _Parallax ("Height Scale", Range (0, 0.2)) = 0.02
+            _ParallaxMap ("Height Map", 2D) = "black" {}
+            [IntRange] _ParallaxSteps ("Parallax Steps", Range(1,50)) = 25
+            _ParallaxOffset ("Parallax Offset", Range(-1, 1)) = 0
         
 
         [Enum(UnityEngine.Rendering.BlendOp)] _BlendOp ("Blend Op", Int) = 0
@@ -97,12 +110,13 @@
             // #pragma multi_compile _ VERTEXLIGHT_ON
             // #pragma multi_compile _ LOD_FADE_CROSSFADE
 
-            #pragma shader_feature_local _ _MODE_CUTOUT _MODE_FADE _MODE_TRANSPARENT _MODE_A2C _MODE_A2C_SHARPENED
-            #pragma shader_feature_local _ _WORKFLOW_SPECULAR _WORKFLOW_TRIPLANAR _WORKFLOW_UNPACKED
+            #pragma shader_feature_local _MODE_OPAQUE _MODE_CUTOUT _MODE_FADE _MODE_TRANSPARENT _MODE_A2C _MODE_A2C_SHARPENED
+            #pragma shader_feature_local _WORKFLOW_PACKED _WORKFLOW_UNPACKED _WORKFLOW_TRIPLANAR _WORKFLOW_SPECULAR
             #pragma shader_feature_local BICUBIC_LIGHTMAP
             #pragma shader_feature_local SPECULAR_HIGHLIGHTS
             #pragma shader_feature_local REFLECTIONS
             #pragma shader_feature_local EMISSION
+            #pragma shader_feature_local PARALLAX
 
 
             #include "PassCGI.cginc"
@@ -131,9 +145,10 @@
             #pragma multi_compile_fog
             // #pragma multi_compile _ LOD_FADE_CROSSFADE
 
-            #pragma shader_feature_local _ _MODE_CUTOUT _MODE_FADE _MODE_TRANSPARENT _MODE_A2C _MODE_A2C_SHARPENED
-            #pragma shader_feature_local _ _WORKFLOW_SPECULAR _WORKFLOW_TRIPLANAR _WORKFLOW_UNPACKED
+            #pragma shader_feature_local _MODE_OPAQUE _MODE_CUTOUT _MODE_FADE _MODE_TRANSPARENT _MODE_A2C _MODE_A2C_SHARPENED
+            #pragma shader_feature_local _WORKFLOW_PACKED _WORKFLOW_UNPACKED _WORKFLOW_TRIPLANAR _WORKFLOW_SPECULAR
             #pragma shader_feature_local SPECULAR_HIGHLIGHTS
+            #pragma shader_feature_local PARALLAX
 
 
             #include "PassCGI.cginc"
@@ -160,8 +175,8 @@
             // #pragma multi_compile _ LOD_FADE_CROSSFADE
             #pragma skip_variants FOG_LINEAR FOG_EXP FOG_EXP2
 
-            #pragma shader_feature_local _ _MODE_CUTOUT _MODE_FADE _MODE_TRANSPARENT _MODE_A2C _MODE_A2C_SHARPENED
-            #pragma shader_feature_local _ _WORKFLOW_SPECULAR _WORKFLOW_TRIPLANAR _WORKFLOW_UNPACKED
+            #pragma shader_feature_local _MODE_OPAQUE _MODE_CUTOUT _MODE_FADE _MODE_TRANSPARENT _MODE_A2C _MODE_A2C_SHARPENED
+            #pragma shader_feature_local _WORKFLOW_PACKED _WORKFLOW_UNPACKED _WORKFLOW_TRIPLANAR _WORKFLOW_SPECULAR
 
 
             #include "PassCGI.cginc"

@@ -78,6 +78,16 @@ namespace z3y
         protected MaterialProperty _EmissionMap_UV = null;
         protected MaterialProperty _EmissionMultBase = null;
         protected MaterialProperty _EmissionMap = null;
+        protected MaterialProperty _DetailMap = null;
+        protected MaterialProperty _DetailMap_UV = null;
+        protected MaterialProperty _DetailAlbedoScale = null;
+        protected MaterialProperty _DetailNormalScale = null;
+        protected MaterialProperty _DetailSmoothnessScale = null;
+        protected MaterialProperty _EnableParallax = null;
+        protected MaterialProperty _Parallax = null;
+        protected MaterialProperty _ParallaxOffset = null;
+        protected MaterialProperty _ParallaxSteps = null;
+        protected MaterialProperty _ParallaxMap = null;
 
 
         public void ShaderPropertiesGUI(Material material)
@@ -105,18 +115,22 @@ namespace z3y
                     prop(_Cutoff);
                 }
                 EditorGUILayout.Space();;
+                int workflowMode = (int)_Workflow.floatValue;
 
-                prop(_MainTex, _Color);
-                md[material].Show_MainTex = Func.TriangleFoldout(md[material].Show_MainTex, ()=> {
-                    prop(_MainTex_UV);
-                    propTileOffset(_MainTex);
-                    prop(_Saturation);
-                });
-
-                
-
-                if(_Workflow.floatValue != 3)
+                if(workflowMode != 2)
                 {
+                    prop(_MainTex, _Color);
+                    md[material].Show_MainTex = Func.TriangleFoldout(md[material].Show_MainTex, ()=> {
+                        prop(_MainTex_UV);
+                        propTileOffset(_MainTex);
+                        prop(_Saturation);
+                    });
+                }
+
+
+                switch(workflowMode)
+                {
+                    case 0:
                     prop(_Metallic);
                     prop(_Glossiness);
                     if(_MetallicGlossMap.textureValue) prop(_Occlusion);
@@ -126,45 +140,68 @@ namespace z3y
                         prop(_MetallicGlossMap_UV);
                         if(_MetallicGlossMap_UV.floatValue != 0) propTileOffset(_MetallicGlossMap);
                     });
-                }
-                Func.sRGBWarning(_MetallicGlossMap);
+                    Func.sRGBWarning(_MetallicGlossMap);
+                    break;
 
-                if(_Workflow.floatValue == 3)
+                    case 1:
+                        prop(_MetallicMap, _Metallic);
+                        md[material].Show_MetallicMap = Func.TriangleFoldout(md[material].Show_MetallicMap, ()=> {
+                            prop(_MetallicMap_UV);
+                            if(_MetallicMap_UV.floatValue != 0)  propTileOffset(_MetallicMap);
+                        });
+                        Func.sRGBWarning(_MetallicMap);
+                        
+                        prop(_SmoothnessMap, _Glossiness);
+                        md[material].Show_SmoothnessMap = Func.TriangleFoldout(md[material].Show_SmoothnessMap, ()=> {
+                            prop(_SmoothnessMap_UV);
+                            if(_SmoothnessMap_UV.floatValue != 0) propTileOffset(_SmoothnessMap);
+                            
+                            prop(_GlossinessInvert);
+                        });
+                        Func.sRGBWarning(_SmoothnessMap);
+                        
+                        prop(_OcclusionMap, _Occlusion);
+                        md[material].Show_OcclusionMap = Func.TriangleFoldout(md[material].Show_OcclusionMap, ()=> {
+                            prop(_OcclusionMap_UV);
+                            if(_OcclusionMap_UV.floatValue != 0) propTileOffset(_OcclusionMap);
+                            
+                        });
+                        Func.sRGBWarning(_OcclusionMap);
+                        break;
+                }
+                
+                if(workflowMode != 2)
                 {
-                    prop(_MetallicMap, _Metallic);
-                    md[material].Show_MetallicMap = Func.TriangleFoldout(md[material].Show_MetallicMap, ()=> {
-                        prop(_MetallicMap_UV);
-                        if(_MetallicMap_UV.floatValue != 0)  propTileOffset(_MetallicMap);
-                    });
-                    Func.sRGBWarning(_MetallicMap);
-                    
-                    prop(_SmoothnessMap, _Glossiness);
-                    md[material].Show_SmoothnessMap = Func.TriangleFoldout(md[material].Show_SmoothnessMap, ()=> {
-                        prop(_SmoothnessMap_UV);
-                        if(_SmoothnessMap_UV.floatValue != 0) propTileOffset(_SmoothnessMap);
+                    prop(_BumpMap, _BumpMap.textureValue ? _BumpScale : null);
+                    md[material].Show_BumpMap = Func.TriangleFoldout(md[material].Show_BumpMap, ()=> {
+                        prop(_BumpMap_UV);
+                        if(_BumpMap_UV.floatValue != 0) propTileOffset(_BumpMap);
                         
-                        prop(_GlossinessInvert);
+                        prop(_NormalMapOrientation);
+                        prop(_HemiOctahedron);
                     });
-                    Func.sRGBWarning(_SmoothnessMap);
-                    
-                    prop(_OcclusionMap, _Occlusion);
-                    md[material].Show_OcclusionMap = Func.TriangleFoldout(md[material].Show_OcclusionMap, ()=> {
-                        prop(_OcclusionMap_UV);
-                        if(_OcclusionMap_UV.floatValue != 0) propTileOffset(_OcclusionMap);
-                        
-                    });
-                    Func.sRGBWarning(_OcclusionMap);
-
                 }
 
-                prop(_BumpMap, _BumpMap.textureValue ? _BumpScale : null);
-                md[material].Show_BumpMap = Func.TriangleFoldout(md[material].Show_BumpMap, ()=> {
-                    prop(_BumpMap_UV);
-                    if(_BumpMap_UV.floatValue != 0) propTileOffset(_BumpMap);
+                prop(_DetailMap);
+                md[material].Show_DetailMap = Func.TriangleFoldout(md[material].Show_DetailMap, ()=> {
+                    prop(_DetailMap_UV);
+                    if(_DetailMap_UV.floatValue != 0) propTileOffset(_DetailMap);
                     
-                    prop(_NormalMapOrientation);
-                    prop(_HemiOctahedron);
+                    prop(_DetailAlbedoScale);
+                    prop(_DetailNormalScale);
+                    prop(_DetailSmoothnessScale);
                 });
+
+                prop(_EnableParallax);
+                if(_EnableParallax.floatValue == 1)
+                {
+                    Func.PropertyGroup(() => {
+                        prop(_ParallaxMap, _Parallax);
+                        Func.sRGBWarning(_ParallaxMap);
+                        prop(_ParallaxOffset);
+                        prop(_ParallaxSteps);
+                    });
+                }
 
                 prop(_EnableEmission);
                 if(_EnableEmission.floatValue == 1)
@@ -181,6 +218,7 @@ namespace z3y
                         prop(_EmissionMultBase);
                     });
                 }
+                
 
 
             });
@@ -202,6 +240,8 @@ namespace z3y
             });
 
             md[material].ShowShaderFeatures = Foldout("Shader Features", md[material].ShowShaderFeatures, ()=> {
+
+                
                 
 
             });
