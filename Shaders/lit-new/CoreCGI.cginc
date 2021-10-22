@@ -3,12 +3,32 @@ float4 frag (v2f i, bool facing : SV_IsFrontFace) : SV_Target
     input = i;
     
     float4 mainTexture = SampleTexture(_MainTex, _MainTex_ST, sampler_MainTex, _MainTex_UV) * _Color;
+    float alpha = mainTexture.a;
 
 #if defined(UNITY_PASS_SHADOWCASTER)
+
+    #if defined(_MODE_CUTOUT) || defined (_MODE_A2C_SHARPENED)
+    if(alpha < _Cutoff) discard;
+    #endif
+
+    #if defined (_MODE_A2C)
+    if(alpha < 0.001) discard;
+    #endif
+
+    #if defined (_MODE_FADE) || defined (_MODE_TRANSPARENT)
+    if(alpha < 0.5) discard;
+    #endif
+
     SHADOW_CASTER_FRAGMENT(i);
 #else
+    #if defined(_MODE_CUTOUT)
+    if(alpha < _Cutoff) discard;
+    #endif
 
-    float alpha = 1;
+    #if defined (_MODE_A2C_SHARPENED)
+    alpha = (alpha - _Cutoff) / max(fwidth(alpha), 0.0001) + 0.5;
+    #endif
+
     float3 emission = 0;
     float perceptualRoughness = 0.5;
     float metallic = 0;
@@ -204,9 +224,17 @@ float4 frag (v2f i, bool facing : SV_IsFrontFace) : SV_Target
 
 
     
-    alpha -= mainTexture.a * 0.00001;
+    // alpha -= mainTexture.a * 0.00001;
+    #if defined(_MODE_TRANSPARENT)
+        mainTexture.rgb *= alpha;
+        alpha = lerp(alpha, 1, metallic);
+    #endif
 
     float4 finalColor = float4(mainTexture.rgb * (1 - metallic) * (indirectDiffuse * occlusion + (pixelLight + vertexLight)) + indirectSpecular + directSpecular + emission, alpha);
+
+    #if defined (_MODE_FADE) && defined(UNITY_PASS_FORWARDADD)
+        finalColor.rgb *= alpha;
+    #endif
 
     #ifdef FOG
         UNITY_APPLY_FOG(i.fogCoord, finalColor);

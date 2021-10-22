@@ -80,23 +80,23 @@ namespace z3y
             
             md[material].ShowSurfaceInputs = Foldout("Surface Inputs", md[material].ShowSurfaceInputs, ()=> {
 
-                EditorGUI.BeginChangeCheck();
                 prop(_Workflow);
+
+                EditorGUI.BeginChangeCheck();
                 prop(_Mode);
                 if (EditorGUI.EndChangeCheck())
                 {
                     if(me.targets.Length > 1)
                         foreach(Material m in me.targets)
                         {
-                            Func.SetupMaterialWithBlendMode(m, _Mode.floatValue);
+                            SetupMaterialWithBlendMode(m, (int)_Mode.floatValue);
                         }
                     else
-                        Func.SetupMaterialWithBlendMode(material, _Mode.floatValue);
+                        SetupMaterialWithBlendMode(material, (int)_Mode.floatValue);
                 }
 
 
-                if(_Mode.floatValue == 1){
-                    prop(_AlphaToMask);
+                if(_Mode.floatValue == 1 || _Mode.floatValue == 5){
                     prop(_Cutoff);
                 }
                 EditorGUILayout.Space();;
@@ -199,6 +199,7 @@ namespace z3y
                     prop(_DstBlend);
                     prop(_ZWrite);
                     prop(_ZTest);
+                    prop(_AlphaToMask);
                     prop(_Cull);
                 });
                 EditorGUILayout.Space();
@@ -288,6 +289,56 @@ namespace z3y
                 {
                     try { property.SetValue(this, FindProperty(property.Name, props)); } catch { /*Is it really a problem if it doesn't exist?*/ }
                 }
+            }
+        }
+
+        public static void SetupMaterialWithBlendMode(Material material, int type)
+        {
+            switch (type)
+            {
+                case 0:
+                    material.SetOverrideTag("RenderType", "");
+                    material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
+                    material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.Zero);
+                    material.SetInt("_ZWrite", 1);
+                    material.SetInt("_AlphaToMask", 0);
+                    material.renderQueue = -1;
+                    break;
+                case 1:
+                    material.SetOverrideTag("RenderType", "TransparentCutout");
+                    material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
+                    material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.Zero);
+                    material.SetInt("_ZWrite", 1);
+                    material.renderQueue = (int)UnityEngine.Rendering.RenderQueue.AlphaTest;
+                    material.SetInt("_AlphaToMask", 0);
+                    break;
+                case 2:
+                    material.SetOverrideTag("RenderType", "Transparent");
+                    material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
+                    material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+                    material.SetInt("_ZWrite", 0);
+                    material.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
+                    material.SetInt("_AlphaToMask", 0);
+
+                    break;
+                case 3:
+                    material.SetOverrideTag("RenderType", "Transparent");
+                    material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
+                    material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+                    material.SetInt("_ZWrite", 0);
+                    material.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
+                    material.SetInt("_AlphaToMask", 0);
+                    break;
+                case 4:
+                    material.SetOverrideTag("RenderType", "");
+                    material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
+                    material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.Zero);
+                    material.SetInt("_ZWrite", 1);
+                    material.renderQueue = -1;
+                    material.SetInt("_AlphaToMask", 1);
+                    break;
+                case 5:
+                    goto case 4;
             }
         }
         

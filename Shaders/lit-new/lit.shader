@@ -6,6 +6,7 @@
 
         [KeywordEnum(Metallic, Specular, Triplanar, Unpacked)] _Workflow ("Workflow", Int) = 0
         [KeywordEnum(Opaque, Cutout, Fade, Transparent, A2C, A2C Sharpened)] _Mode ("Rendering Mode", Int) = 0
+        _Cutoff ("Alpha Cuttoff", Range(0, 1)) = 0.5
 
 
         _MainTex ("Base Map", 2D) = "white" {}
@@ -90,8 +91,8 @@
             // #pragma multi_compile _ VERTEXLIGHT_ON
             // #pragma multi_compile _ LOD_FADE_CROSSFADE
 
-            #pragma shader_feature_local _MODE_CUTOUT _MODE_FADE _MODE_TRANSPARENT _MODE_A2C _MODE_A2C_SHARPENED
-            #pragma shader_feature_local _WORKFLOW_SPECULAR _WORKFLOW_TRIPLANAR _WORKFLOW_UNPACKED
+            #pragma shader_feature_local _ _MODE_CUTOUT _MODE_FADE _MODE_TRANSPARENT _MODE_A2C _MODE_A2C_SHARPENED
+            #pragma shader_feature_local _ _WORKFLOW_SPECULAR _WORKFLOW_TRIPLANAR _WORKFLOW_UNPACKED
             #pragma shader_feature_local BICUBIC_LIGHTMAP
             #pragma shader_feature_local SPECULAR_HIGHLIGHTS
             #pragma shader_feature_local REFLECTIONS
@@ -123,8 +124,8 @@
             #pragma multi_compile_fog
             // #pragma multi_compile _ LOD_FADE_CROSSFADE
 
-            #pragma shader_feature_local _MODE_CUTOUT _MODE_FADE _MODE_TRANSPARENT _MODE_A2C _MODE_A2C_SHARPENED
-            #pragma shader_feature_local _WORKFLOW_SPECULAR _WORKFLOW_TRIPLANAR _WORKFLOW_UNPACKED
+            #pragma shader_feature_local _ _MODE_CUTOUT _MODE_FADE _MODE_TRANSPARENT _MODE_A2C _MODE_A2C_SHARPENED
+            #pragma shader_feature_local _ _WORKFLOW_SPECULAR _WORKFLOW_TRIPLANAR _WORKFLOW_UNPACKED
             #pragma shader_feature_local SPECULAR_HIGHLIGHTS
 
 
@@ -152,8 +153,8 @@
             // #pragma multi_compile _ LOD_FADE_CROSSFADE
             #pragma skip_variants FOG_LINEAR FOG_EXP FOG_EXP2
 
-            #pragma shader_feature_local _MODE_CUTOUT _MODE_FADE _MODE_TRANSPARENT _MODE_A2C _MODE_A2C_SHARPENED
-            #pragma shader_feature_local _WORKFLOW_SPECULAR _WORKFLOW_TRIPLANAR _WORKFLOW_UNPACKED
+            #pragma shader_feature_local _ _MODE_CUTOUT _MODE_FADE _MODE_TRANSPARENT _MODE_A2C _MODE_A2C_SHARPENED
+            #pragma shader_feature_local _ _WORKFLOW_SPECULAR _WORKFLOW_TRIPLANAR _WORKFLOW_UNPACKED
 
 
             #include "PassCGI.cginc"

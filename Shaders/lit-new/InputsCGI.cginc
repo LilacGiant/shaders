@@ -12,6 +12,8 @@ float _Glossiness;
 float _Metallic;
 float _Occlusion;
 
+float _Cutoff;
+
 float _SpecularOcclusion;
 
 uint _GlossinessInvert;
