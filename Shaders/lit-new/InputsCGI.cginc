@@ -14,7 +14,7 @@ float _Metallic;
 float _Occlusion;
 
 float _Cutoff;
-
+uint _UseTextureIndex;
 float _SpecularOcclusion;
 
 uint _GlossinessInvert;
@@ -52,11 +52,11 @@ float _Parallax;
 float _Anisotropy;
 DECLARE_TEX2D_CUSTOM(_AnisotropyMap);
 
-#ifdef _WORKFLOW_TRIPLANAR
-Texture2D _MainTexX;
-Texture2D _MainTexZ;
-Texture2D _MetallicGlossMapX;
-Texture2D _MetallicGlossMapZ;
+#if defined(_WORKFLOW_TRIPLANAR) || defined (_WORKFLOW_TEXTUREARRAY)
+UNITY_DECLARE_TEX2DARRAY(_MainTexArray);
+UNITY_DECLARE_TEX2DARRAY(_BumpMapArray);
+UNITY_DECLARE_TEX2DARRAY_NOSAMPLER(_MetallicGlossMapArray);
+UNITY_DECLARE_TEX2DARRAY_NOSAMPLER(_DetailMapArray);
 float _TriplanarBlend;
 #endif
 
@@ -65,7 +65,9 @@ CBUFFER_END
 
 
 UNITY_INSTANCING_BUFFER_START(Props)
-    //UNITY_DEFINE_INSTANCED_PROP(float4, _Color)
+#if defined (_WORKFLOW_TEXTUREARRAY)
+    UNITY_DEFINE_INSTANCED_PROP(float, _TextureIndex)
+#endif
 UNITY_INSTANCING_BUFFER_END(Props)
 
 #if !defined(OPTIMIZER_ENABLED) // defined if texture gets used
@@ -75,11 +77,22 @@ UNITY_INSTANCING_BUFFER_END(Props)
     #define PROP_OCCLUSIONMAP
     #define PROP_EMISSIONMAP
     #define PROP_METALLICGLOSSMAP
-    #define PROP_DETAILMAP
     #define PROP_ANISOTROPYMAP
+    #define PROP_DETAILMAP
+
+    #if defined (_WORKFLOW_TEXTUREARRAY)
+        #undef PARALLAX
+        #define PROP_DETAILMAPARRAY
+        #undef PROP_DETAILMAP
+        #define PROP_BUMPMAPARRAY
+        #undef PROP_BUMPMAP
+        #define PROP_METALLICGLOSSMAPARRAY
+        #undef PROP_METALLICGLOSSMAP
+    #endif
 #endif
 
 static float2 parallaxOffset;
+static float textureIndex;
 
 #define NEED_FOG (defined(FOG_LINEAR) || defined(FOG_EXP) || defined(FOG_EXP2))
 

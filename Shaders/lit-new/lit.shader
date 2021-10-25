@@ -4,15 +4,15 @@
     {
         wAg6H2wQzc7UbxaL ("Is Locked", Int) = 0
 
-        [KeywordEnum(Packed, Unpacked, Triplanar)] _Workflow ("Workflow", Int) = 0
+        [KeywordEnum(Packed, Unpacked, Triplanar, TextureArray)] _Workflow ("Workflow", Int) = 0
         [KeywordEnum(Opaque, Cutout, Fade, Transparent)] _Mode ("Rendering Mode", Int) = 0
         _Cutoff ("Alpha Cuttoff", Range(0, 1)) = 0.5
         
+        [Enum(Mesh Data, 0, Instanced Property, 1)]  _UseTextureIndex ("Index From", Int) = 0
 
         _TriplanarBlend ("Triplanar Blend", Range(0, 0.577)) = 0.25
         _MainTex ("Base Map", 2D) = "white" {}
-        _MainTexX ("Base Map X", 2D) = "white" {}
-        _MainTexZ ("Base Map Z", 2D) = "white" {}
+        _MainTexArray ("Base Map Array", 2DArray) = "white" {}
             [Enum(UV 0, 0, UV 1, 1, UV 2, 2, Stochastic, 4)] _MainTex_UV ("UV Type", Int) = 0
             _Color ("Base Color", Color) = (1,1,1,1)
 
@@ -21,8 +21,7 @@
         _Occlusion ("Occlusion", Range(0,1)) = 0
 
         _MetallicGlossMap ("Mask Map:Metallic(R), Occlusion(G), Detail Mask(B), Smoothness(A)", 2D) = "white" {}
-        _MetallicGlossMapX ("Mask Map X:Metallic(R), Occlusion(G), Detail Mask(B), Smoothness(A)", 2D) = "white" {}
-        _MetallicGlossMapZ ("Mask Map Z:Metallic(R), Occlusion(G), Detail Mask(B), Smoothness(A)", 2D) = "white" {}
+        _MetallicGlossMapArray ("Mask Map Array:Metallic(R), Occlusion(G), Detail Mask(B), Smoothness(A)", 2DArray) = "white" {}
             [Enum(UV 0 Locked, 0, UV 1, 1, UV 2, 2, UV 0 Unlocked, 3, Stochastic, 4)] _MetallicGlossMap_UV ("UV Type", Int) = 0
 
         _SmoothnessMap ("Smoothness Map", 2D) = "white" {}
@@ -37,6 +36,7 @@
 
 
         [Normal] _BumpMap ("Normal Map", 2D) = "bump" {}
+        _BumpMapArray ("Normal Map Array", 2DArray) = "bump" {}
             _BumpScale ("Bump Scale", Range(0,10)) = 0
             [Enum(OpenGL, 0, Direct3D, 1)] _NormalMapOrientation ("Orientation", Int) = 0
             [Enum(UV 0 Locked, 0, UV 1, 1, UV 2, 2, UV 0 Unlocked, 3, Stochastic, 4)] _BumpMap_UV ("UV Type", Int) = 0
@@ -66,10 +66,11 @@
             [Enum(UV 0 Locked, 0, UV 1, 1, UV 2, 2, UV 0 Unlocked, 3, Stochastic, 4)]  _EmissionMap_UV ("UV Type", Int) = 0
 
         _DetailMap ("Detail Map:Desaturated Albedo(R), Normal Y(G), Smoothness(B), Normal X(A)", 2D) = "linearGrey" {}
+        _DetailMapArray ("Detail Map Array:Desaturated Albedo(R), Normal Y(G), Smoothness(B), Normal X(A)", 2DArray) = "linearGrey" {}
             [Enum(UV 0 Locked, 0, UV 1, 1, UV 2, 2, UV 0 Unlocked, 3, Stochastic, 4)]  _DetailMap_UV ("UV Type", Int) = 0
-            _DetailAlbedoScale ("Albedo Scale", Range(0.0, 2.0)) = 1
+            _DetailAlbedoScale ("Albedo Scale", Range(0.0, 2.0)) = 0
             _DetailNormalScale ("Normal Scale", Range(0.0, 2.0)) = 0
-            _DetailSmoothnessScale ("Smoothness Scale", Range(0.0, 2.0)) = 1
+            _DetailSmoothnessScale ("Smoothness Scale", Range(0.0, 2.0)) = 0
 
         [Toggle(PARALLAX)] _EnableParallax ("Parallax", Int) = 0
             _Parallax ("Height Scale", Range (0, 0.2)) = 0.02
@@ -124,7 +125,7 @@
             // #pragma multi_compile _ LOD_FADE_CROSSFADE
 
             #pragma shader_feature_local _ _MODE_CUTOUT _MODE_FADE _MODE_TRANSPARENT
-            #pragma shader_feature_local __ _WORKFLOW_UNPACKED _WORKFLOW_TRIPLANAR
+            #pragma shader_feature_local __ _WORKFLOW_UNPACKED _WORKFLOW_TRIPLANAR _WORKFLOW_TEXTUREARRAY
             #pragma shader_feature_local BICUBIC_LIGHTMAP
             #pragma shader_feature_local SPECULAR_HIGHLIGHTS
             #pragma shader_feature_local REFLECTIONS
@@ -162,7 +163,7 @@
             // #pragma multi_compile _ LOD_FADE_CROSSFADE
 
             #pragma shader_feature_local _ _MODE_CUTOUT _MODE_FADE _MODE_TRANSPARENT
-            #pragma shader_feature_local __ _WORKFLOW_UNPACKED _WORKFLOW_TRIPLANAR
+            #pragma shader_feature_local __ _WORKFLOW_UNPACKED _WORKFLOW_TRIPLANAR _WORKFLOW_TEXTUREARRAY
             #pragma shader_feature_local SPECULAR_HIGHLIGHTS
             #pragma shader_feature_local PARALLAX
             #pragma shader_feature_local NONLINEAR_LIGHTPROBESH
@@ -194,7 +195,7 @@
             #pragma skip_variants FOG_LINEAR FOG_EXP FOG_EXP2
 
             #pragma shader_feature_local _ _MODE_CUTOUT _MODE_FADE _MODE_TRANSPARENT
-            #pragma shader_feature_local __ _WORKFLOW_UNPACKED _WORKFLOW_TRIPLANAR
+            #pragma shader_feature_local __ _WORKFLOW_UNPACKED _WORKFLOW_TRIPLANAR _WORKFLOW_TEXTUREARRAY
 
 
             #include "PassCGI.cginc"

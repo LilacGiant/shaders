@@ -38,14 +38,6 @@ float4 SampleTexture(Texture2D tex, float4 st, sampler s, int type)
         case 3:
             sampledTexture = tex.Sample(s, input.coord0.xy * st.xy + st.zw + parallaxOffset);
             break;
-        // case 4:
-        //     float3 n = abs(pixel.worldNormal);
-        //     float3 w = n / (n.x + n.y + n.z);
-        //     float4 tzy = tex.Sample(s, pixel.worldPos.zy * st.xy + st.zw);
-        //     float4 txz = tex.Sample(s, pixel.worldPos.xz * st.xy + st.zw);
-        //     float4 txy = tex.Sample(s, pixel.worldPos.xy * st.xy + st.zw);
-        //     sampledTexture = tzy * w.x + txz * w.y + txy * w.z;
-        //     break;
         case 4:
             // https://www.reddit.com/r/Unity3D/comments/dhr5g2/i_made_a_stochastic_texture_sampling_shader/
             //triangle vertices and blend weights
@@ -84,25 +76,50 @@ float4 SampleTexture(Texture2D tex, float4 st, int type)
     return SampleTexture(tex, st, sampler_MainTex, type);
 }
 
-float4 SampleTexture(Texture2D tex, float4 st)
-{
-    return SampleTexture(tex, st, sampler_MainTex, 3);
-}
+// float4 SampleTexture(Texture2D tex, float4 st)
+// {
+//     return SampleTexture(tex, st, sampler_MainTex, 3);
+// }
 
-float4 SampleTexture(Texture2D tex)
-{
-    return SampleTexture(tex, float4(1,1,0,0), sampler_MainTex, 3);
-}
+// float4 SampleTexture(Texture2D tex)
+// {
+//     return SampleTexture(tex, float4(1,1,0,0), sampler_MainTex, 3);
+// }
 
-float4 SampleTriplanar(Texture2D texX, Texture2D texY, Texture2D texZ, float4 st, float3 n, float3 w)
+#ifdef _WORKFLOW_TEXTUREARRAY
+float4 SampleTextureArray(Texture2DArray tex, float4 st, sampler s, int type)
 {
-    float4 tzy = texX.Sample(sampler_MainTex, input.worldPos.zy * st.xy + st.zw);
-    float4 txz = texY.Sample(sampler_MainTex, input.worldPos.xz * st.xy + st.zw);
-    float4 txy = texZ.Sample(sampler_MainTex, input.worldPos.xy * st.xy + st.zw);
+    float4 sampledTexture = 0;
+
+    switch(type)
+    {
+        case 0:
+            sampledTexture = UNITY_SAMPLE_TEX2DARRAY_SAMPLER(tex, _MainTexArray, float3(input.coord0.xy * _MainTex_ST.xy + _MainTex_ST.zw + parallaxOffset, textureIndex));
+            break;
+        case 1:
+            sampledTexture = UNITY_SAMPLE_TEX2DARRAY_SAMPLER(tex, _MainTexArray, float3(input.coord0.zw * st.xy + st.zw + parallaxOffset, textureIndex));
+            break;
+        case 2:
+            sampledTexture = UNITY_SAMPLE_TEX2DARRAY_SAMPLER(tex, _MainTexArray, float3(input.coord1.xy * st.xy + st.zw + parallaxOffset, textureIndex));
+            break;
+        case 3:
+            sampledTexture = UNITY_SAMPLE_TEX2DARRAY_SAMPLER(tex, _MainTexArray, float3(input.coord0.xy * st.xy + st.zw + parallaxOffset, textureIndex));
+            break;
+    }
+    return sampledTexture;
+}
+#endif
+
+#ifdef _WORKFLOW_TRIPLANAR
+float4 SampleTriplanar(Texture2DArray tex, float4 st, float3 n, float3 w)
+{
+    float4 tzy = UNITY_SAMPLE_TEX2DARRAY_SAMPLER(tex, _MainTexArray, float3(input.worldPos.zy * st.xy + st.zw, 0));
+    float4 txz = UNITY_SAMPLE_TEX2DARRAY_SAMPLER(tex, _MainTexArray, float3(input.worldPos.xz * st.xy + st.zw, 1));
+    float4 txy = UNITY_SAMPLE_TEX2DARRAY_SAMPLER(tex, _MainTexArray, float3(input.worldPos.xy * st.xy + st.zw, 2));
 
     return tzy * w.x + txz * w.y + txy * w.z;
 }
-
+#endif
 // https://github.com/DarthShader/Kaj-Unity-Shaders/blob/926f07a0bf3dc950db4d7346d022c89f9dfdb440/Shaders/Kaj/KajCore.cginc#L1041
 #ifdef POINT
 #define LIGHT_ATTENUATION_NO_SHADOW_MUL(destName, input, worldPos) \

@@ -1,21 +1,31 @@
 float4 frag (v2f i, uint facing : SV_IsFrontFace) : SV_Target
 {
     input = i;
+    #if defined (_WORKFLOW_TEXTUREARRAY)
+        textureIndex = _UseTextureIndex ? UNITY_ACCESS_INSTANCED_PROP(Props, _TextureIndex) : i.coord1.z;
+    #endif
 
     #if defined(PARALLAX)
         parallaxOffset = ParallaxOffset(i.parallaxViewDir);
     #endif
 
-    #ifndef _WORKFLOW_TRIPLANAR
-        float4 mainTexture = SampleTexture(_MainTex, _MainTex_ST, sampler_MainTex, _MainTex_UV);
-    #else
+    float4 mainTextureUnmodified = SampleTexture(_MainTex, _MainTex_ST, sampler_MainTex, _MainTex_UV);
+    
+    #ifdef _WORKFLOW_TEXTUREARRAY
+        float4 mainTextureArray = SampleTextureArray(_MainTexArray, _MainTex_ST, sampler_MainTexArray, _MainTex_UV);
+        mainTextureUnmodified = mainTextureArray + mainTextureUnmodified * 0.0001;
+    #endif
+
+
+    #ifdef _WORKFLOW_TRIPLANAR
         float3 triN = saturate(abs(i.worldNormal.xyz) - _TriplanarBlend);
         float3 triW = triN / (triN.x + triN.y + triN.z);
-        float4 mainTexture = SampleTriplanar(_MainTexX, _MainTex, _MainTexZ, _MainTex_ST, triN, triW);
+        float4 baseMapTriplanar = SampleTriplanar(_MainTexArray, _MainTex_ST, triN, triW);
+        mainTextureUnmodified = baseMapTriplanar + mainTextureUnmodified * 0.0001;
     #endif 
 
 
-    mainTexture *= _Color;
+    float4 mainTexture = mainTextureUnmodified * _Color;
     float alpha = mainTexture.a;
 
 #if defined(UNITY_PASS_SHADOWCASTER)
@@ -86,9 +96,12 @@ float4 frag (v2f i, uint facing : SV_IsFrontFace) : SV_Target
             #ifdef PROP_METALLICGLOSSMAP
                 maskMap = SampleTexture(_MetallicGlossMap, _MetallicGlossMap_ST, _MetallicGlossMap_UV);
             #endif
+            #ifdef PROP_METALLICGLOSSMAPARRAY
+                maskMap = SampleTextureArray(_MetallicGlossMapArray, _MetallicGlossMap_ST, sampler_MainTexArray, _MetallicGlossMap_UV);
+            #endif
         #else
             #if defined(PROP_METALLICGLOSSMAP) || defined(PROP_METALLICGLOSSMAPX) || defined(PROP_METALLICGLOSSMAPZ)
-                maskMap = SampleTriplanar(_MetallicGlossMapX, _MetallicGlossMap, _MetallicGlossMapZ, _MetallicGlossMap_ST, triN, triW);
+                maskMap = SampleTriplanar(_MetallicGlossMapArray, _MetallicGlossMap_ST, triN, triW);
             #endif
         #endif
         
@@ -102,8 +115,14 @@ float4 frag (v2f i, uint facing : SV_IsFrontFace) : SV_Target
     metallic = metallicMap * _Metallic * _Metallic;
     occlusion = lerp(1,occlusionMap , _Occlusion);
 
-    #if defined(PROP_DETAILMAP)
-        float4 detailMap = SampleTexture(_DetailMap, _DetailMap_ST, _DetailMap_UV);
+    #if defined(PROP_DETAILMAP) || defined(PROP_DETAILMAPARRAY)
+
+        #if defined(PROP_DETAILMAP)
+            float4 detailMap = SampleTexture(_DetailMap, _DetailMap_ST, _DetailMap_UV);
+        #endif
+        #if defined (PROP_DETAILMAPARRAY)
+            float4 detailMap = SampleTextureArray(_DetailMapArray, _DetailMap_ST, sampler_MainTexArray, _DetailMap_UV);
+        #endif
 
         float detailMask = maskMap.a;
         float detailAlbedo = detailMap.r * 2.0 - 1.0;
@@ -134,19 +153,25 @@ float4 frag (v2f i, uint facing : SV_IsFrontFace) : SV_Target
     UNITY_BRANCH
     if(_GSAA) perceptualRoughness = GSAA_Filament(worldNormal, perceptualRoughness);
 
+    float4 normalMap = float4(0.5, 0.5, 1, 1);
+
     #ifdef PROP_BUMPMAP
-        float4 normalMap = SampleTexture(_BumpMap, _BumpMap_ST, sampler_BumpMap, _BumpMap_UV);
+        normalMap = SampleTexture(_BumpMap, _BumpMap_ST, sampler_BumpMap, _BumpMap_UV);
         #define CALC_TANGENT_BITANGENT
-    #else 
-        float4 normalMap = float4(0.5, 0.5, 1, 1);
     #endif
+
+    #ifdef PROP_BUMPMAPARRAY
+        normalMap = SampleTextureArray(_BumpMapArray, _BumpMap_ST, sampler_BumpMapArray, _BumpMap_UV);
+        #define CALC_TANGENT_BITANGENT
+    #endif
+
 
     
 
     #if defined(CALC_TANGENT_BITANGENT) && defined(NEED_TANGENT_BITANGENT)
         float3 tangentNormal = UnpackScaleNormal(normalMap, _BumpScale);
 
-        #if defined(PROP_DETAILMAP)
+        #if defined(PROP_DETAILMAP) || defined(PROP_DETAILMAPARRAY)
             float4 detailNormalMap = float4(detailMap.a, detailMap.g, 1, 1);
             detailNormalMap.g = 1-detailNormalMap.g;
             float3 detailNormal = UnpackScaleNormal(detailNormalMap, _DetailNormalScale);

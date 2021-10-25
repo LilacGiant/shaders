@@ -10,26 +10,51 @@ Material:
   m_Name: z3y_new lit
   m_Shader: {fileID: 4800000, guid: 4b6d2e49ea33a3742b587eae47fb1326, type: 3}
   m_ShaderKeywords: NONLINEAR_LIGHTPROBESH REFLECTIONS SPECULAR_HIGHLIGHTS _MODE_OPAQUE
-    _WORKFLOW_PACKED
+    _WORKFLOW_TEXTUREARRAY
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
-  m_CustomRenderQueue: -1
+  m_CustomRenderQueue: 2000
   stringTagMap:
     : 
     OptimizedShaderFolder: 8acb96b91e7dec5458ce118b550604b4
     OriginalShader: .poiyomi/ProV8a
     OriginalShaderTag: z3y/new lit
+    RenderType: Opaque
   disabledShaderPasses:
   - ALWAYS
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
+    - _AnisotropyMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _BumpMap:
-        m_Texture: {fileID: 2800000, guid: 0c540c5cf863ea743b3091ace3a20e07, type: 3}
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _BumpMapArray:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _DetailAlbedoMap:
+        m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _DetailMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1.28, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _DetailMapArray:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _DetailMask:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _DetailNormalMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
@@ -38,18 +63,27 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MainTex:
-        m_Texture: {fileID: 0}
+        m_Texture: {fileID: 2800000, guid: bd1f606b965b9c1498929217ffe65f96, type: 3}
+        m_Scale: {x: 5, y: 5}
+        m_Offset: {x: 0, y: 0}
+    - _MainTexArray:
+        m_Texture: {fileID: -7639397621201060638, guid: eff5697b3879f1a49bba0d09a2771376,
+          type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MainTexX:
-        m_Texture: {fileID: 0}
+        m_Texture: {fileID: 2800000, guid: 4a3ea3eb16909a646a66ff7b19d31788, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MainTexZ:
-        m_Texture: {fileID: 0}
+        m_Texture: {fileID: 2800000, guid: 4a3ea3eb16909a646a66ff7b19d31788, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MetallicGlossMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _MetallicGlossMapArray:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
@@ -79,30 +113,34 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Floats:
     - _AlphaToMask: 0
+    - _Anisotropy: 0
     - _BakedSpecular: 0
     - _BicubicLightmap: 0
     - _BlendOp: 0
     - _BlendOpAlpha: 0
     - _BumpMap_UV: 0
-    - _BumpScale: 0.2
+    - _BumpScale: 0
     - _Cull: 2
     - _Cutoff: 0.5
-    - _DetailAlbedoScale: 1
+    - _DetailAlbedoScale: 0
     - _DetailMap_UV: 0
+    - _DetailNormalMapScale: 1
     - _DetailNormalScale: 0
-    - _DetailSmoothnessScale: 1
+    - _DetailSmoothnessScale: 0
     - _DstBlend: 0
     - _EmissionMap_UV: 0
     - _EmissionMultBase: 0
+    - _EnableAnisotropy: 0
     - _EnableEmission: 0
     - _EnableParallax: 0
-    - _GSAA: 1
-    - _Glossiness: 1
+    - _GSAA: 0
+    - _GlossMapScale: 1
+    - _Glossiness: 0
     - _GlossinessInvert: 0
     - _GlossyReflections: 1
     - _HemiOctahedron: 0
     - _MainTex_UV: 0
-    - _Metallic: 1
+    - _Metallic: 0
     - _MetallicGlossMap_UV: 0
     - _MetallicMap_UV: 0
     - _Mode: 0
@@ -110,16 +148,20 @@ Material:
     - _NormalMapOrientation: 0
     - _Occlusion: 0
     - _OcclusionMap_UV: 0
+    - _OcclusionStrength: 1
     - _Parallax: 0.02
     - _ParallaxOffset: 0
     - _ParallaxSteps: 25
     - _Reflectance: 0.5
     - _SmoothnessMap_UV: 0
+    - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
     - _SpecularOcclusion: 0
     - _SrcBlend: 1
-    - _TriplanarBlend: 0.25
-    - _Workflow: 0
+    - _TriplanarBlend: 0.482
+    - _UVSec: 0
+    - _UseTextureIndex: 0
+    - _Workflow: 3
     - _ZTest: 4
     - _ZWrite: 1
     - _specularAntiAliasingThreshold: 0.1
