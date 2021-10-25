@@ -130,7 +130,7 @@ v2f vert (appdata v)
     #endif
 
     #ifdef NEED_FOG
-        UNITY_TRANSFER_FOG(o,o.vertex);
+        UNITY_TRANSFER_FOG(o,o.pos);
     #endif
 
 

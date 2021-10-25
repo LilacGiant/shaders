@@ -119,7 +119,7 @@ namespace z3y
 			}
 		}
         private const char hoverSplitSeparator = ':';
-        public static void MaterialProp(MaterialProperty property, MaterialProperty extraProperty, MaterialEditor me, bool isLocked, Material material)
+        public static void MaterialProp(MaterialProperty property, MaterialProperty extraProperty, MaterialEditor me, bool isLocked, Material material, string nameOverride)
         {
 
             EditorGUI.BeginDisabledGroup(isLocked);
@@ -133,7 +133,7 @@ namespace z3y
                 property.type == MaterialProperty.PropType.Color)
             {
                 me.ShaderProperty(property, property.displayName);
-                animatedPropName = property.name.ToString();
+                animatedPropName = nameOverride ?? property.name.ToString();
 
             }
 
@@ -141,6 +141,7 @@ namespace z3y
             {
                 string[] p = property.displayName.Split(hoverSplitSeparator);
                 animatedPropName = extraProperty != null ? extraProperty.name.ToString() : null;
+                p[0] = nameOverride ?? p[0]; 
 
 
 

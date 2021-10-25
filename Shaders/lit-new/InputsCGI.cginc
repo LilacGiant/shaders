@@ -7,7 +7,8 @@ CBUFFER_START(UnityPerMaterial)
 DECLARE_TEX2D_CUSTOM_SAMPLER(_MainTex);
 float4 _Color;
 float _Reflectance;
-float _FresnelIntensity;
+// float _FresnelIntensity;
+float _Roughness;
 float _Glossiness;
 float _Metallic;
 float _Occlusion;
@@ -48,6 +49,14 @@ float _ParallaxOffset;
 float _Parallax;
 #endif
 
+#ifdef _WORKFLOW_TRIPLANAR
+Texture2D _MainTexX;
+Texture2D _MainTexZ;
+Texture2D _MetallicGlossMapX;
+Texture2D _MetallicGlossMapZ;
+float _TriplanarBlend;
+#endif
+
 
 CBUFFER_END
 
@@ -64,13 +73,6 @@ UNITY_INSTANCING_BUFFER_END(Props)
     #define PROP_EMISSIONMAP
     #define PROP_METALLICGLOSSMAP
     #define PROP_DETAILMAP
-    #define PROP_ALEMISSIONMAP
-    #define PROP_ENABLEVERTEXCOLOR
-    #define PROP_ANISOTROPYMAP
-    #define PROP_DISPLACEMENTMASK
-    #define PROP_DISPLACEMENTNOISE
-    #define PROP_SPECGLOSSMAP
-    #define PROP_THICKNESSMAP
 #endif
 
 static float2 parallaxOffset;
@@ -79,10 +81,12 @@ static float2 parallaxOffset;
 
 #define NEED_UV2
 
-
+#ifdef _WORKFLOW_TRIPLANAR
+    #undef PARALLAX
+#endif
 
 #ifdef UNITY_PASS_FORWARDBASE
-    #define NEED_TANGENT_BITANGENT (defined(REFLECTIONS) || defined(SPECULAR_HIGHLIGHTS) || defined(PROP_BUMPMAP) || defined(PROP_DETALMAP))
+    #define NEED_TANGENT_BITANGENT (defined(REFLECTIONS) || defined(SPECULAR_HIGHLIGHTS) || defined(PROP_BUMPMAP) || defined(PROP_DETALMAP) || defined(BAKEDSPECULAR))
     #define NEED_WORLD_POS
     #define NEED_WORLD_NORMAL
     #define NEED_PARALLAX_DIR (defined(PARALLAX))
@@ -97,12 +101,22 @@ static float2 parallaxOffset;
     #undef REFLECTIONS
     #undef EMISSION
     #undef BICUBIC_LIGHTMAP
+    #undef BAKEDSPECULAR
+    #undef BAKERY_SH
+    #undef BAKERY_SHNONLINEAR
+    #undef BAKERY_RNM
 #endif
 
 
 #ifdef UNITY_PASS_SHADOWCASTER
     #undef REFLECTIONS
+    #define NEED_WORLD_POS (defined(_WORKFLOW_TRIPLANAR))
+    #define NEED_WORLD_NORMAL (defined(_WORKFLOW_TRIPLANAR))
     #undef EMISSION
     #undef BICUBIC_LIGHTMAP
     #undef PARALLAX
+    #undef BAKEDSPECULAR
+    #undef BAKERY_SH
+    #undef BAKERY_SHNONLINEAR
+    #undef BAKERY_RNM
 #endif

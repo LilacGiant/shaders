@@ -88,6 +88,21 @@ namespace z3y
         protected MaterialProperty _ParallaxOffset = null;
         protected MaterialProperty _ParallaxSteps = null;
         protected MaterialProperty _ParallaxMap = null;
+        protected MaterialProperty _NonLinearLightProbeSH = null;
+        protected MaterialProperty _BakedSpecular = null;
+        protected MaterialProperty _Roughness = null;
+        protected MaterialProperty _BAKERY_SH = null;
+        protected MaterialProperty _BAKERY_SHNONLINEAR = null;
+        protected MaterialProperty _BAKERY_RNM = null;
+        protected MaterialProperty bakeryLightmapMode = null;
+        protected MaterialProperty _RNM0 = null;
+        protected MaterialProperty _RNM1 = null;
+        protected MaterialProperty _RNM2 = null;
+        protected MaterialProperty _MainTexX = null;
+        protected MaterialProperty _MainTexZ = null;
+        protected MaterialProperty _MetallicGlossMapX = null;
+        protected MaterialProperty _MetallicGlossMapZ = null;
+        protected MaterialProperty _TriplanarBlend = null;
 
 
         public void ShaderPropertiesGUI(Material material)
@@ -110,10 +125,11 @@ namespace z3y
                         SetupMaterialWithBlendMode(material, (int)_Mode.floatValue);
                 }
 
-
-                if(_Mode.floatValue == 1 || _Mode.floatValue == 5){
+                int mode = (int)_Mode.floatValue;
+                if(mode == 1 || mode == 4){
                     prop(_Cutoff);
                 }
+
                 EditorGUILayout.Space();;
                 int workflowMode = (int)_Workflow.floatValue;
 
@@ -168,6 +184,27 @@ namespace z3y
                         });
                         Func.sRGBWarning(_OcclusionMap);
                         break;
+                    
+                    case 2:
+                        prop(_TriplanarBlend);
+                        Func.PropertyGroup(() => {
+                            prop(_MainTexX);
+                            prop(_MainTex, _Color, "Base Map Y");
+                            prop(_MainTexZ);
+                            propTileOffset(_MainTex);
+                            prop(_Saturation);
+                        });
+
+                        Func.PropertyGroup(() => {
+                            prop(_Metallic);
+                            prop(_Glossiness);
+                            prop(_Occlusion);
+                            prop(_MetallicGlossMapX);
+                            prop(_MetallicGlossMap, null, "Mask Map Y");
+                            prop(_MetallicGlossMapZ);
+                            propTileOffset(_MetallicGlossMap);
+                        });
+                        break;
                 }
                 
                 if(workflowMode != 2)
@@ -180,8 +217,10 @@ namespace z3y
                         prop(_NormalMapOrientation);
                         prop(_HemiOctahedron);
                     });
+                
                 }
 
+                
                 prop(_DetailMap);
                 md[material].Show_DetailMap = Func.TriangleFoldout(md[material].Show_DetailMap, ()=> {
                     prop(_DetailMap_UV);
@@ -191,16 +230,19 @@ namespace z3y
                     prop(_DetailNormalScale);
                     prop(_DetailSmoothnessScale);
                 });
-
-                prop(_EnableParallax);
-                if(_EnableParallax.floatValue == 1)
+                
+                if(workflowMode != 2)
                 {
-                    Func.PropertyGroup(() => {
-                        prop(_ParallaxMap, _Parallax);
-                        Func.sRGBWarning(_ParallaxMap);
-                        prop(_ParallaxOffset);
-                        prop(_ParallaxSteps);
-                    });
+                    prop(_EnableParallax);
+                    if(_EnableParallax.floatValue == 1)
+                    {
+                        Func.PropertyGroup(() => {
+                            prop(_ParallaxMap, _Parallax);
+                            Func.sRGBWarning(_ParallaxMap);
+                            prop(_ParallaxOffset);
+                            prop(_ParallaxSteps);
+                        });
+                    }
                 }
 
                 prop(_EnableEmission);
@@ -248,6 +290,26 @@ namespace z3y
 
             md[material].ShowBakedLight = Foldout("Indirect Diffuse", md[material].ShowBakedLight, ()=> {
                 prop(_BicubicLightmap);
+                prop(_NonLinearLightProbeSH);
+                prop(_BakedSpecular);
+
+                // #if BAKERY_INCLUDED
+                // Func.PropertyGroup(() => {
+                //     EditorGUILayout.LabelField("Bakery", EditorStyles.boldLabel);
+                //     prop(_BAKERY_SH);
+                //     prop(_BAKERY_SHNONLINEAR);
+                //     prop(_BAKERY_RNM);
+                //     EditorGUI.BeginDisabledGroup(true);
+                //     if(_BAKERY_SH.floatValue == 1 || _BAKERY_RNM.floatValue == 1)
+                //     {
+                //         prop(bakeryLightmapMode);
+                //         prop(_RNM0);
+                //         prop(_RNM1);
+                //         prop(_RNM2);
+                //     }
+                //     EditorGUI.EndDisabledGroup();
+                // });
+                // #endif
             });
 
 
@@ -323,8 +385,9 @@ namespace z3y
             };
         }
 
-        private void prop(MaterialProperty property) => Func.MaterialProp(property, null, me, isLocked, material);
-        private void prop(MaterialProperty property, MaterialProperty extraProperty) => Func.MaterialProp(property, extraProperty, me, isLocked, material);
+        private void prop(MaterialProperty property) => Func.MaterialProp(property, null, me, isLocked, material, null);
+        private void prop(MaterialProperty property, MaterialProperty extraProperty) => Func.MaterialProp(property, extraProperty, me, isLocked, material, null);
+        private void prop(MaterialProperty property, MaterialProperty extraProperty, string nameOverride) => Func.MaterialProp(property, extraProperty, me, isLocked, material, nameOverride);
         
         private void propTileOffset(MaterialProperty property) => Func.propTileOffset(property, isLocked, me, material);
         private void ListAnimatedProps() => Func.ListAnimatedProps(isLocked, allProps, material);
@@ -371,7 +434,7 @@ namespace z3y
                     material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.Zero);
                     material.SetInt("_ZWrite", 1);
                     material.renderQueue = (int)UnityEngine.Rendering.RenderQueue.AlphaTest;
-                    material.SetInt("_AlphaToMask", 0);
+                    material.SetInt("_AlphaToMask", 1);
                     break;
                 case 2:
                     material.SetOverrideTag("RenderType", "Transparent");
@@ -380,7 +443,6 @@ namespace z3y
                     material.SetInt("_ZWrite", 0);
                     material.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
                     material.SetInt("_AlphaToMask", 0);
-
                     break;
                 case 3:
                     material.SetOverrideTag("RenderType", "Transparent");
@@ -390,16 +452,6 @@ namespace z3y
                     material.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
                     material.SetInt("_AlphaToMask", 0);
                     break;
-                case 4:
-                    material.SetOverrideTag("RenderType", "");
-                    material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
-                    material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.Zero);
-                    material.SetInt("_ZWrite", 1);
-                    material.renderQueue = -1;
-                    material.SetInt("_AlphaToMask", 1);
-                    break;
-                case 5:
-                    goto case 4;
             }
         }
         

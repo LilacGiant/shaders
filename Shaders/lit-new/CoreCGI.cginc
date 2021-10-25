@@ -1,22 +1,27 @@
-float4 frag (v2f i, bool facing : SV_IsFrontFace) : SV_Target
+float4 frag (v2f i, uint facing : SV_IsFrontFace) : SV_Target
 {
     input = i;
 
     #if defined(PARALLAX)
         parallaxOffset = ParallaxOffset(i.parallaxViewDir);
     #endif
-    
-    float4 mainTexture = SampleTexture(_MainTex, _MainTex_ST, sampler_MainTex, _MainTex_UV) * _Color;
+
+    #ifndef _WORKFLOW_TRIPLANAR
+        float4 mainTexture = SampleTexture(_MainTex, _MainTex_ST, sampler_MainTex, _MainTex_UV);
+    #else
+        float3 triN = saturate(abs(i.worldNormal.xyz) - _TriplanarBlend);
+        float3 triW = triN / (triN.x + triN.y + triN.z);
+        float4 mainTexture = SampleTriplanar(_MainTexX, _MainTex, _MainTexZ, _MainTex_ST, triN, triW);
+    #endif 
+
+
+    mainTexture *= _Color;
     float alpha = mainTexture.a;
 
 #if defined(UNITY_PASS_SHADOWCASTER)
 
-    #if defined(_MODE_CUTOUT) || defined (_MODE_A2C_SHARPENED)
+    #if defined(_MODE_CUTOUT)
     if(alpha < _Cutoff) discard;
-    #endif
-
-    #if defined (_MODE_A2C)
-    if(alpha < 0.001) discard;
     #endif
 
     #if defined (_MODE_FADE) || defined (_MODE_TRANSPARENT)
@@ -25,11 +30,7 @@ float4 frag (v2f i, bool facing : SV_IsFrontFace) : SV_Target
 
     SHADOW_CASTER_FRAGMENT(i);
 #else
-    #if defined(_MODE_CUTOUT)
-    if(alpha < _Cutoff) discard;
-    #endif
-
-    #if defined (_MODE_A2C_SHARPENED)
+    #if defined (_MODE_CUTOUT)
     alpha = (alpha - _Cutoff) / max(fwidth(alpha), 0.0001) + 0.5;
     #endif
 
@@ -48,6 +49,7 @@ float4 frag (v2f i, bool facing : SV_IsFrontFace) : SV_Target
         float3 bitangent = i.bitangent;
         float3 tangent = i.tangent;
     #endif
+
     if(!facing)
     {
         worldNormal *= -1;
@@ -62,7 +64,6 @@ float4 frag (v2f i, bool facing : SV_IsFrontFace) : SV_Target
     float metallicMap = 1;
     float smoothnessMap = 1;
     float occlusionMap = 1;
-    bool isRoughness = _GlossinessInvert;
 
     #ifdef _WORKFLOW_UNPACKED
 
@@ -72,6 +73,7 @@ float4 frag (v2f i, bool facing : SV_IsFrontFace) : SV_Target
 
         #ifdef PROP_SMOOTHNESSMAP
             smoothnessMap = SampleTexture(_SmoothnessMap, _SmoothnessMap_ST, _SmoothnessMap_UV);
+            smoothnessMap = _GlossinessInvert ? 1-smoothnessMap : smoothnessMap;
         #endif
 
         #ifdef PROP_OCCLUSIONMAP
@@ -80,18 +82,23 @@ float4 frag (v2f i, bool facing : SV_IsFrontFace) : SV_Target
 
     #else
 
-        #ifdef PROP_METALLICGLOSSMAP
-            maskMap = SampleTexture(_MetallicGlossMap, _MetallicGlossMap_ST, _MetallicGlossMap_UV);
+        #ifndef _WORKFLOW_TRIPLANAR
+            #ifdef PROP_METALLICGLOSSMAP
+                maskMap = SampleTexture(_MetallicGlossMap, _MetallicGlossMap_ST, _MetallicGlossMap_UV);
+            #endif
+        #else
+            #if defined(PROP_METALLICGLOSSMAP) || defined(PROP_METALLICGLOSSMAPX) || defined(PROP_METALLICGLOSSMAPZ)
+                maskMap = SampleTriplanar(_MetallicGlossMapX, _MetallicGlossMap, _MetallicGlossMapZ, _MetallicGlossMap_ST, triN, triW);
+            #endif
         #endif
         
         metallicMap = maskMap.r;
         smoothnessMap = maskMap.a;
         occlusionMap = maskMap.g;
-        isRoughness = 0;
     #endif
 
     float smoothness = _Glossiness * smoothnessMap;
-    perceptualRoughness = isRoughness ? smoothness : 1-smoothness;
+    perceptualRoughness = 1-smoothness;
     metallic = metallicMap * _Metallic * _Metallic;
     occlusion = lerp(1,occlusionMap , _Occlusion);
 
@@ -205,14 +212,22 @@ float4 frag (v2f i, bool facing : SV_IsFrontFace) : SV_Target
 
         indirectDiffuse = lightMap;
     #else
-        indirectDiffuse = max(0, ShadeSH9(float4(worldNormal, 1)));
+        #ifdef NONLINEAR_LIGHTPROBESH
+            float3 L0 = float3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w);
+            indirectDiffuse.r = shEvaluateDiffuseL1Geomerics_local(L0.r, unity_SHAr.xyz, worldNormal);
+            indirectDiffuse.g = shEvaluateDiffuseL1Geomerics_local(L0.g, unity_SHAg.xyz, worldNormal);
+            indirectDiffuse.b = shEvaluateDiffuseL1Geomerics_local(L0.b, unity_SHAb.xyz, worldNormal);
+            indirectDiffuse = max(0, indirectDiffuse);
+        #else
+            indirectDiffuse = max(0, ShadeSH9(float4(worldNormal, 1)));
+        #endif
     #endif
 
 
 
     float3 f0 = 0.16 * _Reflectance * _Reflectance * (1 - metallic) + mainTexture.rgb * metallic;
-    float3 fresnel = lerp(f0, F_Schlick(NoV, f0) , _FresnelIntensity);
-    fresnel *= lerp(1, saturate(pow(length(indirectDiffuse), _SpecularOcclusion)), _SpecularOcclusion);
+    float3 fresnel = F_Schlick(NoV, f0);
+    fresnel *= saturate(pow(length(indirectDiffuse), _SpecularOcclusion));
     
     #if defined(UNITY_PASS_FORWARDBASE)
 
@@ -222,7 +237,7 @@ float4 frag (v2f i, bool facing : SV_IsFrontFace) : SV_Target
             // if(_EnableAnisotropy) reflViewDir = getAnisotropicReflectionVector(viewDir, bitangent, tangent, worldNormal, surface.perceptualRoughness);
             Unity_GlossyEnvironmentData envData;
             envData.roughness = perceptualRoughness;
-            envData.reflUVW = getBoxProjection(reflDir, i.worldPos.xyz, unity_SpecCube0_ProbePosition, unity_SpecCube0_BoxMin, unity_SpecCube0_BoxMax);
+            envData.reflUVW = getBoxProjection(reflDir, i.worldPos.xyz, unity_SpecCube0_ProbePosition, unity_SpecCube0_BoxMin.xyz, unity_SpecCube0_BoxMax.xyz);
 
             float3 probe0 = Unity_GlossyEnvironment(UNITY_PASS_TEXCUBE(unity_SpecCube0), unity_SpecCube0_HDR, envData);
             indirectSpecular = probe0;
@@ -231,7 +246,7 @@ float4 frag (v2f i, bool facing : SV_IsFrontFace) : SV_Target
                 UNITY_BRANCH
                 if (unity_SpecCube0_BoxMin.w < 0.99999)
                 {
-                    envData.reflUVW = getBoxProjection(reflDir, i.worldPos.xyz, unity_SpecCube1_ProbePosition, unity_SpecCube1_BoxMin, unity_SpecCube1_BoxMax);
+                    envData.reflUVW = getBoxProjection(reflDir, i.worldPos.xyz, unity_SpecCube1_ProbePosition, unity_SpecCube1_BoxMin.xyz, unity_SpecCube1_BoxMax.xyz);
                     float3 probe1 = Unity_GlossyEnvironment(UNITY_PASS_TEXCUBE_SAMPLER(unity_SpecCube1, unity_SpecCube0), unity_SpecCube1_HDR, envData);
                     indirectSpecular = lerp(probe1, probe0, unity_SpecCube0_BoxMin.w);
                 }
@@ -245,17 +260,44 @@ float4 frag (v2f i, bool facing : SV_IsFrontFace) : SV_Target
         indirectSpecular *= computeSpecularAO(NoV, occlusion, perceptualRoughness * perceptualRoughness);
     #endif
 
+    float clampedRoughness = max(perceptualRoughness * perceptualRoughness, 0.002);
+
     #if defined(SPECULAR_HIGHLIGHTS)
         float NoH = saturate(dot(worldNormal, lightHalfVector));
-        half roughness = max(perceptualRoughness * perceptualRoughness, 0.002);
 
         #ifndef ANISOTROPY
             float3 F = F_Schlick(lightLoH, f0);
-            float D = GGXTerm(NoH, roughness);
-            float V = V_SmithGGXCorrelated ( NoV, lightNoL, roughness);
+            float D = GGXTerm(NoH, clampedRoughness);
+            float V = V_SmithGGXCorrelated ( NoV, lightNoL, clampedRoughness);
         #endif
         
         directSpecular += max(0, (D * V) * F) * pixelLight * UNITY_PI;
+    #endif
+
+    #ifdef BAKEDSPECULAR
+    {
+        float3 bakedDominantDirection = 1;
+        float3 bakedSpecularColor = 0;
+
+        #if !defined(BAKERY_SH) && !defined(BAKERY_RNM)
+
+            #ifdef DIRLIGHTMAP_COMBINED
+                bakedDominantDirection = (lightMapDirection.xyz) * 2 - 1;
+                bakedSpecularColor = indirectDiffuse;
+            #endif
+
+            #ifndef LIGHTMAP_ON
+                bakedSpecularColor = float3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w);
+                bakedDominantDirection = unity_SHAr.xyz + unity_SHAg.xyz + unity_SHAb.xyz;
+            #endif
+            
+        #endif
+
+        float3 bakedHalfDir = Unity_SafeNormalize(normalize(bakedDominantDirection) + viewDir);
+        half nh = saturate(dot(worldNormal, bakedHalfDir));
+        half bakedSpecular = D_GGX(nh, clampedRoughness);
+        directSpecular += bakedSpecular * bakedSpecularColor * fresnel;
+    }
     #endif
 
 

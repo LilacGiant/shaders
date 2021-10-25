@@ -94,6 +94,15 @@ float4 SampleTexture(Texture2D tex)
     return SampleTexture(tex, float4(1,1,0,0), sampler_MainTex, 3);
 }
 
+float4 SampleTriplanar(Texture2D texX, Texture2D texY, Texture2D texZ, float4 st, float3 n, float3 w)
+{
+    float4 tzy = texX.Sample(sampler_MainTex, input.worldPos.zy * st.xy + st.zw);
+    float4 txz = texY.Sample(sampler_MainTex, input.worldPos.xz * st.xy + st.zw);
+    float4 txy = texZ.Sample(sampler_MainTex, input.worldPos.xy * st.xy + st.zw);
+
+    return tzy * w.x + txz * w.y + txy * w.z;
+}
+
 // https://github.com/DarthShader/Kaj-Unity-Shaders/blob/926f07a0bf3dc950db4d7346d022c89f9dfdb440/Shaders/Kaj/KajCore.cginc#L1041
 #ifdef POINT
 #define LIGHT_ATTENUATION_NO_SHADOW_MUL(destName, input, worldPos) \
@@ -243,7 +252,8 @@ float3 tex2DFastBicubicLightmap(float2 uv, inout float4 bakedColorTex)
 float3 getBoxProjection (float3 direction, float3 position, float4 cubemapPosition, float3 boxMin, float3 boxMax)
 {
     #if defined(UNITY_SPECCUBE_BOX_PROJECTION)
-        if (cubemapPosition.w > 0) {
+        if (cubemapPosition.w > 0)
+        {
             float3 factors = ((direction > 0 ? boxMax : boxMin) - position) / direction;
             float scalar = min(min(factors.x, factors.y), factors.z);
             direction = direction * scalar + (position - cubemapPosition.xyz);
@@ -369,3 +379,37 @@ float2 ParallaxOffset (float3 viewDirForParallax)
 	return offset;
 }
 #endif
+
+float shEvaluateDiffuseL1Geomerics_local(float L0, float3 L1, float3 n)
+{
+    // average energy
+    float R0 = L0;
+    
+    // avg direction of incoming light
+    float3 R1 = 0.5f * L1;
+    
+    // directional brightness
+    float lenR1 = length(R1);
+    
+    // linear angle between normal and direction 0-1
+    //float q = 0.5f * (1.0f + dot(R1 / lenR1, n));
+    //float q = dot(R1 / lenR1, n) * 0.5 + 0.5;
+    float q = dot(normalize(R1), n) * 0.5 + 0.5;
+    q = saturate(q); // Thanks to ScruffyRuffles for the bug identity.
+    
+    // power for q
+    // lerps from 1 (linear) to 3 (cubic) based on directionality
+    float p = 1.0f + 2.0f * lenR1 / R0;
+    
+    // dynamic range constant
+    // should vary between 4 (highly directional) and 0 (ambient)
+    float a = (1.0f - lenR1 / R0) / (1.0f + lenR1 / R0);
+    
+    return R0 * (a + (1.0f - a) * (p + 1.0f) * pow(q, p));
+}
+
+half D_GGX(half NoH, half roughness) {
+    half a = NoH * roughness;
+    half k = roughness / (1.0 - NoH * NoH + a * a);
+    return k * k * (1.0 / UNITY_PI);
+}
