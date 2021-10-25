@@ -49,6 +49,9 @@ float _ParallaxOffset;
 float _Parallax;
 #endif
 
+float _Anisotropy;
+DECLARE_TEX2D_CUSTOM(_AnisotropyMap);
+
 #ifdef _WORKFLOW_TRIPLANAR
 Texture2D _MainTexX;
 Texture2D _MainTexZ;
@@ -73,6 +76,7 @@ UNITY_INSTANCING_BUFFER_END(Props)
     #define PROP_EMISSIONMAP
     #define PROP_METALLICGLOSSMAP
     #define PROP_DETAILMAP
+    #define PROP_ANISOTROPYMAP
 #endif
 
 static float2 parallaxOffset;
@@ -86,7 +90,7 @@ static float2 parallaxOffset;
 #endif
 
 #ifdef UNITY_PASS_FORWARDBASE
-    #define NEED_TANGENT_BITANGENT (defined(REFLECTIONS) || defined(SPECULAR_HIGHLIGHTS) || defined(PROP_BUMPMAP) || defined(PROP_DETALMAP) || defined(BAKEDSPECULAR))
+    #define NEED_TANGENT_BITANGENT
     #define NEED_WORLD_POS
     #define NEED_WORLD_NORMAL
     #define NEED_PARALLAX_DIR (defined(PARALLAX))
@@ -94,7 +98,7 @@ static float2 parallaxOffset;
 
 
 #ifdef UNITY_PASS_FORWARDADD
-    #define NEED_TANGENT_BITANGENT (defined(REFLECTIONS) || defined(SPECULAR_HIGHLIGHTS) || defined(PROP_BUMPMAP) || defined(PROP_DETALMAP))
+    #define NEED_TANGENT_BITANGENT
     #define NEED_WORLD_POS
     #define NEED_WORLD_NORMAL
     #define NEED_PARALLAX_DIR (defined(PARALLAX))
@@ -119,4 +123,5 @@ static float2 parallaxOffset;
     #undef BAKERY_SH
     #undef BAKERY_SHNONLINEAR
     #undef BAKERY_RNM
+    #undef ANISOTROPY
 #endif

@@ -103,6 +103,9 @@ namespace z3y
         protected MaterialProperty _MetallicGlossMapX = null;
         protected MaterialProperty _MetallicGlossMapZ = null;
         protected MaterialProperty _TriplanarBlend = null;
+        protected MaterialProperty _EnableAnisotropy = null;
+        protected MaterialProperty _Anisotropy = null;
+        protected MaterialProperty _AnisotropyMap = null;
 
 
         public void ShaderPropertiesGUI(Material material)
@@ -272,11 +275,22 @@ namespace z3y
                 prop(_FresnelIntensity);
                 prop(_SpecularOcclusion);
 
+                
                 prop(_GSAA);
                 if(_GSAA.floatValue == 1){
                     Func.PropertyGroup(() => {
                         prop(_specularAntiAliasingVariance);
                         prop(_specularAntiAliasingThreshold);
+                    });
+                };
+
+                prop(_EnableAnisotropy);
+                
+                if(_EnableAnisotropy.floatValue == 1){
+                    Func.PropertyGroup(() => {
+                        prop(_Anisotropy);
+                        prop(_AnisotropyMap);
+                        propTileOffset(_AnisotropyMap);
                     });
                 };
             });

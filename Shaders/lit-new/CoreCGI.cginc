@@ -165,6 +165,8 @@ float4 frag (v2f i, uint facing : SV_IsFrontFace) : SV_Target
         worldNormal = calcedNormal;
         tangent = normalize(cross(worldNormal, bitangent));
         bitangent = normalize(cross(worldNormal, tangent));
+
+        
     #else
         worldNormal = normalize(worldNormal);
         #if defined(NEED_TANGENT_BITANGENT)
@@ -228,11 +230,28 @@ float4 frag (v2f i, uint facing : SV_IsFrontFace) : SV_Target
     float3 f0 = 0.16 * _Reflectance * _Reflectance * (1 - metallic) + mainTexture.rgb * metallic;
     float3 fresnel = F_Schlick(NoV, f0);
     fresnel *= saturate(pow(length(indirectDiffuse), _SpecularOcclusion));
+
+    #ifdef ANISOTROPY
+        #if defined(PROP_ANISOTROPYMAP)
+            float3 anisotropicDirection = float3(_AnisotropyMap.Sample(sampler_MainTex, (i.coord0.xy * _AnisotropyMap_ST.xy + _AnisotropyMap_ST.zw)).rg, 1);
+            float3 anisotropicT = normalize(tangent * anisotropicDirection);
+            float3 anisotropicB = normalize(cross(worldNormal, anisotropicT));
+        #else
+            float3 anisotropicT = tangent;
+            float3 anisotropicB = bitangent;
+        #endif
+    #endif
     
     #if defined(UNITY_PASS_FORWARDBASE)
 
         #if defined(REFLECTIONS)
-            float3 reflDir = reflect(-viewDir, worldNormal);
+            #ifndef ANISOTROPY
+                float3 reflDir = reflect(-viewDir, worldNormal);
+            #else
+                
+                float3 reflDir = getAnisotropicReflectionVector(viewDir, anisotropicB, anisotropicT, worldNormal, perceptualRoughness);
+            #endif
+
             
             // if(_EnableAnisotropy) reflViewDir = getAnisotropicReflectionVector(viewDir, bitangent, tangent, worldNormal, surface.perceptualRoughness);
             Unity_GlossyEnvironmentData envData;
@@ -263,15 +282,36 @@ float4 frag (v2f i, uint facing : SV_IsFrontFace) : SV_Target
     float clampedRoughness = max(perceptualRoughness * perceptualRoughness, 0.002);
 
     #if defined(SPECULAR_HIGHLIGHTS)
+    {
         float NoH = saturate(dot(worldNormal, lightHalfVector));
+        float3 F = F_Schlick(lightLoH, f0);
 
         #ifndef ANISOTROPY
-            float3 F = F_Schlick(lightLoH, f0);
             float D = GGXTerm(NoH, clampedRoughness);
             float V = V_SmithGGXCorrelated ( NoV, lightNoL, clampedRoughness);
+        #else
+            float anisotropy = _Anisotropy;
+            float3 l = lightDirection;
+            float3 t = anisotropicT;
+            float3 b = anisotropicB;
+            float3 v = viewDir;
+            float3 h = lightHalfVector;
+
+            float ToV = dot(t, v);
+            float BoV = dot(b, v);
+            float ToL = dot(t, l);
+            float BoL = dot(b, l);
+            float ToH = dot(t, h);
+            float BoH = dot(b, h);
+
+            half at = max(clampedRoughness * (1.0 + anisotropy), 0.002);
+            half ab = max(clampedRoughness * (1.0 - anisotropy), 0.002);
+            float D = D_GGX_Anisotropic(at, ab, ToH, BoH, NoH);
+            float V = V_SmithGGXCorrelated_Anisotropic(at, ab, ToV, BoV, ToL, BoL, NoV, lightNoL);
         #endif
         
         directSpecular += max(0, (D * V) * F) * pixelLight * UNITY_PI;
+    }
     #endif
 
     #ifdef BAKEDSPECULAR

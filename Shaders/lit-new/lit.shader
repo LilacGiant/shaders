@@ -81,6 +81,10 @@
         [Toggle(NONLINEAR_LIGHTPROBESH)] _NonLinearLightProbeSH ("Non-linear Light Probe SH", Int) = 1
         [Toggle(BAKEDSPECULAR)] _BakedSpecular ("Baked Specular Highlights ", Int) = 0
 
+        [Toggle(ANISOTROPY)] _EnableAnisotropy ("Anisotropy", Int) = 0
+            _Anisotropy ("Anisotropy", Range(-1,1)) = 0
+            _AnisotropyMap ("Anisotropy Direction Map:Bitangent(R), Tangent(G)", 2D) = "white" {}
+
         
 
         [Enum(UnityEngine.Rendering.BlendOp)] _BlendOp ("Blend Op", Int) = 0
@@ -128,6 +132,7 @@
             #pragma shader_feature_local PARALLAX
             #pragma shader_feature_local NONLINEAR_LIGHTPROBESH
             #pragma shader_feature_local BAKEDSPECULAR
+            #pragma shader_feature_local ANISOTROPY
 
 
             #include "PassCGI.cginc"
@@ -161,6 +166,7 @@
             #pragma shader_feature_local SPECULAR_HIGHLIGHTS
             #pragma shader_feature_local PARALLAX
             #pragma shader_feature_local NONLINEAR_LIGHTPROBESH
+            #pragma shader_feature_local ANISOTROPY
 
 
             #include "PassCGI.cginc"

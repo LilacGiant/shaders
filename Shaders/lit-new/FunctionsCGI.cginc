@@ -413,3 +413,13 @@ half D_GGX(half NoH, half roughness) {
     half k = roughness / (1.0 - NoH * NoH + a * a);
     return k * k * (1.0 / UNITY_PI);
 }
+
+float3 getAnisotropicReflectionVector(float3 viewDir, float3 btg, float3 tg, float3 normal, float roughness)
+{
+    float3 anisotropicDirection = (_Anisotropy >= 0.0 ? btg : tg);
+    float3 anisotropicTangent = cross(anisotropicDirection, viewDir);
+    float3 anisotropicNormal = cross(anisotropicTangent, anisotropicDirection);
+    float bendFactor = abs(_Anisotropy) * saturate(5.0 * roughness) ;
+    float3 bentNormal = normalize(lerp(normal, anisotropicNormal, bendFactor));
+    return reflect(-viewDir, bentNormal);
+}
