@@ -7,7 +7,8 @@ CBUFFER_START(UnityPerMaterial)
 DECLARE_TEX2D_CUSTOM_SAMPLER(_MainTex);
 float4 _Color;
 float _Reflectance;
-// float _FresnelIntensity;
+float _FresnelIntensity;
+float3 _FresnelColor;
 float _Roughness;
 float _Glossiness;
 float _Metallic;
@@ -89,6 +90,12 @@ UNITY_INSTANCING_BUFFER_END(Props)
         #define PROP_METALLICGLOSSMAPARRAY
         #undef PROP_METALLICGLOSSMAP
     #endif
+
+    #if defined(_WORKFLOW_TRIPLANAR)
+        #undef PARALLAX
+        #define PROP_METALLICGLOSSMAPARRAY
+        #undef PROP_METALLICGLOSSMAP
+    #endif
 #endif
 
 static float2 parallaxOffset;
@@ -98,9 +105,6 @@ static float textureIndex;
 
 #define NEED_UV2
 
-#ifdef _WORKFLOW_TRIPLANAR
-    #undef PARALLAX
-#endif
 
 #ifdef UNITY_PASS_FORWARDBASE
     #define NEED_TANGENT_BITANGENT

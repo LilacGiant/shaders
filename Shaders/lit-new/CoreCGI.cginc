@@ -100,7 +100,7 @@ float4 frag (v2f i, uint facing : SV_IsFrontFace) : SV_Target
                 maskMap = SampleTextureArray(_MetallicGlossMapArray, _MetallicGlossMap_ST, sampler_MainTexArray, _MetallicGlossMap_UV);
             #endif
         #else
-            #if defined(PROP_METALLICGLOSSMAP) || defined(PROP_METALLICGLOSSMAPX) || defined(PROP_METALLICGLOSSMAPZ)
+            #ifdef PROP_METALLICGLOSSMAPARRAY
                 maskMap = SampleTriplanar(_MetallicGlossMapArray, _MetallicGlossMap_ST, triN, triW);
             #endif
         #endif
@@ -253,7 +253,7 @@ float4 frag (v2f i, uint facing : SV_IsFrontFace) : SV_Target
 
 
     float3 f0 = 0.16 * _Reflectance * _Reflectance * (1 - metallic) + mainTexture.rgb * metallic;
-    float3 fresnel = F_Schlick(NoV, f0);
+    float3 fresnel = lerp(f0, F_Schlick(NoV, f0), _FresnelIntensity) * _FresnelColor;
     fresnel *= saturate(pow(length(indirectDiffuse), _SpecularOcclusion));
 
     #ifdef ANISOTROPY

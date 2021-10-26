@@ -46,11 +46,10 @@
         [Toggle(SPECULAR_HIGHLIGHTS)] _SpecularHighlights("Specular Highlights", Float) = 1
         [Toggle(REFLECTIONS)] _GlossyReflections("Reflections", Float) = 1
             // [KeywordEnum(Metallic, Specular, Triplanar)] _SpecularWorkflow ("Specular Workflow", Int) = 0
-            // _FresnelColor ("Tint", Color) = (1,1,1,1)
-            // _FresnelIntensity ("Fresnel Intensity", Range(0,1)) = 1
+            _FresnelIntensity ("Fresnel Intensity", Range(0,1)) = 1
             _Reflectance ("Reflectance", Range(0,1)) = 0.5
             _SpecularOcclusion ("Specular Occlusion", Range(0,1)) = 0
-
+            _FresnelColor ("Tint", Color) = (1,1,1)
 
 
         [Toggle(BICUBIC_LIGHTMAP)] _BicubicLightmap ("Bicubic Lightmap", Int) = 0

@@ -107,6 +107,7 @@ namespace z3y
         protected MaterialProperty _UseTextureIndex = null;
         protected MaterialProperty _BumpMapArray = null;
         protected MaterialProperty _DetailMapArray = null;
+        protected MaterialProperty _FresnelColor = null;
 
 
         public void ShaderPropertiesGUI(Material material)
@@ -311,6 +312,7 @@ namespace z3y
                 prop(_Reflectance);
                 prop(_FresnelIntensity);
                 prop(_SpecularOcclusion);
+                prop(_FresnelColor);
 
                 
                 prop(_GSAA);
