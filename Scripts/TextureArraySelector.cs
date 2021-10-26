@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿#if UNITY_EDITOR
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
@@ -58,7 +59,7 @@ public class TextureArraySelectorEditor : Editor
         SerializedProperty idx = serializedObject.FindProperty("index");
 
         serializedObject.Update();
-        for (int i = 0; i < textureArraySelector.index.Count; i++)
+        for (int i = 0; i < mesh.subMeshCount; i++)
         {
             var value = idx.GetArrayElementAtIndex(i);
             EditorGUILayout.BeginHorizontal();
@@ -77,4 +78,4 @@ public class TextureArraySelectorEditor : Editor
 
     }
 }
- 
+#endif
