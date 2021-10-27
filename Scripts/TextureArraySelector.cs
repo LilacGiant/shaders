@@ -9,12 +9,13 @@ public class TextureArraySelector : MonoBehaviour
 {
     public List<int> index = new List<int>();
 
-    public void OnValidate()
+    private void OnValidate()
     {
         var mesh = GetMesh(gameObject);
         for (int i = 0; i < mesh?.subMeshCount; i++)
         {
             if(index.Count != mesh.subMeshCount) index.Add(0);
+            index[i] = Mathf.Clamp(index[i], 0, 255);
             SetUVW(mesh, i, index[i]);
         }
     }
@@ -63,14 +64,9 @@ public class TextureArraySelectorEditor : Editor
         {
             var value = idx.GetArrayElementAtIndex(i);
             EditorGUILayout.BeginHorizontal();
-            EditorGUI.BeginChangeCheck();
-            EditorGUILayout.IntSlider( value, 0, 256);
-            if(GUILayout.Button("+")) value.intValue ++;
+            EditorGUILayout.IntSlider( value, 0, 255);
             if(GUILayout.Button("-")) value.intValue --;
-            if(EditorGUI.EndChangeCheck())
-            {
-                textureArraySelector.SetUVW(mesh, i, value.intValue);
-            }
+            if(GUILayout.Button("+")) value.intValue ++;
             GUILayout.EndHorizontal();
         }
         

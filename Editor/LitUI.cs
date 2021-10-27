@@ -22,10 +22,11 @@ namespace z3y
         public bool Show_EmissionMap = false;
         public bool Show_DetailMap = false;
         public bool Show_AnisotropyMap = false;
-
         public bool Show_MetallicMap = false;
         public bool Show_SmoothnessMap = false;
         public bool Show_OcclusionMap = false;
+        
+        public bool Show_RenderingOptions = false;
 
 
     }
@@ -108,6 +109,8 @@ namespace z3y
         protected MaterialProperty _BumpMapArray = null;
         protected MaterialProperty _DetailMapArray = null;
         protected MaterialProperty _FresnelColor = null;
+        protected MaterialProperty _EnableTextureArray = null;
+        protected MaterialProperty _TextureIndex = null;
 
 
         public void ShaderPropertiesGUI(Material material)
@@ -115,7 +118,6 @@ namespace z3y
             
             md[material].ShowSurfaceInputs = Foldout("Surface Inputs", md[material].ShowSurfaceInputs, ()=> {
 
-                prop(_Workflow);
 
                 EditorGUI.BeginChangeCheck();
                 prop(_Mode);
@@ -135,21 +137,25 @@ namespace z3y
                     prop(_Cutoff);
                 }
 
-                EditorGUILayout.Space();;
-                int workflowMode = (int)_Workflow.floatValue;
-
-                if(workflowMode != 2 && workflowMode != 3)
+                EditorGUILayout.Space();
+                
+                if(_EnableTextureArray.floatValue == 0)
                 {
                     prop(_MainTex, _Color);
-                    md[material].Show_MainTex = Func.TriangleFoldout(md[material].Show_MainTex, ()=> {
-                        prop(_MainTex_UV);
-                        propTileOffset(_MainTex);
-                        prop(_Saturation);
-                    });
                 }
+                else
+                {
+                    if(material.enableInstancing) prop(_TextureIndex);
+                    prop(_MainTexArray, _Color);
+                }
+                md[material].Show_MainTex = Func.TriangleFoldout(md[material].Show_MainTex, ()=> {
+                    prop(_MainTex_UV);
+                    propTileOffset(_MainTex);
+                    prop(_Saturation);
+                });
+                EditorGUILayout.Space();
 
-
-                switch(workflowMode)
+                switch((int)_Workflow.floatValue)
                 {
                     case 0:
                     prop(_Metallic);
@@ -189,74 +195,18 @@ namespace z3y
                         });
                         Func.sRGBWarning(_OcclusionMap);
                         break;
-                    
-                    case 2:
-                        prop(_TriplanarBlend);
-                        Func.PropertyGroup(() => {
-                            prop(_MainTexArray, _Color);
-                            propTileOffset(_MainTex);
-                            prop(_Saturation);
-                        });
-
-                        Func.PropertyGroup(() => {
-                            prop(_Metallic);
-                            prop(_Glossiness);
-                            prop(_Occlusion);
-                            prop(_MetallicGlossMapArray);
-                            propTileOffset(_MetallicGlossMap);
-                        });
-                        break;
-                    case 3:
-                        prop(_UseTextureIndex);
-                        EditorGUILayout.Space();
-                        prop(_MainTexArray, _Color);
-                        md[material].Show_MainTex = Func.TriangleFoldout(md[material].Show_MainTex, ()=> {
-                            prop(_MainTex_UV);
-                            propTileOffset(_MainTex);
-                            prop(_Saturation);
-                        });
-                        
-                        prop(_Metallic);
-                        prop(_Glossiness);
-                        prop(_Occlusion);
-                        prop(_MetallicGlossMapArray);
-                        md[material].Show_MetallicGlossMap = Func.TriangleFoldout(md[material].Show_MetallicGlossMap, ()=> {
-                            prop(_MetallicGlossMap_UV);
-                            if(_MetallicGlossMap_UV.floatValue != 0) propTileOffset(_MetallicGlossMap);
-                        });
-
-                        prop(_BumpMapArray, _BumpScale);
-                        md[material].Show_BumpMap = Func.TriangleFoldout(md[material].Show_BumpMap, ()=> {
-                            prop(_BumpMap_UV);
-                            if(_BumpMap_UV.floatValue != 0) propTileOffset(_BumpMap);
-                            
-                            prop(_NormalMapOrientation);
-                            prop(_HemiOctahedron);
-                        });
-
-                        prop(_DetailMapArray);
-                        md[material].Show_DetailMap = Func.TriangleFoldout(md[material].Show_DetailMap, ()=> {
-                            prop(_DetailMap_UV);
-                            if(_DetailMap_UV.floatValue != 0) propTileOffset(_DetailMap);
-                            
-                            prop(_DetailAlbedoScale);
-                            prop(_DetailNormalScale);
-                            prop(_DetailSmoothnessScale);
-                        });
-                    break;
                 }
                 
 
-                if(workflowMode != 2 && workflowMode != 3)
-                {
-                    prop(_BumpMap, _BumpScale);
-                    md[material].Show_BumpMap = Func.TriangleFoldout(md[material].Show_BumpMap, ()=> {
-                        prop(_BumpMap_UV);
-                        if(_BumpMap_UV.floatValue != 0) propTileOffset(_BumpMap);
-                        
-                        prop(_NormalMapOrientation);
-                        prop(_HemiOctahedron);
-                    });
+                
+                prop(_BumpMap, _BumpScale);
+                md[material].Show_BumpMap = Func.TriangleFoldout(md[material].Show_BumpMap, ()=> {
+                    prop(_BumpMap_UV);
+                    if(_BumpMap_UV.floatValue != 0) propTileOffset(_BumpMap);
+                    
+                    prop(_NormalMapOrientation);
+                    prop(_HemiOctahedron);
+                });
                 
 
                 
@@ -270,21 +220,20 @@ namespace z3y
                     prop(_DetailSmoothnessScale);
                 });
 
+                
+                
+                
+                prop(_EnableParallax);
+                if(_EnableParallax.floatValue == 1)
+                {
+                    Func.PropertyGroup(() => {
+                        prop(_ParallaxMap, _Parallax);
+                        Func.sRGBWarning(_ParallaxMap);
+                        prop(_ParallaxOffset);
+                        prop(_ParallaxSteps);
+                    });
                 }
                 
-                if(workflowMode != 2 && workflowMode != 3)
-                {
-                    prop(_EnableParallax);
-                    if(_EnableParallax.floatValue == 1)
-                    {
-                        Func.PropertyGroup(() => {
-                            prop(_ParallaxMap, _Parallax);
-                            Func.sRGBWarning(_ParallaxMap);
-                            prop(_ParallaxOffset);
-                            prop(_ParallaxSteps);
-                        });
-                    }
-                }
 
                 prop(_EnableEmission);
                 if(_EnableEmission.floatValue == 1)
@@ -367,8 +316,9 @@ namespace z3y
 
 
             md[material].ShowAdvanced = Foldout("Advanced", md[material].ShowAdvanced, ()=> {
-                Func.PropertyGroup(() => {
-                    EditorGUILayout.LabelField("Rendering Options", EditorStyles.boldLabel);
+
+                EditorGUILayout.LabelField("Rendering Options", EditorStyles.boldLabel);
+                md[material].Show_RenderingOptions = Func.TriangleFoldout(md[material].Show_RenderingOptions, ()=> {
                     prop(_BlendOp);
                     prop(_BlendOpAlpha);
                     prop(_SrcBlend);
@@ -376,13 +326,16 @@ namespace z3y
                     prop(_ZWrite);
                     prop(_ZTest);
                     prop(_AlphaToMask);
-                    prop(_Cull);
                 });
                 EditorGUILayout.Space();
 
+                prop(_Workflow);
+                prop(_EnableTextureArray);
                 me.DoubleSidedGIField();
                 me.EnableInstancingField();
                 me.RenderQueueField();
+                prop(_Cull);
+
                 EditorGUILayout.Space();;
                 ListAnimatedProps();
             });
@@ -403,7 +356,7 @@ namespace z3y
             if(wAg6H2wQzc7UbxaL.floatValue != 0) return;
         }
 
-        protected static Dictionary<Material, LitFoldoutDictionary> md = new Dictionary<Material, LitFoldoutDictionary>();
+        protected static Dictionary<Material, LitFoldouts> md = new Dictionary<Material, LitFoldouts>();
         protected BindingFlags bindingFlags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static;
         MaterialEditor me;
         public bool m_FirstTimeApply = true;
@@ -452,7 +405,7 @@ namespace z3y
         {
             if (md.ContainsKey(material)) return;
 
-            LitFoldoutDictionary toggles = new LitFoldoutDictionary();
+            LitFoldouts toggles = new LitFoldouts();
             md.Add(material, toggles);
         }
         

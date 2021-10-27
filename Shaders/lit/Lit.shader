@@ -1,4 +1,4 @@
-Shader "z3y/lit"
+Shader "z3y/old/lit"
 {
 
     Properties

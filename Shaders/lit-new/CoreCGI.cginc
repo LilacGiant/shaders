@@ -1,31 +1,25 @@
 float4 frag (v2f i, uint facing : SV_IsFrontFace) : SV_Target
 {
     input = i;
-    #if defined (_WORKFLOW_TEXTUREARRAY)
-        textureIndex = _UseTextureIndex ? UNITY_ACCESS_INSTANCED_PROP(Props, _TextureIndex) : i.coord1.z;
-    #endif
-
     #if defined(PARALLAX)
         parallaxOffset = ParallaxOffset(i.parallaxViewDir);
     #endif
 
-    float4 mainTextureUnmodified = SampleTexture(_MainTex, _MainTex_ST, sampler_MainTex, _MainTex_UV);
-    
-    #ifdef _WORKFLOW_TEXTUREARRAY
-        float4 mainTextureArray = SampleTextureArray(_MainTexArray, _MainTex_ST, sampler_MainTexArray, _MainTex_UV);
-        mainTextureUnmodified = mainTextureArray + mainTextureUnmodified * 0.0001;
+    #if defined(TEXTUREARRAY)
+        defaultSampler = sampler_MainTexArray;
+        #ifdef INSTANCING_ON
+            textureIndex = UNITY_ACCESS_INSTANCED_PROP(Props, _TextureIndex);
+        #else
+            textureIndex = i.coord1.z;
+        #endif
+        float4 mainTexture = SampleTextureArray(_MainTexArray, _MainTex_ST, defaultSampler, _MainTex_UV);
+    #else
+        defaultSampler = sampler_MainTex;
+        float4 mainTexture = SampleTexture(_MainTex, _MainTex_ST, defaultSampler, _MainTex_UV);
     #endif
 
 
-    #ifdef _WORKFLOW_TRIPLANAR
-        float3 triN = saturate(abs(i.worldNormal.xyz) - _TriplanarBlend);
-        float3 triW = triN / (triN.x + triN.y + triN.z);
-        float4 baseMapTriplanar = SampleTriplanar(_MainTexArray, _MainTex_ST, triN, triW);
-        mainTextureUnmodified = baseMapTriplanar + mainTextureUnmodified * 0.0001;
-    #endif 
-
-
-    float4 mainTexture = mainTextureUnmodified * _Color;
+    mainTexture *= _Color;
     float alpha = mainTexture.a;
 
 #if defined(UNITY_PASS_SHADOWCASTER)
@@ -55,18 +49,14 @@ float4 frag (v2f i, uint facing : SV_IsFrontFace) : SV_Target
     float3 directSpecular = 0;
 
     float3 worldNormal = i.worldNormal;
-    #ifdef NEED_TANGENT_BITANGENT
-        float3 bitangent = i.bitangent;
-        float3 tangent = i.tangent;
-    #endif
+    float3 bitangent = i.bitangent;
+    float3 tangent = i.tangent;
 
     if(!facing)
     {
         worldNormal *= -1;
-        #ifdef NEED_TANGENT_BITANGENT
-            bitangent *= -1;
-            tangent *= -1;
-        #endif
+        bitangent *= -1;
+        tangent *= -1;
     }
     
 
@@ -91,18 +81,8 @@ float4 frag (v2f i, uint facing : SV_IsFrontFace) : SV_Target
         #endif
 
     #else
-
-        #ifndef _WORKFLOW_TRIPLANAR
-            #ifdef PROP_METALLICGLOSSMAP
-                maskMap = SampleTexture(_MetallicGlossMap, _MetallicGlossMap_ST, _MetallicGlossMap_UV);
-            #endif
-            #ifdef PROP_METALLICGLOSSMAPARRAY
-                maskMap = SampleTextureArray(_MetallicGlossMapArray, _MetallicGlossMap_ST, sampler_MainTexArray, _MetallicGlossMap_UV);
-            #endif
-        #else
-            #ifdef PROP_METALLICGLOSSMAPARRAY
-                maskMap = SampleTriplanar(_MetallicGlossMapArray, _MetallicGlossMap_ST, triN, triW);
-            #endif
+        #ifdef PROP_METALLICGLOSSMAP
+            maskMap = SampleTexture(_MetallicGlossMap, _MetallicGlossMap_ST, _MetallicGlossMap_UV);
         #endif
         
         metallicMap = maskMap.r;
@@ -115,13 +95,10 @@ float4 frag (v2f i, uint facing : SV_IsFrontFace) : SV_Target
     metallic = metallicMap * _Metallic * _Metallic;
     occlusion = lerp(1,occlusionMap , _Occlusion);
 
-    #if defined(PROP_DETAILMAP) || defined(PROP_DETAILMAPARRAY)
+    #if defined(PROP_DETAILMAP)
 
         #if defined(PROP_DETAILMAP)
             float4 detailMap = SampleTexture(_DetailMap, _DetailMap_ST, _DetailMap_UV);
-        #endif
-        #if defined (PROP_DETAILMAPARRAY)
-            float4 detailMap = SampleTextureArray(_DetailMapArray, _DetailMap_ST, sampler_MainTexArray, _DetailMap_UV);
         #endif
 
         float detailMask = maskMap.a;
@@ -147,7 +124,9 @@ float4 frag (v2f i, uint facing : SV_IsFrontFace) : SV_Target
         perceptualSmoothness = lerp(perceptualSmoothness, saturate(smoothnessOverlay), detailMask);
 
         perceptualRoughness = (1 - perceptualSmoothness);
+        #ifndef CALC_TANGENT_BITANGENT
         #define CALC_TANGENT_BITANGENT
+        #endif
     #endif
 
     UNITY_BRANCH
@@ -157,21 +136,16 @@ float4 frag (v2f i, uint facing : SV_IsFrontFace) : SV_Target
 
     #ifdef PROP_BUMPMAP
         normalMap = SampleTexture(_BumpMap, _BumpMap_ST, sampler_BumpMap, _BumpMap_UV);
+        #ifndef CALC_TANGENT_BITANGENT
         #define CALC_TANGENT_BITANGENT
+        #endif
     #endif
-
-    #ifdef PROP_BUMPMAPARRAY
-        normalMap = SampleTextureArray(_BumpMapArray, _BumpMap_ST, sampler_BumpMapArray, _BumpMap_UV);
-        #define CALC_TANGENT_BITANGENT
-    #endif
-
-
     
 
     #if defined(CALC_TANGENT_BITANGENT) && defined(NEED_TANGENT_BITANGENT)
         float3 tangentNormal = UnpackScaleNormal(normalMap, _BumpScale);
 
-        #if defined(PROP_DETAILMAP) || defined(PROP_DETAILMAPARRAY)
+        #if defined(PROP_DETAILMAP)
             float4 detailNormalMap = float4(detailMap.a, detailMap.g, 1, 1);
             detailNormalMap.g = 1-detailNormalMap.g;
             float3 detailNormal = UnpackScaleNormal(detailNormalMap, _DetailNormalScale);
@@ -180,7 +154,7 @@ float4 frag (v2f i, uint facing : SV_IsFrontFace) : SV_Target
 
         tangentNormal.g *= _NormalMapOrientation ? 1 : -1;
 
-        half3 calcedNormal = normalize
+        float3 calcedNormal = normalize
         (
             tangentNormal.x * tangent +
             tangentNormal.y * bitangent +
@@ -194,10 +168,8 @@ float4 frag (v2f i, uint facing : SV_IsFrontFace) : SV_Target
         
     #else
         worldNormal = normalize(worldNormal);
-        #if defined(NEED_TANGENT_BITANGENT)
-            tangent = normalize(bitangent);
-            bitangent = normalize(tangent);
-        #endif
+        tangent = normalize(tangent);
+        bitangent = normalize(bitangent);
     #endif
 
     float3 viewDir = normalize(_WorldSpaceCameraPos - i.worldPos.xyz);
@@ -258,7 +230,7 @@ float4 frag (v2f i, uint facing : SV_IsFrontFace) : SV_Target
 
     #ifdef ANISOTROPY
         #if defined(PROP_ANISOTROPYMAP)
-            float3 anisotropicDirection = float3(_AnisotropyMap.Sample(sampler_MainTex, (i.coord0.xy * _AnisotropyMap_ST.xy + _AnisotropyMap_ST.zw)).rg, 1);
+            float3 anisotropicDirection = float3(_AnisotropyMap.Sample(defaultSampler, (i.coord0.xy * _AnisotropyMap_ST.xy + _AnisotropyMap_ST.zw)).rg, 1);
             float3 anisotropicT = normalize(tangent * anisotropicDirection);
             float3 anisotropicB = normalize(cross(worldNormal, anisotropicT));
         #else
@@ -273,12 +245,9 @@ float4 frag (v2f i, uint facing : SV_IsFrontFace) : SV_Target
             #ifndef ANISOTROPY
                 float3 reflDir = reflect(-viewDir, worldNormal);
             #else
-                
                 float3 reflDir = getAnisotropicReflectionVector(viewDir, anisotropicB, anisotropicT, worldNormal, perceptualRoughness);
             #endif
 
-            
-            // if(_EnableAnisotropy) reflViewDir = getAnisotropicReflectionVector(viewDir, bitangent, tangent, worldNormal, surface.perceptualRoughness);
             Unity_GlossyEnvironmentData envData;
             envData.roughness = perceptualRoughness;
             envData.reflUVW = getBoxProjection(reflDir, i.worldPos.xyz, unity_SpecCube0_ProbePosition, unity_SpecCube0_BoxMin.xyz, unity_SpecCube0_BoxMax.xyz);

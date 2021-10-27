@@ -1,8 +1,8 @@
 #define DECLARE_TEX2D_CUSTOM_SAMPLER(tex) SamplerState sampler##tex; Texture2D tex; uint tex##_UV; float4 tex##_ST
 #define DECLARE_TEX2D_CUSTOM(tex)                                    Texture2D tex; uint tex##_UV; float4 tex##_ST
+static SamplerState defaultSampler;
 
-
-CBUFFER_START(UnityPerMaterial)
+// CBUFFER_START(UnityPerMaterial)
 
 DECLARE_TEX2D_CUSTOM_SAMPLER(_MainTex);
 float4 _Color;
@@ -53,23 +53,21 @@ float _Parallax;
 float _Anisotropy;
 DECLARE_TEX2D_CUSTOM(_AnisotropyMap);
 
-#if defined(_WORKFLOW_TRIPLANAR) || defined (_WORKFLOW_TEXTUREARRAY)
+#if defined (TEXTUREARRAY)
 UNITY_DECLARE_TEX2DARRAY(_MainTexArray);
-UNITY_DECLARE_TEX2DARRAY(_BumpMapArray);
-UNITY_DECLARE_TEX2DARRAY_NOSAMPLER(_MetallicGlossMapArray);
-UNITY_DECLARE_TEX2DARRAY_NOSAMPLER(_DetailMapArray);
 float _TriplanarBlend;
 #endif
 
 
-CBUFFER_END
+// CBUFFER_END
 
-
+#ifdef INSTANCING_ON
 UNITY_INSTANCING_BUFFER_START(Props)
-#if defined (_WORKFLOW_TEXTUREARRAY)
-    UNITY_DEFINE_INSTANCED_PROP(float, _TextureIndex)
-#endif
+    #if defined (TEXTUREARRAY)
+        UNITY_DEFINE_INSTANCED_PROP(float, _TextureIndex)
+    #endif
 UNITY_INSTANCING_BUFFER_END(Props)
+#endif
 
 #if !defined(OPTIMIZER_ENABLED) // defined if texture gets used
     #define PROP_BUMPMAP
@@ -80,22 +78,6 @@ UNITY_INSTANCING_BUFFER_END(Props)
     #define PROP_METALLICGLOSSMAP
     #define PROP_ANISOTROPYMAP
     #define PROP_DETAILMAP
-
-    #if defined (_WORKFLOW_TEXTUREARRAY)
-        #undef PARALLAX
-        #define PROP_DETAILMAPARRAY
-        #undef PROP_DETAILMAP
-        #define PROP_BUMPMAPARRAY
-        #undef PROP_BUMPMAP
-        #define PROP_METALLICGLOSSMAPARRAY
-        #undef PROP_METALLICGLOSSMAP
-    #endif
-
-    #if defined(_WORKFLOW_TRIPLANAR)
-        #undef PARALLAX
-        #define PROP_METALLICGLOSSMAPARRAY
-        #undef PROP_METALLICGLOSSMAP
-    #endif
 #endif
 
 static float2 parallaxOffset;
@@ -105,6 +87,7 @@ static float textureIndex;
 
 #define NEED_UV2
 
+#define CALC_TANGENT_BITANGENT (defined(ANISOTROPY))
 
 #ifdef UNITY_PASS_FORWARDBASE
     #define NEED_TANGENT_BITANGENT

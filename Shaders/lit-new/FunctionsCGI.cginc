@@ -73,20 +73,20 @@ float4 SampleTexture(Texture2D tex, float4 st, sampler s, int type)
 
 float4 SampleTexture(Texture2D tex, float4 st, int type)
 {
-    return SampleTexture(tex, st, sampler_MainTex, type);
+    return SampleTexture(tex, st, defaultSampler, type);
 }
 
 // float4 SampleTexture(Texture2D tex, float4 st)
 // {
-//     return SampleTexture(tex, st, sampler_MainTex, 3);
+//     return SampleTexture(tex, st, defaultSampler, 3);
 // }
 
 // float4 SampleTexture(Texture2D tex)
 // {
-//     return SampleTexture(tex, float4(1,1,0,0), sampler_MainTex, 3);
+//     return SampleTexture(tex, float4(1,1,0,0), defaultSampler, 3);
 // }
 
-#ifdef _WORKFLOW_TEXTUREARRAY
+#ifdef TEXTUREARRAY
 float4 SampleTextureArray(Texture2DArray tex, float4 st, sampler s, int type)
 {
     float4 sampledTexture = 0;
@@ -363,7 +363,7 @@ float2 ParallaxOffsetMultiStep(float surfaceHeight, float strength, float2 uv, f
         prevSurfaceHeight = surfaceHeight;
         uvOffset -= uvDelta;
         stepHeight -= stepSize;
-        surfaceHeight = _ParallaxMap.Sample(sampler_MainTex, (uv + uvOffset)) + _ParallaxOffset;
+        surfaceHeight = _ParallaxMap.Sample(defaultSampler, (uv + uvOffset)) + _ParallaxOffset;
     }
     [unroll(3)]
     for (int k = 0; k < 3; k++) {
@@ -378,7 +378,7 @@ float2 ParallaxOffsetMultiStep(float surfaceHeight, float strength, float2 uv, f
             uvOffset -= uvDelta;
             stepHeight -= stepSize;
         }
-        surfaceHeight = _ParallaxMap.Sample(sampler_MainTex, (uv + uvOffset)) + _ParallaxOffset;
+        surfaceHeight = _ParallaxMap.Sample(defaultSampler, (uv + uvOffset)) + _ParallaxOffset;
     }
 
     return uvOffset;
@@ -389,7 +389,7 @@ float2 ParallaxOffset (float3 viewDirForParallax)
     viewDirForParallax = CalculateTangentViewDir(viewDirForParallax);
 
     float2 parallaxUV = input.coord0.xy * _MainTex_ST.xy + _MainTex_ST.zw;
-    float h = _ParallaxMap.Sample(sampler_MainTex, parallaxUV);
+    float h = _ParallaxMap.Sample(defaultSampler, parallaxUV);
     h = clamp(h, 0, 0.999);
     float2 offset = ParallaxOffsetMultiStep(h, _Parallax, parallaxUV, viewDirForParallax);
 

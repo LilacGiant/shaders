@@ -148,8 +148,7 @@ namespace z3y
             "_DstBlend",
             "_ZWrite",
             "_ZTest",
-            "_Cull",
-            "_MainTex"
+            "_Cull"
         };
 
         public static readonly string[] TexelSizeCheck = {
