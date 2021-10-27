@@ -19,4 +19,4 @@ A shader I put together to use in vrchat worlds.
 - dithered shadow with transparency
 - generating materials for bakery might leave some material slots empty (probably fixed)
 
-https://discord.gg/bw46tKgRFT
+If you want to ask something add me z3y#3214 or join https://discord.gg/bw46tKgRFT
