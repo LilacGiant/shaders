@@ -138,6 +138,11 @@ v2f vert (appdata v)
         UNITY_TRANSFER_FOG(o,o.pos);
     #endif
 
+    #ifdef NEED_SCREEN_POS
+        o.screenPos = ComputeScreenPos(o.pos);
+    #endif
+
+
 
     return o;
 }

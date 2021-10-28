@@ -123,9 +123,9 @@ float4 blendedTextureArray(Texture2DArray tex, float2 uv, float4 blendWeight)
     for(int j = 0; j < 4; j++) t[j] = 0;
 
     [unroll(4)]
-    for(int j = 0; j < _ArrayCount; j++)
+    for(int k = 0; k < _ArrayCount; k++)
     {
-        t[j] = UNITY_SAMPLE_TEX2DARRAY_SAMPLER(tex, _MainTexArray,float3(uv, j));
+        t[k] = UNITY_SAMPLE_TEX2DARRAY_SAMPLER(tex, _MainTexArray,float3(uv, k));
     }
 
     t[1] *= w.r;
@@ -382,7 +382,7 @@ float2 ParallaxOffsetMultiStep(float surfaceHeight, float strength, float2 uv, f
         prevSurfaceHeight = surfaceHeight;
         uvOffset -= uvDelta;
         stepHeight -= stepSize;
-        surfaceHeight = _ParallaxMap.Sample(defaultSampler, (uv + uvOffset)) + _ParallaxOffset;
+        surfaceHeight = _ParallaxMap.Sample(sampler_MainTex, (uv + uvOffset)) + _ParallaxOffset;
     }
     [unroll(3)]
     for (int k = 0; k < 3; k++) {
@@ -397,7 +397,7 @@ float2 ParallaxOffsetMultiStep(float surfaceHeight, float strength, float2 uv, f
             uvOffset -= uvDelta;
             stepHeight -= stepSize;
         }
-        surfaceHeight = _ParallaxMap.Sample(defaultSampler, (uv + uvOffset)) + _ParallaxOffset;
+        surfaceHeight = _ParallaxMap.Sample(sampler_MainTex, (uv + uvOffset)) + _ParallaxOffset;
     }
 
     return uvOffset;
@@ -408,7 +408,7 @@ float2 ParallaxOffset (float3 viewDirForParallax)
     viewDirForParallax = CalculateTangentViewDir(viewDirForParallax);
 
     float2 parallaxUV = input.coord0.xy * _MainTex_ST.xy + _MainTex_ST.zw;
-    float h = _ParallaxMap.Sample(defaultSampler, parallaxUV);
+    float h = _ParallaxMap.Sample(sampler_MainTex, parallaxUV);
     h = clamp(h, 0, 0.999);
     float2 offset = ParallaxOffsetMultiStep(h, _Parallax, parallaxUV, viewDirForParallax);
 

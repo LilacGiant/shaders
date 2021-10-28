@@ -27,6 +27,7 @@ namespace z3y
         public bool Show_OcclusionMap = false;
         
         public bool Show_RenderingOptions = false;
+        public bool Show_ArrayOptions = false;
 
 
     }
@@ -173,7 +174,6 @@ namespace z3y
                     md[material].Show_MetallicGlossMap = Func.TriangleFoldout(md[material].Show_MetallicGlossMap, ()=> {
                         prop(_MetallicGlossMap_UV);
                         if(_MetallicGlossMap_UV.floatValue != 0) propTileOffset(_MetallicGlossMap);
-                        if(texArray) prop(_EnableTextureArrayMask);
                     });
                     Func.sRGBWarning(_MetallicGlossMap);
                     break;
@@ -214,7 +214,6 @@ namespace z3y
                     
                     prop(_NormalMapOrientation);
                     prop(_HemiOctahedron);
-                    if(texArray) prop(_EnableTextureArrayBump);
                 });
                 
 
@@ -339,12 +338,19 @@ namespace z3y
                     prop(_ZTest);
                     prop(_AlphaToMask);
                 });
+
+                prop(_EnableTextureArray);
+                if(texArray)
+                Func.PropertyGroup(() => {
+                    prop(_EnableTextureArrayMask);
+                    prop(_EnableTextureArrayBump);
+                    if(texArray) prop(_EnableVertexColor);
+                    if(_EnableVertexColor.floatValue == 1) prop(_ArrayCount);
+                });
                 EditorGUILayout.Space();
 
                 prop(_Workflow);
-                prop(_EnableTextureArray);
-                    if(texArray) prop(_EnableVertexColor);
-                    if(_EnableVertexColor.floatValue == 1 && texArray) prop(_ArrayCount);
+                
                 me.DoubleSidedGIField();
                 me.EnableInstancingField();
                 me.RenderQueueField();

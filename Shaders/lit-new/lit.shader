@@ -9,7 +9,7 @@
         _Cutoff ("Alpha Cuttoff", Range(0, 1)) = 0.5
 
         [Toggle(VERTEXCOLOR)] _EnableVertexColor ("Vertex Color Blending", Float) = 0
-        [Toggle(TEXTUREARRAY)] _EnableTextureArray ("Texture Array", Float) = 0
+        [Toggle(TEXTUREARRAY)] _EnableTextureArray ("Texture Arrays", Float) = 0
         [IntRange] _TextureIndex ("Instance Index", Range(0,255)) = 0
         [IntRange] _ArrayCount ("Array Count", Range(2,4)) = 2
 
@@ -25,7 +25,7 @@
         _Occlusion ("Occlusion", Range(0,1)) = 0
 
         _MetallicGlossMap ("Mask Map:Metallic(R), Occlusion(G), Detail Mask(B), Smoothness(A)", 2D) = "white" {}
-        [Toggle(TEXTUREARRAYMASK)] _EnableTextureArrayMask ("Texture Array", Float) = 0
+        [Toggle(TEXTUREARRAYMASK)] _EnableTextureArrayMask ("Mask Map Array", Float) = 0
         _MetallicGlossMapArray ("Mask Map Array:Metallic(R), Occlusion(G), Detail Mask(B), Smoothness(A)", 2DArray) = "white" {}
             [Enum(UV 0 Locked, 0, UV 1, 1, UV 2, 2, UV 0 Unlocked, 3, Stochastic, 4)] _MetallicGlossMap_UV ("UV Type", Int) = 0
 
@@ -42,7 +42,7 @@
 
         [Normal] _BumpMap ("Normal Map", 2D) = "bump" {}
         _BumpMapArray ("Normal Map Array", 2DArray) = "bump" {}
-            [Toggle(TEXTUREARRAYBUMP)] _EnableTextureArrayBump ("Texture Array", Float) = 0
+            [Toggle(TEXTUREARRAYBUMP)] _EnableTextureArrayBump ("Normal Map Array", Float) = 0
             _BumpScale ("Bump Scale", Range(0,10)) = 0
             [Enum(OpenGL, 0, Direct3D, 1)] _NormalMapOrientation ("Orientation", Int) = 0
             [Enum(UV 0 Locked, 0, UV 1, 1, UV 2, 2, UV 0 Unlocked, 3, Stochastic, 4)] _BumpMap_UV ("UV Type", Int) = 0

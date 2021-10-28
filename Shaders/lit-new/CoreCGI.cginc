@@ -261,6 +261,10 @@ float4 frag (v2f i, uint facing : SV_IsFrontFace) : SV_Target
         #endif
     #endif
 
+    #if defined(LIGHTMAP_SHADOW_MIXING) && defined(SHADOWS_SHADOWMASK) && defined(SHADOWS_SCREEN) && defined(LIGHTMAP_ON)
+        pixelLight *= UnityComputeForwardShadows(i.coord0.zw, i.worldPos, i.screenPos);
+    #endif
+
 
 
     float3 f0 = 0.16 * _Reflectance * _Reflectance * (1 - metallic) + mainTexture.rgb * metallic;

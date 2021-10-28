@@ -133,6 +133,9 @@ static float textureIndex;
     #undef BAKERY_SH
     #undef BAKERY_SHNONLINEAR
     #undef BAKERY_RNM
+    #if defined(LIGHTMAP_SHADOW_MIXING) && defined(SHADOWS_SHADOWMASK) && defined(SHADOWS_SCREEN) && defined(LIGHTMAP_ON)
+        #define NEED_SCREEN_POS
+    #endif
 #endif
 
 
@@ -149,4 +152,7 @@ static float textureIndex;
     #undef BAKERY_SHNONLINEAR
     #undef BAKERY_RNM
     #undef ANISOTROPY
+    #if defined(LIGHTMAP_SHADOW_MIXING) && defined(SHADOWS_SHADOWMASK) && defined(SHADOWS_SCREEN) && defined(LIGHTMAP_ON)
+        #define NEED_SCREEN_POS
+    #endif
 #endif
