@@ -150,7 +150,7 @@ namespace z3y
                 }
                 else
                 {
-                    if(material.enableInstancing) prop(_TextureIndex);
+                    if(material.enableInstancing && _EnableVertexColor.floatValue != 1) prop(_TextureIndex);
                     prop(_MainTexArray, _Color);
                 }
                 md[material].Show_MainTex = Func.TriangleFoldout(md[material].Show_MainTex, ()=> {
@@ -243,7 +243,7 @@ namespace z3y
                         });
                     }
                 }
-                else prop(_ParallaxMap);
+                else if(_EnableVertexColor.floatValue == 1) prop(_ParallaxMap);
                 Func.sRGBWarning(_ParallaxMap);
 
 
