@@ -20,7 +20,7 @@ Shader "z3y/old/lit"
             [ToggleUI] _EnableVertexColor ("Vertex Colors Mulitply Base", Int) = 0
       
 
-        [Toggle(ENABLE_PACKED_MODE)] _EnablePackedMode ("Packed Mode", Float) = 1 
+        [Toggle(ENABLE_PACKED_MODE)] _EnablePackedMode ("Packed Mode", Float) = 1
 
         _MetallicGlossMap ("Mask Map:Metallic(R), Occlusion(G), Detail Mask(B), Smoothness(A)", 2D) = "white" {}
             [Enum(UV 0 Locked, 0, UV 1, 1, UV 2, 2, UV 0 Unlocked, 3, Triplanar, 4, Stochastic, 5)] _MetallicGlossMapUV ("UV Type", Int) = 0

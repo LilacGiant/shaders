@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
+using System.Linq;
 
 [ExecuteInEditMode]
 public class TextureArraySelector : MonoBehaviour
@@ -29,9 +30,9 @@ public class TextureArraySelector : MonoBehaviour
 
         HashSet<int> subMeshTris = new HashSet<int>(mesh.GetTriangles(submeshIndex));
 
-        foreach (var subUV in subMeshTris)
+        foreach (var a in subMeshTris)
         {
-            uvs[subUV] = new Vector3(uvs[subUV].x, uvs[subUV].y, index);
+            uvs[a] = new Vector3(uvs[a].x, uvs[a].y, index);
         }
         mesh.SetUVs(0, uvs);
         

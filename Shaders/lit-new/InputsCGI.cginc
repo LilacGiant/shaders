@@ -43,19 +43,27 @@ float _DetailAlbedoScale;
 float _DetailNormalScale;
 float _DetailSmoothnessScale;
 
-#ifdef PARALLAX
 DECLARE_TEX2D_CUSTOM(_ParallaxMap);
 float _ParallaxSteps;
 float _ParallaxOffset;
 float _Parallax;
-#endif
+
 
 float _Anisotropy;
 DECLARE_TEX2D_CUSTOM(_AnisotropyMap);
 
-#if defined (TEXTUREARRAY)
+#ifndef TEXTUREARRAY
+    #undef TEXTUREARRAYMASK
+    #undef TEXTUREARRAYBUMP
+#endif
+#if defined(TEXTUREARRAYMASK) || defined(TEXTUREARRAYBUMP)
+    #define TEXTUREARRAY
+#endif
+#if defined(TEXTUREARRAY)
 UNITY_DECLARE_TEX2DARRAY(_MainTexArray);
-float _TriplanarBlend;
+UNITY_DECLARE_TEX2DARRAY_NOSAMPLER(_MetallicGlossMapArray);
+UNITY_DECLARE_TEX2DARRAY_NOSAMPLER(_BumpMapArray);
+float _ArrayCount;
 #endif
 
 
@@ -78,22 +86,32 @@ UNITY_INSTANCING_BUFFER_END(Props)
     #define PROP_METALLICGLOSSMAP
     #define PROP_ANISOTROPYMAP
     #define PROP_DETAILMAP
+    #define PROP_PARALLAXMAP
 #endif
 
 static float2 parallaxOffset;
 static float textureIndex;
 
-#define NEED_FOG (defined(FOG_LINEAR) || defined(FOG_EXP) || defined(FOG_EXP2))
+#if defined(FOG_LINEAR) || defined(FOG_EXP) || defined(FOG_EXP2) 
+    #define NEED_FOG
+#endif
 
 #define NEED_UV2
 
-#define CALC_TANGENT_BITANGENT (defined(ANISOTROPY))
+#if defined(ANISOTROPY)
+    #define CALC_TANGENT_BITANGENT
+#endif
 
 #ifdef UNITY_PASS_FORWARDBASE
     #define NEED_TANGENT_BITANGENT
     #define NEED_WORLD_POS
     #define NEED_WORLD_NORMAL
-    #define NEED_PARALLAX_DIR (defined(PARALLAX))
+    #if defined(PARALLAX)
+        #define NEED_PARALLAX_DIR
+    #endif
+    #if defined(VERTEXCOLOR)
+        #define NEED_VERTEX_COLOR
+    #endif
 #endif
 
 
@@ -101,7 +119,12 @@ static float textureIndex;
     #define NEED_TANGENT_BITANGENT
     #define NEED_WORLD_POS
     #define NEED_WORLD_NORMAL
-    #define NEED_PARALLAX_DIR (defined(PARALLAX))
+    #if defined(PARALLAX)
+        #define NEED_PARALLAX_DIR
+    #endif
+    #if defined(VERTEXCOLOR)
+        #define NEED_VERTEX_COLOR
+    #endif
     #undef REFLECTIONS
     #undef EMISSION
     #undef BICUBIC_LIGHTMAP
@@ -114,8 +137,9 @@ static float textureIndex;
 
 #ifdef UNITY_PASS_SHADOWCASTER
     #undef REFLECTIONS
-    #define NEED_WORLD_POS (defined(_WORKFLOW_TRIPLANAR))
-    #define NEED_WORLD_NORMAL (defined(_WORKFLOW_TRIPLANAR))
+    #if defined(VERTEXCOLOR)
+        #define NEED_VERTEX_COLOR
+    #endif
     #undef EMISSION
     #undef BICUBIC_LIGHTMAP
     #undef PARALLAX

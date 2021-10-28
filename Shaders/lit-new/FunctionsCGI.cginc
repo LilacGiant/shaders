@@ -1,4 +1,6 @@
 // https://github.com/Xiexe/Unity-Lit-Shader-Templates/blob/master/LICENSE
+// Upgrade NOTE: excluded shader from DX11 because it uses wrong array syntax (type[size] name)
+#pragma exclude_renderers d3d11
 // https://github.com/google/filament/blob/main/LICENSE
 #define grayscaleVec half3(0.2125, 0.7154, 0.0721)
 #define TAU 6.28318530718
@@ -87,7 +89,7 @@ float4 SampleTexture(Texture2D tex, float4 st, int type)
 // }
 
 #ifdef TEXTUREARRAY
-float4 SampleTextureArray(Texture2DArray tex, float4 st, sampler s, int type)
+float4 SampleTextureArray(Texture2DArray tex, float4 st, int type)
 {
     float4 sampledTexture = 0;
 
@@ -110,16 +112,33 @@ float4 SampleTextureArray(Texture2DArray tex, float4 st, sampler s, int type)
 }
 #endif
 
-#ifdef _WORKFLOW_TRIPLANAR
-float4 SampleTriplanar(Texture2DArray tex, float4 st, float3 n, float3 w)
+#if defined(TEXTUREARRAY) || defined(TEXTUREARRAYMASK)
+float4 blendedTextureArray(Texture2DArray tex, float2 uv, float4 blendWeight)
 {
-    float4 tzy = UNITY_SAMPLE_TEX2DARRAY_SAMPLER(tex, _MainTexArray, float3(input.worldPos.zy * st.xy + st.zw, 0));
-    float4 txz = UNITY_SAMPLE_TEX2DARRAY_SAMPLER(tex, _MainTexArray, float3(input.worldPos.xz * st.xy + st.zw, 1));
-    float4 txy = UNITY_SAMPLE_TEX2DARRAY_SAMPLER(tex, _MainTexArray, float3(input.worldPos.xy * st.xy + st.zw, 2));
+    float4 bt;
+    float4 w = blendWeight;
 
-    return tzy * w.x + txz * w.y + txy * w.z;
+    float4 t[4];
+
+    for(int j = 0; j < 4; j++) t[j] = 0;
+
+    [unroll(4)]
+    for(int j = 0; j < _ArrayCount; j++)
+    {
+        t[j] = UNITY_SAMPLE_TEX2DARRAY_SAMPLER(tex, _MainTexArray,float3(uv, j));
+    }
+
+    t[1] *= w.r;
+    t[2] *= w.g;
+    t[3] *= w.b;
+    t[0] *= 1 - saturate(w.x + w.y + w.z);
+
+    bt = t[0] + t[1] + t[2] + t[3];
+
+    return bt;
 }
 #endif
+
 // https://github.com/DarthShader/Kaj-Unity-Shaders/blob/926f07a0bf3dc950db4d7346d022c89f9dfdb440/Shaders/Kaj/KajCore.cginc#L1041
 #ifdef POINT
 #define LIGHT_ATTENUATION_NO_SHADOW_MUL(destName, input, worldPos) \

@@ -8,10 +8,12 @@
         [KeywordEnum(Opaque, Cutout, Fade, Transparent)] _Mode ("Rendering Mode", Int) = 0
         _Cutoff ("Alpha Cuttoff", Range(0, 1)) = 0.5
 
+        [Toggle(VERTEXCOLOR)] _EnableVertexColor ("Vertex Color Blending", Float) = 0
         [Toggle(TEXTUREARRAY)] _EnableTextureArray ("Texture Array", Float) = 0
         [IntRange] _TextureIndex ("Instance Index", Range(0,255)) = 0
+        [IntRange] _ArrayCount ("Array Count", Range(2,4)) = 2
+
         _TextureIndexAnimated("", Int) = 1
-        _TriplanarBlend ("Triplanar Blend", Range(0, 0.577)) = 0.25
 
         _MainTex ("Base Map", 2D) = "white" {}
         _MainTexArray ("Base Map Array", 2DArray) = "white" {}
@@ -23,6 +25,8 @@
         _Occlusion ("Occlusion", Range(0,1)) = 0
 
         _MetallicGlossMap ("Mask Map:Metallic(R), Occlusion(G), Detail Mask(B), Smoothness(A)", 2D) = "white" {}
+        [Toggle(TEXTUREARRAYMASK)] _EnableTextureArrayMask ("Texture Array", Float) = 0
+        _MetallicGlossMapArray ("Mask Map Array:Metallic(R), Occlusion(G), Detail Mask(B), Smoothness(A)", 2DArray) = "white" {}
             [Enum(UV 0 Locked, 0, UV 1, 1, UV 2, 2, UV 0 Unlocked, 3, Stochastic, 4)] _MetallicGlossMap_UV ("UV Type", Int) = 0
 
         _SmoothnessMap ("Smoothness Map", 2D) = "white" {}
@@ -37,6 +41,8 @@
 
 
         [Normal] _BumpMap ("Normal Map", 2D) = "bump" {}
+        _BumpMapArray ("Normal Map Array", 2DArray) = "bump" {}
+            [Toggle(TEXTUREARRAYBUMP)] _EnableTextureArrayBump ("Texture Array", Float) = 0
             _BumpScale ("Bump Scale", Range(0,10)) = 0
             [Enum(OpenGL, 0, Direct3D, 1)] _NormalMapOrientation ("Orientation", Int) = 0
             [Enum(UV 0 Locked, 0, UV 1, 1, UV 2, 2, UV 0 Unlocked, 3, Stochastic, 4)] _BumpMap_UV ("UV Type", Int) = 0
@@ -64,7 +70,6 @@
             [Enum(UV 0 Locked, 0, UV 1, 1, UV 2, 2, UV 0 Unlocked, 3, Stochastic, 4)]  _EmissionMap_UV ("UV Type", Int) = 0
 
         _DetailMap ("Detail Map:Desaturated Albedo(R), Normal Y(G), Smoothness(B), Normal X(A)", 2D) = "linearGrey" {}
-        _DetailMapArray ("Detail Map Array:Desaturated Albedo(R), Normal Y(G), Smoothness(B), Normal X(A)", 2DArray) = "linearGrey" {}
             [Enum(UV 0 Locked, 0, UV 1, 1, UV 2, 2, UV 0 Unlocked, 3, Stochastic, 4)]  _DetailMap_UV ("UV Type", Int) = 0
             _DetailAlbedoScale ("Albedo Scale", Range(0.0, 2.0)) = 0
             _DetailNormalScale ("Normal Scale", Range(0.0, 2.0)) = 0
@@ -72,7 +77,7 @@
 
         [Toggle(PARALLAX)] _EnableParallax ("Parallax", Int) = 0
             _Parallax ("Height Scale", Range (0, 0.2)) = 0.02
-            _ParallaxMap ("Height Map", 2D) = "black" {}
+            _ParallaxMap ("Height Map", 2D) = "white" {}
             [IntRange] _ParallaxSteps ("Parallax Steps", Range(1,50)) = 25
             _ParallaxOffset ("Parallax Offset", Range(-1, 1)) = 0
 
@@ -133,6 +138,10 @@
             #pragma shader_feature_local BAKEDSPECULAR
             #pragma shader_feature_local ANISOTROPY
             #pragma shader_feature_local TEXTUREARRAY
+            #pragma shader_feature_local TEXTUREARRAYMASK
+            #pragma shader_feature_local TEXTUREARRAYBUMP
+            #pragma shader_feature_local VERTEXCOLOR
+
 
 
             #include "PassCGI.cginc"
@@ -168,6 +177,9 @@
             #pragma shader_feature_local NONLINEAR_LIGHTPROBESH
             #pragma shader_feature_local ANISOTROPY
             #pragma shader_feature_local TEXTUREARRAY
+            #pragma shader_feature_local TEXTUREARRAYMASK
+            #pragma shader_feature_local TEXTUREARRAYBUMP
+            #pragma shader_feature_local VERTEXCOLOR
 
 
             #include "PassCGI.cginc"
@@ -197,6 +209,8 @@
             #pragma shader_feature_local _ _MODE_CUTOUT _MODE_FADE _MODE_TRANSPARENT
             #pragma shader_feature_local _WORKFLOW_UNPACKED
             #pragma shader_feature_local TEXTUREARRAY
+            #pragma shader_feature_local VERTEXCOLOR
+
 
 
             #include "PassCGI.cginc"

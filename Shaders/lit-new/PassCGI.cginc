@@ -52,27 +52,27 @@ struct v2f
     #endif
 
     #ifdef NEED_PARALLAX_DIR
-        float3 parallaxViewDir : TEXCOORD8;
+        float3 parallaxViewDir : TEXCOORD6;
     #endif
 
     #ifdef NEED_VERTEX_COLOR
-        centroid half4 color : COLOR;
+        centroid float4 color : COLOR;
     #endif
 
     #ifdef NEED_CENTROID_NORMAL
-        centroid float3 centroidWorldNormal : TEXCOORD9;
+        centroid float3 centroidWorldNormal : TEXCOORD8;
     #endif
 
     #ifdef NEED_SCREEN_POS
-        float4 screenPos : TEXCOORD10;
+        float4 screenPos : TEXCOORD9;
     #endif
 
     #ifdef NEED_FOG
-        UNITY_FOG_COORDS(11)
+        UNITY_FOG_COORDS(10)
     #endif
 
     #if !defined(UNITY_PASS_SHADOWCASTER)
-        UNITY_SHADOW_COORDS(12)
+        UNITY_SHADOW_COORDS(11)
     #endif
 
     UNITY_VERTEX_INPUT_INSTANCE_ID
@@ -115,6 +115,10 @@ v2f vert (appdata v)
 
     #ifdef NEED_WORLD_POS
         o.worldPos = mul(unity_ObjectToWorld, v.vertex);
+    #endif
+
+    #ifdef NEED_VERTEX_COLOR
+        o.color = v.color;
     #endif
 
     #ifdef NEED_PARALLAX_DIR

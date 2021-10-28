@@ -107,14 +107,18 @@ namespace z3y
         protected MaterialProperty _AnisotropyMap = null;
         protected MaterialProperty _UseTextureIndex = null;
         protected MaterialProperty _BumpMapArray = null;
-        protected MaterialProperty _DetailMapArray = null;
+        protected MaterialProperty _EnableTextureArrayBump = null;
         protected MaterialProperty _FresnelColor = null;
         protected MaterialProperty _EnableTextureArray = null;
         protected MaterialProperty _TextureIndex = null;
+        protected MaterialProperty _EnableVertexColor = null;
+        protected MaterialProperty _EnableTextureArrayMask = null;
+        protected MaterialProperty _ArrayCount = null;
 
 
         public void ShaderPropertiesGUI(Material material)
         {
+            bool texArray = _EnableTextureArray.floatValue == 1;
             
             md[material].ShowSurfaceInputs = Foldout("Surface Inputs", md[material].ShowSurfaceInputs, ()=> {
 
@@ -138,8 +142,9 @@ namespace z3y
                 }
 
                 EditorGUILayout.Space();
+
                 
-                if(_EnableTextureArray.floatValue == 0)
+                if(!texArray)
                 {
                     prop(_MainTex, _Color);
                 }
@@ -152,6 +157,7 @@ namespace z3y
                     prop(_MainTex_UV);
                     propTileOffset(_MainTex);
                     prop(_Saturation);
+                    
                 });
                 EditorGUILayout.Space();
 
@@ -162,10 +168,12 @@ namespace z3y
                     prop(_Glossiness);
                     prop(_Occlusion);
 
-                    prop(_MetallicGlossMap);
+                    if(_EnableTextureArrayMask.floatValue == 0 || !texArray) prop(_MetallicGlossMap);
+                    else prop(_MetallicGlossMapArray);
                     md[material].Show_MetallicGlossMap = Func.TriangleFoldout(md[material].Show_MetallicGlossMap, ()=> {
                         prop(_MetallicGlossMap_UV);
                         if(_MetallicGlossMap_UV.floatValue != 0) propTileOffset(_MetallicGlossMap);
+                        if(texArray) prop(_EnableTextureArrayMask);
                     });
                     Func.sRGBWarning(_MetallicGlossMap);
                     break;
@@ -198,14 +206,15 @@ namespace z3y
                 }
                 
 
-                
-                prop(_BumpMap, _BumpScale);
+                if(_EnableTextureArrayBump.floatValue == 0 || !texArray) prop(_BumpMap, _BumpScale);
+                else prop(_BumpMapArray, _BumpScale);
                 md[material].Show_BumpMap = Func.TriangleFoldout(md[material].Show_BumpMap, ()=> {
                     prop(_BumpMap_UV);
                     if(_BumpMap_UV.floatValue != 0) propTileOffset(_BumpMap);
                     
                     prop(_NormalMapOrientation);
                     prop(_HemiOctahedron);
+                    if(texArray) prop(_EnableTextureArrayBump);
                 });
                 
 
@@ -222,18 +231,21 @@ namespace z3y
 
                 
                 
-                
-                prop(_EnableParallax);
-                if(_EnableParallax.floatValue == 1)
+                if(!texArray)
                 {
-                    Func.PropertyGroup(() => {
-                        prop(_ParallaxMap, _Parallax);
-                        Func.sRGBWarning(_ParallaxMap);
-                        prop(_ParallaxOffset);
-                        prop(_ParallaxSteps);
-                    });
+                    prop(_EnableParallax);
+                    if(_EnableParallax.floatValue == 1)
+                    {
+                        Func.PropertyGroup(() => {
+                            prop(_ParallaxMap, _Parallax);
+                            prop(_ParallaxOffset);
+                            prop(_ParallaxSteps);
+                        });
+                    }
                 }
-                
+                else prop(_ParallaxMap);
+                Func.sRGBWarning(_ParallaxMap);
+
 
                 prop(_EnableEmission);
                 if(_EnableEmission.floatValue == 1)
@@ -331,6 +343,8 @@ namespace z3y
 
                 prop(_Workflow);
                 prop(_EnableTextureArray);
+                    if(texArray) prop(_EnableVertexColor);
+                    if(_EnableVertexColor.floatValue == 1 && texArray) prop(_ArrayCount);
                 me.DoubleSidedGIField();
                 me.EnableInstancingField();
                 me.RenderQueueField();
