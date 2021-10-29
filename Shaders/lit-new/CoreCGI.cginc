@@ -5,36 +5,18 @@ float4 frag (v2f i, uint facing : SV_IsFrontFace) : SV_Target
         parallaxOffset = ParallaxOffset(i.parallaxViewDir);
     #endif
 
-    float4 mainTexture = 0;
-    #if !defined(TEXTUREARRAY)
-        defaultSampler = sampler_MainTex;
-        mainTexture = SampleTexture(_MainTex, _MainTex_ST, defaultSampler, _MainTex_UV);
-    #endif
-
-    #if defined(TEXTUREARRAY) && !defined(VERTEXCOLOR)
+    #if defined(TEXTUREARRAY)
         defaultSampler = sampler_MainTexArray;
         #ifdef INSTANCING_ON
             textureIndex = UNITY_ACCESS_INSTANCED_PROP(Props, _TextureIndex);
         #else
             textureIndex = i.coord1.z;
         #endif
-        mainTexture = SampleTextureArray(_MainTexArray, _MainTex_ST, _MainTex_UV);
+        float4 mainTexture = SampleTextureArray(_MainTexArray, _MainTex_ST, _MainTex_UV);
+    #else
+        defaultSampler = sampler_MainTex;
+        float4 mainTexture = SampleTexture(_MainTex, _MainTex_ST, defaultSampler, _MainTex_UV);
     #endif
-
-    #if defined(TEXTUREARRAY) && defined(VERTEXCOLOR)
-    defaultSampler = sampler_MainTexArray;
-
-    float2 mainUV = i.coord0.xy * _MainTex_ST.xy + _MainTex_ST.zw;
-    float4 blendWeight = i.color;
-    #ifdef PROP_PARALLAXMAP
-        blendWeight /= _ParallaxMap.Sample(defaultSampler, mainUV);
-        blendWeight = saturate(blendWeight);
-    #endif
-    mainTexture = blendedTextureArray(_MainTexArray, mainUV, blendWeight);
-
-    #endif
-
-    
 
     mainTexture *= _Color;
     float alpha = mainTexture.a;
@@ -102,11 +84,7 @@ float4 frag (v2f i, uint facing : SV_IsFrontFace) : SV_Target
             maskMap = SampleTexture(_MetallicGlossMap, _MetallicGlossMap_ST, _MetallicGlossMap_UV);
         #endif
 
-        #if defined(VERTEXCOLOR) && defined(TEXTUREARRAYMASK)
-            maskMap = blendedTextureArray(_MetallicGlossMapArray, mainUV, blendWeight);
-        #endif
-
-        #if defined(TEXTUREARRAYMASK) && !defined(VERTEXCOLOR)
+        #if defined(TEXTUREARRAYMASK)
             maskMap = SampleTextureArray(_MetallicGlossMapArray, _MetallicGlossMap_ST, _MetallicGlossMap_UV);
         #endif
         
@@ -154,6 +132,8 @@ float4 frag (v2f i, uint facing : SV_IsFrontFace) : SV_Target
         #endif
     #endif
 
+    mainTexture.rgb = lerp(dot(mainTexture.rgb, grayscaleVec), mainTexture.rgb, _Saturation + 1);
+
     UNITY_BRANCH
     if(_GSAA) perceptualRoughness = GSAA_Filament(worldNormal, perceptualRoughness);
 
@@ -166,14 +146,7 @@ float4 frag (v2f i, uint facing : SV_IsFrontFace) : SV_Target
         #endif
     #endif
 
-    #if defined(VERTEXCOLOR) && defined(TEXTUREARRAYBUMP)
-        normalMap = blendedTextureArray(_BumpMapArray, mainUV, blendWeight);
-        #ifndef CALC_TANGENT_BITANGENT
-        #define CALC_TANGENT_BITANGENT
-        #endif
-    #endif
-
-    #if defined(TEXTUREARRAYBUMP) && !defined(VERTEXCOLOR)
+    #if defined(TEXTUREARRAYBUMP)
         normalMap = SampleTextureArray(_BumpMapArray, _BumpMap_ST, _BumpMap_UV);
         #ifndef CALC_TANGENT_BITANGENT
         #define CALC_TANGENT_BITANGENT

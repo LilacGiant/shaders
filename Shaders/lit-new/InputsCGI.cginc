@@ -13,7 +13,7 @@ float _Roughness;
 float _Glossiness;
 float _Metallic;
 float _Occlusion;
-
+float _Saturation;
 float _Cutoff;
 uint _UseTextureIndex;
 float _SpecularOcclusion;

@@ -1,4 +1,4 @@
-#pragma warning (default : 3206)
+// #pragma warning (default : 3206)
 
 #include "UnityCG.cginc"
 #include "AutoLight.cginc"

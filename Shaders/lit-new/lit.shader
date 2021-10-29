@@ -4,14 +4,12 @@
     {
         wAg6H2wQzc7UbxaL ("Is Locked", Int) = 0
 
-        [Toggle(_WORKFLOW_UNPACKED)] _Workflow ("Unpacked", Int) = 0
+        [Toggle(_WORKFLOW_UNPACKED)] _Workflow ("Unpacked Mask", Int) = 0
         [KeywordEnum(Opaque, Cutout, Fade, Transparent)] _Mode ("Rendering Mode", Int) = 0
         _Cutoff ("Alpha Cuttoff", Range(0, 1)) = 0.5
 
-        [Toggle(VERTEXCOLOR)] _EnableVertexColor ("Vertex Color Blending", Float) = 0
         [Toggle(TEXTUREARRAY)] _EnableTextureArray ("Texture Arrays", Float) = 0
         [IntRange] _TextureIndex ("Instance Index", Range(0,255)) = 0
-        [IntRange] _ArrayCount ("Array Count", Range(2,4)) = 2
 
         _TextureIndexAnimated("", Int) = 1
 
@@ -19,6 +17,8 @@
         _MainTexArray ("Base Map Array", 2DArray) = "white" {}
             [Enum(UV 0, 0, UV 1, 1, UV 2, 2, Stochastic, 4)] _MainTex_UV ("UV Type", Int) = 0
             _Color ("Base Color", Color) = (1,1,1,1)
+            _Saturation ("Saturation", Range(-1,1)) = 0
+
 
         _Metallic ("Metallic", Range(0,1)) = 0
         _Glossiness ("Smoothness", Range(0,1)) = 0.5
@@ -140,7 +140,6 @@
             #pragma shader_feature_local TEXTUREARRAY
             #pragma shader_feature_local TEXTUREARRAYMASK
             #pragma shader_feature_local TEXTUREARRAYBUMP
-            #pragma shader_feature_local VERTEXCOLOR
 
 
 
@@ -179,7 +178,6 @@
             #pragma shader_feature_local TEXTUREARRAY
             #pragma shader_feature_local TEXTUREARRAYMASK
             #pragma shader_feature_local TEXTUREARRAYBUMP
-            #pragma shader_feature_local VERTEXCOLOR
 
 
             #include "PassCGI.cginc"
@@ -209,7 +207,6 @@
             #pragma shader_feature_local _ _MODE_CUTOUT _MODE_FADE _MODE_TRANSPARENT
             #pragma shader_feature_local _WORKFLOW_UNPACKED
             #pragma shader_feature_local TEXTUREARRAY
-            #pragma shader_feature_local VERTEXCOLOR
 
 
 

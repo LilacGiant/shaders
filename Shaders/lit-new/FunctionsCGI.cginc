@@ -112,7 +112,7 @@ float4 SampleTextureArray(Texture2DArray tex, float4 st, int type)
 }
 #endif
 
-#if defined(TEXTUREARRAY) || defined(TEXTUREARRAYMASK)
+#if defined(TEXTUREARRAY)
 float4 blendedTextureArray(Texture2DArray tex, float2 uv, float4 blendWeight)
 {
     float4 bt;

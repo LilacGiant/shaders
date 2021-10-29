@@ -241,9 +241,8 @@ namespace z3y
                             prop(_ParallaxSteps);
                         });
                     }
+                    Func.sRGBWarning(_ParallaxMap);
                 }
-                else if(_EnableVertexColor.floatValue == 1) prop(_ParallaxMap);
-                Func.sRGBWarning(_ParallaxMap);
 
 
                 prop(_EnableEmission);
@@ -338,16 +337,14 @@ namespace z3y
                     prop(_ZTest);
                     prop(_AlphaToMask);
                 });
+                EditorGUILayout.Space();
 
                 prop(_EnableTextureArray);
                 if(texArray)
-                Func.PropertyGroup(() => {
+                {                    
                     prop(_EnableTextureArrayMask);
                     prop(_EnableTextureArrayBump);
-                    if(texArray) prop(_EnableVertexColor);
-                    if(_EnableVertexColor.floatValue == 1) prop(_ArrayCount);
-                });
-                EditorGUILayout.Space();
+                }
 
                 prop(_Workflow);
                 
@@ -356,7 +353,7 @@ namespace z3y
                 me.RenderQueueField();
                 prop(_Cull);
 
-                EditorGUILayout.Space();;
+                EditorGUILayout.Space();
                 ListAnimatedProps();
             });
 
