@@ -4,6 +4,9 @@ float4 frag (v2f i, uint facing : SV_IsFrontFace) : SV_Target
     #if defined(PARALLAX)
         parallaxOffset = ParallaxOffset(i.parallaxViewDir);
     #endif
+    #ifdef INSTANCING_ON
+    UNITY_SETUP_INSTANCE_ID(i)
+    #endif
 
     #if defined(TEXTUREARRAY)
         defaultSampler = sampler_MainTexArray;
