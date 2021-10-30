@@ -225,8 +225,9 @@
             #pragma vertex vert
             #pragma fragment frag
 
-            #pragma shader_feature_local ENABLE_PACKED_MODE
             #pragma shader_feature EDITOR_VISUALIZATION
+            #pragma shader_feature_local _WORKFLOW_UNPACKED
+            #pragma shader_feature_local EMISSION
 
             #include "PassCGI.cginc"
             ENDCG

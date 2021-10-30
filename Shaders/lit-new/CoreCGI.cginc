@@ -54,7 +54,6 @@ float4 frag (v2f i, uint facing : SV_IsFrontFace) : SV_Target
     float3 vertexLight = 0;
     float3 indirectSpecular = 0;
     float3 directSpecular = 0;
-    float3 specularColor = 0;
 
     float3 worldNormal = i.worldNormal;
     float3 bitangent = i.bitangent;
@@ -328,7 +327,7 @@ float4 frag (v2f i, uint facing : SV_IsFrontFace) : SV_Target
             float D = D_GGX_Anisotropic(at, ab, ToH, BoH, NoH);
             float V = V_SmithGGXCorrelated_Anisotropic(at, ab, ToV, BoV, ToL, BoL, NoV, lightNoL);
         #endif
-        specularColor = pixelLight * F;
+
         directSpecular += max(0, (D * V) * F) * pixelLight * UNITY_PI;
     }
     #endif
@@ -364,7 +363,7 @@ float4 frag (v2f i, uint facing : SV_IsFrontFace) : SV_Target
 
 
 
-    #ifdef EMISSION
+    #if defined(EMISSION) && !defined(UNITY_PASS_FORWARDADD)
         float3 emissionMap = 1;
         #ifdef PROP_EMISSIONMAP
         emissionMap = SampleTexture(_EmissionMap, _EmissionMap_ST, _EmissionMap_UV).rgb;
@@ -390,7 +389,7 @@ float4 frag (v2f i, uint facing : SV_IsFrontFace) : SV_Target
         UNITY_INITIALIZE_OUTPUT(UnityMetaInput, metaInput);
         metaInput.Emission = emission;
         metaInput.Albedo = mainTexture.rgb;
-        metaInput.SpecularColor = specularColor;
+
         return float4(UnityMetaFragment(metaInput).rgb, alpha);
     #endif
 
