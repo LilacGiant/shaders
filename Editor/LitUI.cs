@@ -116,6 +116,7 @@ namespace z3y
         protected MaterialProperty _ArrayCount = null;
         protected MaterialProperty _MipScale = null;
         protected MaterialProperty _EnableTextureArrayInstancing = null;
+        protected MaterialProperty VertexLights = null;
 
 
         public void ShaderPropertiesGUI(Material material)
@@ -350,6 +351,7 @@ namespace z3y
                 }
 
                 prop(_Workflow);
+                prop(VertexLights);
                 
                 me.DoubleSidedGIField();
                 me.EnableInstancingField();

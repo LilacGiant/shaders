@@ -101,6 +101,8 @@
         [Enum(UnityEngine.Rendering.CullMode)] _Cull ("Cull", Int) = 2
         [Enum(Off, 0, On, 1)] _AlphaToMask ("Alpha To Coverage", Int) = 0
 
+        // optimizer toggles
+        [ToggleUI] VertexLights("Allow Vertex Lights", Float) = 0
 
         // unlocked properties
         _MetallicAnimated("", Float) = 1
@@ -110,7 +112,6 @@
         _ReflectanceAnimated("", Float) = 1
         _ColorAnimated("", Float) = 1
 
-        VertexLights("Allow Vertex Lights", Float) = 0
     }
     
 

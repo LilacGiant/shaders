@@ -815,11 +815,11 @@ namespace z3y
   
                     if(mat.GetFloat(propertyName[1]) == 0)
                     {
-                        for (int j = i; j < fileLines.Length; j++)
+                        for (int j = i+1; j < fileLines.Length; j++)
                         {
-                            i++;
+                            if(fileLines[j].TrimStart().StartsWith("//CommentIfZero_" + propertyName[1])) j = fileLines.Length -1;
                             fileLines[j] = fileLines[j].Insert(0, "//");
-                            if(fileLines[j].TrimStart() == "//CommentIfZero_") break;
+                            i++;
                         }
                     }
 
