@@ -27,7 +27,7 @@ namespace z3y
             }
             else
             {
-                if(material.enableInstancing) me.ShaderProperty(_TextureIndex, _TextureIndex.displayName);
+                // if(material.enableInstancing) me.ShaderProperty(_TextureIndex, _TextureIndex.displayName);
                 me.TexturePropertySingleLine(new GUIContent(_MainTexArray.displayName), _MainTexArray, _Color);
             }
 

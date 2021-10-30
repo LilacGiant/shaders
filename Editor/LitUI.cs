@@ -152,7 +152,7 @@ namespace z3y
                 }
                 else
                 {
-                    if(material.enableInstancing) prop(_TextureIndex);
+                    // if(material.enableInstancing) prop(_TextureIndex);
                     prop(_MainTexArray, _Color);
                 }
                 md[material].Show_MainTex = Func.TriangleFoldout(md[material].Show_MainTex, ()=> {

@@ -489,3 +489,19 @@ float3 getAnisotropicReflectionVector(float3 viewDir, float3 btg, float3 tg, flo
     float3 bentNormal = normalize(lerp(normal, anisotropicNormal, bendFactor));
     return reflect(-viewDir, bentNormal);
 }
+
+#ifdef DYNAMICLIGHTMAP_ON
+float3 getRealtimeLightmap(float2 uv, float3 worldNormal, float2 parallaxOffset)
+{
+    float2 realtimeUV = uv * unity_DynamicLightmapST.xy + unity_DynamicLightmapST.zw;
+    half4 bakedCol = UNITY_SAMPLE_TEX2D(unity_DynamicLightmap, realtimeUV);
+    float3 realtimeLightmap = DecodeRealtimeLightmap(bakedCol);
+
+    #ifdef DIRLIGHTMAP_COMBINED
+        half4 realtimeDirTex = UNITY_SAMPLE_TEX2D_SAMPLER(unity_DynamicDirectionality, unity_DynamicLightmap, realtimeUV);
+        realtimeLightmap += DecodeDirectionalLightmap (realtimeLightmap, realtimeDirTex, worldNormal);
+    #endif
+
+    return realtimeLightmap;
+}
+#endif

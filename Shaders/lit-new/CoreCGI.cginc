@@ -205,7 +205,7 @@ float4 frag (v2f i, uint facing : SV_IsFrontFace) : SV_Target
         pixelLight = (lightNoL * lightAttenuation * _LightColor0.rgb) * Fd_Burley(perceptualRoughness, NoV, lightNoL, lightLoH);
     #endif
 
-
+    
     #if defined(LIGHTMAP_ON)
 
         float2 lightmapUV = i.coord0.zw * unity_LightmapST.xy + unity_LightmapST.zw;
@@ -363,7 +363,7 @@ float4 frag (v2f i, uint facing : SV_IsFrontFace) : SV_Target
 
 
 
-    #if defined(EMISSION) && !defined(UNITY_PASS_FORWARDADD)
+    #if defined(EMISSION)
         float3 emissionMap = 1;
         #ifdef PROP_EMISSIONMAP
         emissionMap = SampleTexture(_EmissionMap, _EmissionMap_ST, _EmissionMap_UV).rgb;

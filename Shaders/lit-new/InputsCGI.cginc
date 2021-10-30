@@ -58,9 +58,13 @@ DECLARE_TEX2D_CUSTOM(_AnisotropyMap);
     #undef TEXTUREARRAYMASK
     #undef TEXTUREARRAYBUMP
 #endif
+
 #if defined(TEXTUREARRAYMASK) || defined(TEXTUREARRAYBUMP)
-    #define TEXTUREARRAY
+    #ifndef TEXTUREARRAY
+        #define TEXTUREARRAY
+    #endif
 #endif
+
 #if defined(TEXTUREARRAY)
 #undef PARALLAX
 UNITY_DECLARE_TEX2DARRAY(_MainTexArray);
@@ -107,70 +111,5 @@ static float4 defaultTexelSize;
 #endif
 
 #ifdef UNITY_PASS_META
-    #include "UnityMetaPass.cginc"
-#endif
-
-
-
-#ifdef UNITY_PASS_FORWARDBASE
-    #define NEED_TANGENT_BITANGENT
-    #define NEED_WORLD_POS
-    #define NEED_WORLD_NORMAL
-    #if defined(PARALLAX)
-        #define NEED_PARALLAX_DIR
-    #endif
-    #if defined(VERTEXCOLOR)
-        #define NEED_VERTEX_COLOR
-    #endif
-#endif
-
-#ifdef UNITY_PASS_FORWARDADD
-    #define NEED_TANGENT_BITANGENT
-    #define NEED_WORLD_POS
-    #define NEED_WORLD_NORMAL
-    #if defined(PARALLAX)
-        #define NEED_PARALLAX_DIR
-    #endif
-    #if defined(VERTEXCOLOR)
-        #define NEED_VERTEX_COLOR
-    #endif
-    #undef REFLECTIONS
-    #undef EMISSION
-    #undef BICUBIC_LIGHTMAP
-    #undef BAKEDSPECULAR
-    #undef BAKERY_SH
-    #undef BAKERY_SHNONLINEAR
-    #undef BAKERY_RNM
-    #if defined(LIGHTMAP_SHADOW_MIXING) && defined(SHADOWS_SHADOWMASK) && defined(SHADOWS_SCREEN) && defined(LIGHTMAP_ON)
-        #define NEED_SCREEN_POS
-    #endif
-#endif
-
-
-#ifdef UNITY_PASS_SHADOWCASTER
-    #undef REFLECTIONS
-    #if defined(VERTEXCOLOR)
-        #define NEED_VERTEX_COLOR
-    #endif
-    #undef EMISSION
-    #undef BICUBIC_LIGHTMAP
-    #undef PARALLAX
-    #undef BAKEDSPECULAR
-    #undef BAKERY_SH
-    #undef BAKERY_SHNONLINEAR
-    #undef BAKERY_RNM
-    #undef ANISOTROPY
-    #if defined(LIGHTMAP_SHADOW_MIXING) && defined(SHADOWS_SHADOWMASK) && defined(SHADOWS_SCREEN) && defined(LIGHTMAP_ON)
-        #define NEED_SCREEN_POS
-    #endif
-#endif
-
-#ifdef UNITY_PASS_META
-    #define NEED_TANGENT_BITANGENT
-    #define NEED_WORLD_POS
-    #define NEED_WORLD_NORMAL
-    #if defined(PARALLAX)
-        #define NEED_PARALLAX_DIR
-    #endif
     #include "UnityMetaPass.cginc"
 #endif

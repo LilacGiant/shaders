@@ -131,7 +131,7 @@ v2f vert (appdata v)
         o.pos = UnityApplyLinearShadowBias(o.pos);
         TRANSFER_SHADOW_CASTER_NOPOS(o, o.pos);
     #else
-        UNITY_TRANSFER_SHADOW(o, o.texcoord0.zw);
+        UNITY_TRANSFER_SHADOW(o, o.coord0.zw);
     #endif
 
     #ifdef NEED_FOG

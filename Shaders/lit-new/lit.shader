@@ -61,8 +61,8 @@
         [Toggle(BICUBIC_LIGHTMAP)] _BicubicLightmap ("Bicubic Lightmap", Int) = 0
 
         [ToggleUI] _GSAA ("Geometric Specular AA", Int) = 0
-            [PowerSlider(3)] _specularAntiAliasingVariance ("Variance", Range(0.0, 1.0)) = 0.15
-            [PowerSlider(3)] _specularAntiAliasingThreshold ("Threshold", Range(0.0, 1.0)) = 0.1
+            [PowerSlider(2)] _specularAntiAliasingVariance ("Variance", Range(0.0, 1.0)) = 0.15
+            [PowerSlider(2)] _specularAntiAliasingThreshold ("Threshold", Range(0.0, 1.0)) = 0.1
 
         [Toggle(EMISSION)] _EnableEmission ("Emission", Int) = 0
             _EmissionMap ("Emission Map", 2D) = "white" {}
@@ -101,9 +101,32 @@
         [Enum(UnityEngine.Rendering.CullMode)] _Cull ("Cull", Int) = 2
         [Enum(Off, 0, On, 1)] _AlphaToMask ("Alpha To Coverage", Int) = 0
     }
+    
 
     SubShader
     {
+        CGINCLUDE
+        #pragma target 5.0
+        #pragma vertex vert
+        #pragma fragment frag
+        #pragma exclude_renderers gles3
+        #pragma fragmentoption ARB_precision_hint_fastest
+        
+        #pragma shader_feature_local _ _MODE_CUTOUT _MODE_FADE _MODE_TRANSPARENT
+        #pragma shader_feature_local _WORKFLOW_UNPACKED
+        #pragma shader_feature_local BICUBIC_LIGHTMAP
+        #pragma shader_feature_local SPECULAR_HIGHLIGHTS
+        #pragma shader_feature_local REFLECTIONS
+        #pragma shader_feature_local EMISSION
+        #pragma shader_feature_local PARALLAX
+        #pragma shader_feature_local NONLINEAR_LIGHTPROBESH
+        #pragma shader_feature_local BAKEDSPECULAR
+        #pragma shader_feature_local ANISOTROPY
+        #pragma shader_feature_local TEXTUREARRAY
+        #pragma shader_feature_local TEXTUREARRAYMASK
+        #pragma shader_feature_local TEXTUREARRAYBUMP
+        ENDCG
+
         Tags { "RenderType"="Opaque" "Queue"="Geometry" }
 
         Pass
@@ -117,32 +140,22 @@
             Blend [_SrcBlend] [_DstBlend]
 
             CGPROGRAM
-            #pragma target 5.0
-            #pragma vertex vert
-            #pragma fragment frag
-            #pragma exclude_renderers gles3
-            #pragma fragmentoption ARB_precision_hint_fastest
             #pragma multi_compile_fwdbase
             #pragma multi_compile_instancing
             #pragma multi_compile_fog
             // #pragma multi_compile _ VERTEXLIGHT_ON
             // #pragma multi_compile _ LOD_FADE_CROSSFADE
 
-            #pragma shader_feature_local _ _MODE_CUTOUT _MODE_FADE _MODE_TRANSPARENT
-            #pragma shader_feature_local _WORKFLOW_UNPACKED
-            #pragma shader_feature_local BICUBIC_LIGHTMAP
-            #pragma shader_feature_local SPECULAR_HIGHLIGHTS
-            #pragma shader_feature_local REFLECTIONS
-            #pragma shader_feature_local EMISSION
-            #pragma shader_feature_local PARALLAX
-            #pragma shader_feature_local NONLINEAR_LIGHTPROBESH
-            #pragma shader_feature_local BAKEDSPECULAR
-            #pragma shader_feature_local ANISOTROPY
-            #pragma shader_feature_local TEXTUREARRAY
-            #pragma shader_feature_local TEXTUREARRAYMASK
-            #pragma shader_feature_local TEXTUREARRAYBUMP
-
-
+            #define NEED_TANGENT_BITANGENT
+            #define NEED_WORLD_POS
+            #define NEED_WORLD_NORMAL
+            
+            #if defined(PARALLAX)
+                #define NEED_PARALLAX_DIR
+            #endif
+            #if defined(LIGHTMAP_SHADOW_MIXING) && defined(SHADOWS_SHADOWMASK) && defined(SHADOWS_SCREEN) && defined(LIGHTMAP_ON)
+                #define NEED_SCREEN_POS
+            #endif
 
             #include "PassCGI.cginc"
             ENDCG
@@ -160,27 +173,29 @@
             AlphaToMask [_AlphaToMask]
 
             CGPROGRAM
-            #pragma target 5.0
-            #pragma vertex vert
-            #pragma fragment frag
-            #pragma exclude_renderers gles3
-            #pragma fragmentoption ARB_precision_hint_fastest
             #pragma multi_compile_fwdadd_fullshadows
             #pragma multi_compile_instancing
             #pragma multi_compile_fog
             // #pragma multi_compile _ LOD_FADE_CROSSFADE
 
-            #pragma shader_feature_local _ _MODE_CUTOUT _MODE_FADE _MODE_TRANSPARENT
-            #pragma shader_feature_local _WORKFLOW_UNPACKED
-            #pragma shader_feature_local SPECULAR_HIGHLIGHTS
-            #pragma shader_feature_local PARALLAX
-            #pragma shader_feature_local NONLINEAR_LIGHTPROBESH
-            #pragma shader_feature_local ANISOTROPY
-            #pragma shader_feature_local TEXTUREARRAY
-            #pragma shader_feature_local TEXTUREARRAYMASK
-            #pragma shader_feature_local TEXTUREARRAYBUMP
+            #pragma skip_variants BICUBIC_LIGHTMAP REFLECTIONS EMISSION BAKEDSPECULAR
+            #undef BICUBIC_LIGHTMAP
+            #undef REFLECTIONS
+            #undef EMISSION
+            #undef BAKEDSPECULAR
 
 
+            #define NEED_TANGENT_BITANGENT
+            #define NEED_WORLD_POS
+            #define NEED_WORLD_NORMAL
+
+            #if defined(PARALLAX)
+                #define NEED_PARALLAX_DIR
+            #endif
+            #if defined(LIGHTMAP_SHADOW_MIXING) && defined(SHADOWS_SHADOWMASK) && defined(SHADOWS_SCREEN) && defined(LIGHTMAP_ON)
+                #define NEED_SCREEN_POS
+            #endif
+            
             #include "PassCGI.cginc"
             ENDCG
         }
@@ -195,21 +210,20 @@
             ZTest LEqual
 
             CGPROGRAM
-            #pragma target 5.0
-            #pragma vertex vert
-            #pragma fragment frag
-            #pragma fragmentoption ARB_precision_hint_fastest
-            #pragma exclude_renderers gles3
             #pragma multi_compile_shadowcaster
             #pragma multi_compile_instancing
             // #pragma multi_compile _ LOD_FADE_CROSSFADE
             #pragma skip_variants FOG_LINEAR FOG_EXP FOG_EXP2
-
-            #pragma shader_feature_local _ _MODE_CUTOUT _MODE_FADE _MODE_TRANSPARENT
-            #pragma shader_feature_local _WORKFLOW_UNPACKED
-            #pragma shader_feature_local TEXTUREARRAY
-
-
+            #pragma skip_variants REFLECTIONS EMISSION BICUBIC_LIGHTMAP PARALLAX BAKEDSPECULAR ANISOTROPY NONLINEAR_LIGHTPROBESH SPECULAR_HIGHLIGHTS _WORKFLOW_UNPACKED
+            #undef REFLECTIONS
+            #undef EMISSION
+            #undef BICUBIC_LIGHTMAP
+            #undef PARALLAX
+            #undef BAKEDSPECULAR
+            #undef ANISOTROPY
+            #undef NONLINEAR_LIGHTPROBESH
+            #undef SPECULAR_HIGHLIGHTS
+            #undef _WORKFLOW_UNPACKED
 
             #include "PassCGI.cginc"
             ENDCG
@@ -222,12 +236,20 @@
             Cull Off
 
             CGPROGRAM
-            #pragma vertex vert
-            #pragma fragment frag
-
             #pragma shader_feature EDITOR_VISUALIZATION
-            #pragma shader_feature_local _WORKFLOW_UNPACKED
-            #pragma shader_feature_local EMISSION
+
+            #pragma skip_variants BICUBIC_LIGHTMAP SPECULAR_HIGHLIGHTS REFLECTIONS PARALLAX NONLINEAR_LIGHTPROBESH BAKEDSPECULAR ANISOTROPY
+            #undef BICUBIC_LIGHTMAP
+            #undef SPECULAR_HIGHLIGHTS
+            #undef REFLECTIONS
+            #undef PARALLAX
+            #undef NONLINEAR_LIGHTPROBESH
+            #undef BAKEDSPECULAR
+            #undef ANISOTROPY
+
+            #define NEED_TANGENT_BITANGENT
+            #define NEED_WORLD_POS
+            #define NEED_WORLD_NORMAL
 
             #include "PassCGI.cginc"
             ENDCG
