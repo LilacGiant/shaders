@@ -10,6 +10,7 @@ float4 frag (v2f i, uint facing : SV_IsFrontFace) : SV_Target
 
     #if defined(TEXTUREARRAY)
         defaultSampler = sampler_MainTexArray;
+        defaultTexelSize = _MainTexArray_TexelSize;
         #ifdef INSTANCING_ON
             textureIndex = UNITY_ACCESS_INSTANCED_PROP(Props, _TextureIndex);
         #else
@@ -18,6 +19,7 @@ float4 frag (v2f i, uint facing : SV_IsFrontFace) : SV_Target
         float4 mainTexture = SampleTextureArray(_MainTexArray, _MainTex_ST, _MainTex_UV);
     #else
         defaultSampler = sampler_MainTex;
+        defaultTexelSize = _MainTex_TexelSize;
         float4 mainTexture = SampleTexture(_MainTex, _MainTex_ST, defaultSampler, _MainTex_UV);
     #endif
 
@@ -37,6 +39,9 @@ float4 frag (v2f i, uint facing : SV_IsFrontFace) : SV_Target
     SHADOW_CASTER_FRAGMENT(i);
 #else
     #if defined (_MODE_CUTOUT)
+    #ifndef STOCHASTIC
+    alpha *= 1 + max(0, CalculateMipLevel(GetMainTexUV(_MainTex_UV) * defaultTexelSize.zw)) * _MipScale;
+    #endif
     alpha = (alpha - _Cutoff) / max(fwidth(alpha), 0.0001) + 0.5;
     #endif
 
@@ -49,6 +54,7 @@ float4 frag (v2f i, uint facing : SV_IsFrontFace) : SV_Target
     float3 vertexLight = 0;
     float3 indirectSpecular = 0;
     float3 directSpecular = 0;
+    float3 specularColor = 0;
 
     float3 worldNormal = i.worldNormal;
     float3 bitangent = i.bitangent;
@@ -322,7 +328,7 @@ float4 frag (v2f i, uint facing : SV_IsFrontFace) : SV_Target
             float D = D_GGX_Anisotropic(at, ab, ToH, BoH, NoH);
             float V = V_SmithGGXCorrelated_Anisotropic(at, ab, ToV, BoV, ToL, BoL, NoV, lightNoL);
         #endif
-        
+        specularColor = pixelLight * F;
         directSpecular += max(0, (D * V) * F) * pixelLight * UNITY_PI;
     }
     #endif
@@ -377,6 +383,15 @@ float4 frag (v2f i, uint facing : SV_IsFrontFace) : SV_Target
 
     #if defined (_MODE_FADE) && defined(UNITY_PASS_FORWARDADD)
         finalColor.rgb *= alpha;
+    #endif
+
+    #ifdef UNITY_PASS_META
+        UnityMetaInput metaInput;
+        UNITY_INITIALIZE_OUTPUT(UnityMetaInput, metaInput);
+        metaInput.Emission = emission;
+        metaInput.Albedo = mainTexture.rgb;
+        metaInput.SpecularColor = specularColor;
+        return float4(UnityMetaFragment(metaInput).rgb, alpha);
     #endif
 
     #ifdef FOG

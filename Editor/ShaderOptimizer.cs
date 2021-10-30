@@ -277,6 +277,7 @@ namespace z3y
 
             foreach (Material mat in foundMaterials)
             {
+                if(mat is null) continue;
                 if(!mat.shader.name.Equals("Hidden/InternalErrorShader"))
                 {
                     if(!materials.Contains(mat) && IsShaderUsingOptimizer(mat.shader))

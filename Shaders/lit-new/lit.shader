@@ -7,6 +7,7 @@
         [Toggle(_WORKFLOW_UNPACKED)] _Workflow ("Unpacked Mask", Int) = 0
         [KeywordEnum(Opaque, Cutout, Fade, Transparent)] _Mode ("Rendering Mode", Int) = 0
         _Cutoff ("Alpha Cuttoff", Range(0, 1)) = 0.5
+        _MipScale ("Mip Scale", Range(0, 1)) = 0.25
 
         [Toggle(TEXTUREARRAY)] _EnableTextureArray ("Texture Arrays", Float) = 0
         [IntRange] _TextureIndex ("Instance Index", Range(0,255)) = 0
@@ -15,7 +16,7 @@
 
         _MainTex ("Base Map", 2D) = "white" {}
         _MainTexArray ("Base Map Array", 2DArray) = "white" {}
-            [Enum(UV 0, 0, UV 1, 1, UV 2, 2, Stochastic, 4)] _MainTex_UV ("UV Type", Int) = 0
+            [Enum(UV 0, 0, UV 1, 1, UV 2, 2)] _MainTex_UV ("UV Type", Int) = 0
             _Color ("Base Color", Color) = (1,1,1,1)
             _Saturation ("Saturation", Range(-1,1)) = 0
 
@@ -27,17 +28,17 @@
         _MetallicGlossMap ("Mask Map:Metallic(R), Occlusion(G), Detail Mask(B), Smoothness(A)", 2D) = "white" {}
         [Toggle(TEXTUREARRAYMASK)] _EnableTextureArrayMask ("Mask Map Array", Float) = 0
         _MetallicGlossMapArray ("Mask Map Array:Metallic(R), Occlusion(G), Detail Mask(B), Smoothness(A)", 2DArray) = "white" {}
-            [Enum(UV 0 Locked, 0, UV 1, 1, UV 2, 2, UV 0 Unlocked, 3, Stochastic, 4)] _MetallicGlossMap_UV ("UV Type", Int) = 0
+            [Enum(UV 0 Locked, 0, UV 1, 1, UV 2, 2, UV 0 Unlocked, 3)] _MetallicGlossMap_UV ("UV Type", Int) = 0
 
         _SmoothnessMap ("Smoothness Map", 2D) = "white" {}
-            [Enum(UV 0 Locked, 0, UV 1, 1, UV 2, 2, UV 0 Unlocked, 3, Stochastic, 4)]  _SmoothnessMap_UV ("UV Type", Int) = 0
+            [Enum(UV 0 Locked, 0, UV 1, 1, UV 2, 2, UV 0 Unlocked, 3)]  _SmoothnessMap_UV ("UV Type", Int) = 0
             [ToggleUI] _GlossinessInvert ("Invert Texture", Float) = 0
 
         _MetallicMap ("Metallic Map", 2D) = "white" {}
-            [Enum(UV 0 Locked, 0, UV 1, 1, UV 2, 2, UV 0 Unlocked, 3, Stochastic, 4)]  _MetallicMap_UV ("UV Type", Int) = 0
+            [Enum(UV 0 Locked, 0, UV 1, 1, UV 2, 2, UV 0 Unlocked, 3)]  _MetallicMap_UV ("UV Type", Int) = 0
 
         _OcclusionMap ("Occlusion Map", 2D) = "white" {}
-            [Enum(UV 0 Locked, 0, UV 1, 1, UV 2, 2, UV 0 Unlocked, 3, Stochastic, 4)]  _OcclusionMap_UV ("UV Type", Int) = 0
+            [Enum(UV 0 Locked, 0, UV 1, 1, UV 2, 2, UV 0 Unlocked, 3)]  _OcclusionMap_UV ("UV Type", Int) = 0
 
 
         [Normal] _BumpMap ("Normal Map", 2D) = "bump" {}
@@ -45,7 +46,7 @@
             [Toggle(TEXTUREARRAYBUMP)] _EnableTextureArrayBump ("Normal Map Array", Float) = 0
             _BumpScale ("Bump Scale", Range(0,10)) = 0
             [Enum(OpenGL, 0, Direct3D, 1)] _NormalMapOrientation ("Orientation", Int) = 0
-            [Enum(UV 0 Locked, 0, UV 1, 1, UV 2, 2, UV 0 Unlocked, 3, Stochastic, 4)] _BumpMap_UV ("UV Type", Int) = 0
+            [Enum(UV 0 Locked, 0, UV 1, 1, UV 2, 2, UV 0 Unlocked, 3)] _BumpMap_UV ("UV Type", Int) = 0
             [ToggleUI] _HemiOctahedron ("Hemi Octahedron", Int) = 0
 
 
@@ -67,10 +68,10 @@
             _EmissionMap ("Emission Map", 2D) = "white" {}
             [ToggleUI] _EmissionMultBase ("Multiply Base", Int) = 0
             [HDR] _EmissionColor ("Emission Color", Color) = (0,0,0)
-            [Enum(UV 0 Locked, 0, UV 1, 1, UV 2, 2, UV 0 Unlocked, 3, Stochastic, 4)]  _EmissionMap_UV ("UV Type", Int) = 0
+            [Enum(UV 0 Locked, 0, UV 1, 1, UV 2, 2, UV 0 Unlocked, 3)]  _EmissionMap_UV ("UV Type", Int) = 0
 
         _DetailMap ("Detail Map:Desaturated Albedo(R), Normal Y(G), Smoothness(B), Normal X(A)", 2D) = "linearGrey" {}
-            [Enum(UV 0 Locked, 0, UV 1, 1, UV 2, 2, UV 0 Unlocked, 3, Stochastic, 4)]  _DetailMap_UV ("UV Type", Int) = 0
+            [Enum(UV 0 Locked, 0, UV 1, 1, UV 2, 2, UV 0 Unlocked, 3)]  _DetailMap_UV ("UV Type", Int) = 0
             _DetailAlbedoScale ("Albedo Scale", Range(0.0, 2.0)) = 0
             _DetailNormalScale ("Normal Scale", Range(0.0, 2.0)) = 0
             _DetailSmoothnessScale ("Smoothness Scale", Range(0.0, 2.0)) = 0
@@ -213,7 +214,24 @@
             #include "PassCGI.cginc"
             ENDCG
         }
+
+        Pass
+        {
+            Name "META"
+            Tags { "LightMode"="Meta" }
+            Cull Off
+
+            CGPROGRAM
+            #pragma vertex vert
+            #pragma fragment frag
+
+            #pragma shader_feature_local ENABLE_PACKED_MODE
+            #pragma shader_feature EDITOR_VISUALIZATION
+
+            #include "PassCGI.cginc"
+            ENDCG
+        }
     }
     CustomEditor "z3y.LitUI"
-    FallBack "Mobile/Lit Quest"
+    FallBack "z3y/lit quest"
 }

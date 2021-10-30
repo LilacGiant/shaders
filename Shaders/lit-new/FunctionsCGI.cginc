@@ -16,6 +16,7 @@
 // type 4: triplanar
 // type 5: uv0 stochastic
 
+
 float2 hash2D2D (float2 s)
 {
     //magic numbers
@@ -40,38 +41,39 @@ float4 SampleTexture(Texture2D tex, float4 st, sampler s, int type)
         case 3:
             sampledTexture = tex.Sample(s, input.coord0.xy * st.xy + st.zw + parallaxOffset);
             break;
-        case 4:
-            // https://www.reddit.com/r/Unity3D/comments/dhr5g2/i_made_a_stochastic_texture_sampling_shader/
-            //triangle vertices and blend weights
-            //BW_vx[0...2].xyz = triangle verts
-            //BW_vx[3].xy = blend weights (z is unused)
-            float4x3 BW_vx;
+        // case 4:
+        //     // https://www.reddit.com/r/Unity3D/comments/dhr5g2/i_made_a_stochastic_texture_sampling_shader/
+        //     //triangle vertices and blend weights
+        //     //BW_vx[0...2].xyz = triangle verts
+        //     //BW_vx[3].xy = blend weights (z is unused)
+        //     float4x3 BW_vx;
 
-            //uv transformed into triangular grid space with UV scaled by approximation of 2*sqrt(3)
-            float2 skewUV = mul(float2x2 (1.0 , 0.0 , -0.57735027 , 1.15470054), (input.coord0.xy * st.xy + st.zw) * 3.464);
+        //     //uv transformed into triangular grid space with UV scaled by approximation of 2*sqrt(3)
+        //     float2 skewUV = mul(float2x2 (1.0 , 0.0 , -0.57735027 , 1.15470054), (input.coord0.xy * st.xy + st.zw) * 3.464);
 
-            //vertex IDs and barycentric coords
-            float2 vxID = float2 (floor(skewUV));
-            float3 barry = float3 (frac(skewUV), 0);
-            barry.z = 1.0-barry.x-barry.y;
+        //     //vertex IDs and barycentric coords
+        //     float2 vxID = float2 (floor(skewUV));
+        //     float3 barry = float3 (frac(skewUV), 0);
+        //     barry.z = 1.0-barry.x-barry.y;
 
-            BW_vx = ((barry.z>0) ? 
-                float4x3(float3(vxID, 0), float3(vxID + float2(0, 1), 0), float3(vxID + float2(1, 0), 0), barry.zyx) :
-                float4x3(float3(vxID + float2 (1, 1), 0), float3(vxID + float2 (1, 0), 0), float3(vxID + float2 (0, 1), 0), float3(-barry.z, 1.0-barry.y, 1.0-barry.x)));
+        //     BW_vx = ((barry.z>0) ? 
+        //         float4x3(float3(vxID, 0), float3(vxID + float2(0, 1), 0), float3(vxID + float2(1, 0), 0), barry.zyx) :
+        //         float4x3(float3(vxID + float2 (1, 1), 0), float3(vxID + float2 (1, 0), 0), float3(vxID + float2 (0, 1), 0), float3(-barry.z, 1.0-barry.y, 1.0-barry.x)));
 
-            //calculate derivatives to avoid triangular grid artifacts
-            float2 dxu = ddx(input.coord0.xy * st.xy + st.zw);
-            float2 dyu = ddy(input.coord0.xy * st.xy + st.zw);
+        //     //calculate derivatives to avoid triangular grid artifacts
+        //     float2 dxu = ddx(input.coord0.xy * st.xy + st.zw);
+        //     float2 dyu = ddy(input.coord0.xy * st.xy + st.zw);
 
-            //blend samples with calculated weights
-            sampledTexture =    mul(tex.SampleGrad(s, (input.coord0.xy * st.xy + st.zw) + hash2D2D(BW_vx[0].xy), dxu, dyu), BW_vx[3].x) + 
-                                mul(tex.SampleGrad(s, (input.coord0.xy * st.xy + st.zw) + hash2D2D(BW_vx[1].xy), dxu, dyu), BW_vx[3].y) + 
-                                mul(tex.SampleGrad(s, (input.coord0.xy * st.xy + st.zw) + hash2D2D(BW_vx[2].xy), dxu, dyu), BW_vx[3].z);
-            break;
+        //     //blend samples with calculated weights
+        //     sampledTexture =    mul(tex.SampleGrad(s, (input.coord0.xy * st.xy + st.zw) + hash2D2D(BW_vx[0].xy), dxu, dyu), BW_vx[3].x) + 
+        //                         mul(tex.SampleGrad(s, (input.coord0.xy * st.xy + st.zw) + hash2D2D(BW_vx[1].xy), dxu, dyu), BW_vx[3].y) + 
+        //                         mul(tex.SampleGrad(s, (input.coord0.xy * st.xy + st.zw) + hash2D2D(BW_vx[2].xy), dxu, dyu), BW_vx[3].z);
+        //     break;
     }
 
     return sampledTexture;
 }
+
 
 float4 SampleTexture(Texture2D tex, float4 st, int type)
 {
@@ -138,6 +140,34 @@ float4 blendedTextureArray(Texture2DArray tex, float2 uv, float4 blendWeight)
     return bt;
 }
 #endif
+
+float2 GetMainTexUV(int type)
+{
+    float2 uv = 0;
+
+    switch(type)
+    {
+        case 0:
+            uv =  input.coord0.xy * _MainTex_ST.xy + _MainTex_ST.zw + parallaxOffset;
+            break;
+        case 1:
+            uv = input.coord0.zw * _MainTex_ST.xy + _MainTex_ST.zw + parallaxOffset;
+            break;
+        case 2:
+            uv = input.coord1.xy * _MainTex_ST.xy + _MainTex_ST.zw + parallaxOffset;
+            break;
+    }
+    return uv;
+}
+
+float CalculateMipLevel(float2 texture_coord)
+{
+    float2 dx = ddx(texture_coord);
+    float2 dy = ddy(texture_coord);
+    float delta_max_sqr = max(dot(dx, dx), dot(dy, dy));
+    
+    return max(0.0, 0.5 * log2(delta_max_sqr));
+}
 
 // https://github.com/DarthShader/Kaj-Unity-Shaders/blob/926f07a0bf3dc950db4d7346d022c89f9dfdb440/Shaders/Kaj/KajCore.cginc#L1041
 #ifdef POINT

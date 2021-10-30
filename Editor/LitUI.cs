@@ -112,9 +112,9 @@ namespace z3y
         protected MaterialProperty _FresnelColor = null;
         protected MaterialProperty _EnableTextureArray = null;
         protected MaterialProperty _TextureIndex = null;
-        protected MaterialProperty _EnableVertexColor = null;
         protected MaterialProperty _EnableTextureArrayMask = null;
         protected MaterialProperty _ArrayCount = null;
+        protected MaterialProperty _MipScale = null;
 
 
         public void ShaderPropertiesGUI(Material material)
@@ -140,6 +140,7 @@ namespace z3y
                 int mode = (int)_Mode.floatValue;
                 if(mode == 1 || mode == 4){
                     prop(_Cutoff);
+                    prop(_MipScale);
                 }
 
                 EditorGUILayout.Space();
@@ -151,7 +152,7 @@ namespace z3y
                 }
                 else
                 {
-                    if(material.enableInstancing && _EnableVertexColor.floatValue != 1) prop(_TextureIndex);
+                    if(material.enableInstancing) prop(_TextureIndex);
                     prop(_MainTexArray, _Color);
                 }
                 md[material].Show_MainTex = Func.TriangleFoldout(md[material].Show_MainTex, ()=> {

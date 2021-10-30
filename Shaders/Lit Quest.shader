@@ -1,6 +1,6 @@
 ﻿// supports lightmap, directional light, light probes, fog, emission
 
-Shader "Mobile/Lit Quest"
+Shader "z3y/lit quest"
 {
     Properties
     {
@@ -142,6 +142,10 @@ Shader "Mobile/Lit Quest"
 
             half4 frag (v2f i) : SV_Target
             {
+                #ifdef INSTANCING_ON
+                    UNITY_SETUP_INSTANCE_ID(i)
+                #endif
+
                 #ifndef TEXTUREARRAY
                     defaultSampler = sampler_MainTex;
                     half4 mainTexture = _MainTex.Sample(defaultSampler, i.coord0.xy);

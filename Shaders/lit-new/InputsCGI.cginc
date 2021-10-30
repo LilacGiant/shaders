@@ -5,6 +5,8 @@ static SamplerState defaultSampler;
 // CBUFFER_START(UnityPerMaterial)
 
 DECLARE_TEX2D_CUSTOM_SAMPLER(_MainTex);
+float4 _MainTex_TexelSize;
+float _MipScale;
 float4 _Color;
 float _Reflectance;
 float _FresnelIntensity;
@@ -62,6 +64,7 @@ DECLARE_TEX2D_CUSTOM(_AnisotropyMap);
 #if defined(TEXTUREARRAY)
 #undef PARALLAX
 UNITY_DECLARE_TEX2DARRAY(_MainTexArray);
+float4 _MainTexArray_TexelSize;
 UNITY_DECLARE_TEX2DARRAY_NOSAMPLER(_MetallicGlossMapArray);
 UNITY_DECLARE_TEX2DARRAY_NOSAMPLER(_BumpMapArray);
 float _ArrayCount;
@@ -92,7 +95,7 @@ UNITY_INSTANCING_BUFFER_END(Props)
 
 static float2 parallaxOffset;
 static float textureIndex;
-
+static float4 defaultTexelSize;
 #if defined(FOG_LINEAR) || defined(FOG_EXP) || defined(FOG_EXP2) 
     #define NEED_FOG
 #endif
@@ -102,6 +105,12 @@ static float textureIndex;
 #if defined(ANISOTROPY)
     #define CALC_TANGENT_BITANGENT
 #endif
+
+#ifdef UNITY_PASS_META
+    #include "UnityMetaPass.cginc"
+#endif
+
+
 
 #ifdef UNITY_PASS_FORWARDBASE
     #define NEED_TANGENT_BITANGENT
@@ -114,7 +123,6 @@ static float textureIndex;
         #define NEED_VERTEX_COLOR
     #endif
 #endif
-
 
 #ifdef UNITY_PASS_FORWARDADD
     #define NEED_TANGENT_BITANGENT
@@ -155,4 +163,14 @@ static float textureIndex;
     #if defined(LIGHTMAP_SHADOW_MIXING) && defined(SHADOWS_SHADOWMASK) && defined(SHADOWS_SCREEN) && defined(LIGHTMAP_ON)
         #define NEED_SCREEN_POS
     #endif
+#endif
+
+#ifdef UNITY_PASS_META
+    #define NEED_TANGENT_BITANGENT
+    #define NEED_WORLD_POS
+    #define NEED_WORLD_NORMAL
+    #if defined(PARALLAX)
+        #define NEED_PARALLAX_DIR
+    #endif
+    #include "UnityMetaPass.cginc"
 #endif
