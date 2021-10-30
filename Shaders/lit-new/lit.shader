@@ -10,7 +10,8 @@
         _MipScale ("Mip Scale", Range(0, 1)) = 0.25
 
         [Toggle(TEXTUREARRAY)] _EnableTextureArray ("Texture Arrays", Float) = 0
-        [IntRange] _TextureIndex ("Instance Index", Range(0,255)) = 0
+        [Toggle(TEXTUREARRAYINSTANCED)] _EnableTextureArrayInstancing ("Instanced Array Index", Float) = 0
+        _TextureIndex ("Instance Index", Int) = 0
 
         _TextureIndexAnimated("", Int) = 1
 
@@ -89,7 +90,6 @@
         [Toggle(ANISOTROPY)] _EnableAnisotropy ("Anisotropy", Int) = 0
             _Anisotropy ("Anisotropy", Range(-1,1)) = 0
             _AnisotropyMap ("Anisotropy Direction Map:Bitangent(R), Tangent(G)", 2D) = "white" {}
-
         
 
         [Enum(UnityEngine.Rendering.BlendOp)] _BlendOp ("Blend Op", Int) = 0
@@ -100,6 +100,17 @@
         [Enum(UnityEngine.Rendering.CompareFunction)] _ZTest ("ZTest", Int) = 4
         [Enum(UnityEngine.Rendering.CullMode)] _Cull ("Cull", Int) = 2
         [Enum(Off, 0, On, 1)] _AlphaToMask ("Alpha To Coverage", Int) = 0
+
+
+        // unlocked properties
+        _MetallicAnimated("", Float) = 1
+        _GlossinessAnimated("", Float) = 1
+        _OcclusionAnimated("", Float) = 1
+        _BumpScaleAnimated("", Float) = 1
+        _ReflectanceAnimated("", Float) = 1
+        _ColorAnimated("", Float) = 1
+
+        VertexLights("Allow Vertex Lights", Float) = 0
     }
     
 
@@ -122,15 +133,18 @@
         #pragma shader_feature_local NONLINEAR_LIGHTPROBESH
         #pragma shader_feature_local BAKEDSPECULAR
         #pragma shader_feature_local ANISOTROPY
+        #pragma shader_feature_local TEXTUREARRAYINSTANCED
         #pragma shader_feature_local TEXTUREARRAY
         #pragma shader_feature_local TEXTUREARRAYMASK
         #pragma shader_feature_local TEXTUREARRAYBUMP
+
         ENDCG
 
         Tags { "RenderType"="Opaque" "Queue"="Geometry" }
 
         Pass
         {
+            Name "FORWARDBASE"
             Tags { "LightMode"="ForwardBase" }
             ZWrite [_ZWrite]
             Cull [_Cull]
@@ -143,19 +157,16 @@
             #pragma multi_compile_fwdbase
             #pragma multi_compile_instancing
             #pragma multi_compile_fog
-            // #pragma multi_compile _ VERTEXLIGHT_ON
+
+            //CommentIfZero_VertexLights
+            #pragma multi_compile _ VERTEXLIGHT_ON
+            //CommentIfZero_VertexLights
+
             // #pragma multi_compile _ LOD_FADE_CROSSFADE
 
             #define NEED_TANGENT_BITANGENT
             #define NEED_WORLD_POS
             #define NEED_WORLD_NORMAL
-            
-            #if defined(PARALLAX)
-                #define NEED_PARALLAX_DIR
-            #endif
-            #if defined(LIGHTMAP_SHADOW_MIXING) && defined(SHADOWS_SHADOWMASK) && defined(SHADOWS_SCREEN) && defined(LIGHTMAP_ON)
-                #define NEED_SCREEN_POS
-            #endif
 
             #include "PassCGI.cginc"
             ENDCG
@@ -163,6 +174,7 @@
 
         Pass
         {
+            Name "FORWARDADD"
             Tags { "LightMode"="ForwardAdd" }
             Fog { Color (0,0,0,0) }
             ZWrite Off
@@ -188,13 +200,6 @@
             #define NEED_TANGENT_BITANGENT
             #define NEED_WORLD_POS
             #define NEED_WORLD_NORMAL
-
-            #if defined(PARALLAX)
-                #define NEED_PARALLAX_DIR
-            #endif
-            #if defined(LIGHTMAP_SHADOW_MIXING) && defined(SHADOWS_SHADOWMASK) && defined(SHADOWS_SCREEN) && defined(LIGHTMAP_ON)
-                #define NEED_SCREEN_POS
-            #endif
             
             #include "PassCGI.cginc"
             ENDCG
@@ -203,6 +208,7 @@
 
         Pass
         {
+            Name "SHADOWCASTER"
             Tags { "LightMode"="ShadowCaster" }
             AlphaToMask Off
             ZWrite On
@@ -214,7 +220,7 @@
             #pragma multi_compile_instancing
             // #pragma multi_compile _ LOD_FADE_CROSSFADE
             #pragma skip_variants FOG_LINEAR FOG_EXP FOG_EXP2
-            #pragma skip_variants REFLECTIONS EMISSION BICUBIC_LIGHTMAP PARALLAX BAKEDSPECULAR ANISOTROPY NONLINEAR_LIGHTPROBESH SPECULAR_HIGHLIGHTS _WORKFLOW_UNPACKED
+            #pragma skip_variants REFLECTIONS EMISSION BICUBIC_LIGHTMAP PARALLAX BAKEDSPECULAR ANISOTROPY NONLINEAR_LIGHTPROBESH SPECULAR_HIGHLIGHTS _WORKFLOW_UNPACKED TEXTUREARRAYMASK TEXTUREARRAYBUMP
             #undef REFLECTIONS
             #undef EMISSION
             #undef BICUBIC_LIGHTMAP
@@ -224,6 +230,8 @@
             #undef NONLINEAR_LIGHTPROBESH
             #undef SPECULAR_HIGHLIGHTS
             #undef _WORKFLOW_UNPACKED
+            #undef TEXTUREARRAYMASK
+            #undef TEXTUREARRAYBUMP
 
             #include "PassCGI.cginc"
             ENDCG
@@ -238,7 +246,7 @@
             CGPROGRAM
             #pragma shader_feature EDITOR_VISUALIZATION
 
-            #pragma skip_variants BICUBIC_LIGHTMAP SPECULAR_HIGHLIGHTS REFLECTIONS PARALLAX NONLINEAR_LIGHTPROBESH BAKEDSPECULAR ANISOTROPY
+            #pragma skip_variants BICUBIC_LIGHTMAP SPECULAR_HIGHLIGHTS REFLECTIONS PARALLAX NONLINEAR_LIGHTPROBESH BAKEDSPECULAR ANISOTROPY TEXTUREARRAYMASK TEXTUREARRAYBUMP
             #undef BICUBIC_LIGHTMAP
             #undef SPECULAR_HIGHLIGHTS
             #undef REFLECTIONS
@@ -246,6 +254,8 @@
             #undef NONLINEAR_LIGHTPROBESH
             #undef BAKEDSPECULAR
             #undef ANISOTROPY
+            #undef TEXTUREARRAYMASK
+            #undef TEXTUREARRAYBUMP
 
             #define NEED_TANGENT_BITANGENT
             #define NEED_WORLD_POS
@@ -256,5 +266,5 @@
         }
     }
     CustomEditor "z3y.LitUI"
-    FallBack "z3y/lit quest"
+    FallBack "Mobile/Lit Quest"
 }

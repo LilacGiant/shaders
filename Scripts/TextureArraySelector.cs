@@ -16,7 +16,7 @@ public class TextureArraySelector : MonoBehaviour
         for (int i = 0; i < mesh?.subMeshCount; i++)
         {
             if(index.Count != mesh.subMeshCount) index.Add(0);
-            index[i] = Mathf.Clamp(index[i], 0, 255);
+            index[i] = Mathf.Clamp(index[i], 0, int.MaxValue);
             SetUVW(mesh, i, index[i]);
         }
     }
@@ -65,7 +65,7 @@ public class TextureArraySelectorEditor : Editor
         {
             var value = idx.GetArrayElementAtIndex(i);
             EditorGUILayout.BeginHorizontal();
-            EditorGUILayout.IntSlider( value, 0, 255);
+            EditorGUILayout.PropertyField(value);
             if(GUILayout.Button("-")) value.intValue --;
             if(GUILayout.Button("+")) value.intValue ++;
             GUILayout.EndHorizontal();

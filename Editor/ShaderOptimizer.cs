@@ -48,7 +48,6 @@ using VRC.SDKBase.Editor.BuildPipeline;
 #endif
 #endregion
 
-
 namespace z3y
 {
 
@@ -137,6 +136,7 @@ namespace z3y
             {
                 Unlock(m);
                 m.SetFloat(ShaderOptimizerEnabled, 0);
+                ShaderUtil.ClearCachedData(m.shader);
             }
         }
 
@@ -148,7 +148,8 @@ namespace z3y
             "_DstBlend",
             "_ZWrite",
             "_ZTest",
-            "_Cull"
+            "_Cull",
+            "_MainTex"
         };
 
         public static readonly string[] TexelSizeCheck = {
@@ -163,6 +164,8 @@ namespace z3y
             Material[] mats = GetMaterialsUsingOptimizer(false);
             float progress = mats.Length;
 
+            int sharedCount = 0;
+
             if(progress == 0) return;
             
             AssetDatabase.StartAssetEditing();
@@ -173,6 +176,7 @@ namespace z3y
                 EditorUtility.DisplayCancelableProgressBar("Generating Shaders", mats[i].name, i/progress);
 
                 int propCount = ShaderUtil.GetPropertyCount(mats[i].shader);
+                MaterialProperty[] props = MaterialEditor.GetMaterialProperties(new Object[] { mats[i] });
                 StringBuilder materialPropertyValues = new StringBuilder(mats[i].shader.name);
 
                 for(int l=0; l<propCount; l++)
@@ -186,6 +190,15 @@ namespace z3y
                     }
 
                     bool isAnimated = !mats[i].GetTag(propName, false).Equals(string.Empty, StringComparison.Ordinal);
+
+                    if(!isAnimated)
+                    {
+                        MaterialProperty animatedProp = Array.Find(props, x => x.name == propName + AnimatedPropertySuffix);
+                        if (animatedProp != null)
+                        {
+                            isAnimated = animatedProp.floatValue == 1;
+                        }
+                    }
 
                     if(isAnimated)
                     {
@@ -230,6 +243,7 @@ namespace z3y
                 if (MaterialsPropertyHash.ContainsKey(propertyKeys))
                 {
                     MaterialsPropertyHash.TryGetValue(propertyKeys, out sharedMaterial);
+                    sharedCount++;
                 }
                 else
                 {
@@ -249,6 +263,10 @@ namespace z3y
                 LockApplyShader(mats[i]);
             }
             EditorUtility.ClearProgressBar();
+
+            Debug.Log($"[<Color=fuchsia>ShaderOptimizer</Color>] Locked <b>{mats.Length}</b> Materials. Generated <b>{mats.Length-sharedCount}</b> unique shaders. <b>{sharedCount}</b> materials sharing same shader.");
+            Shader.WarmupAllShaders();
+            
             
         }
 
@@ -765,7 +783,6 @@ namespace z3y
             {
                 string lineParsed = fileLines[i].TrimStart();
 
-                // Skip the cginc
                 if (lineParsed.StartsWith("//#if") && mat != null)
                 {
                     string[] materialProperties = Regex.Split(lineParsed.Replace("//#if", ""), ",");
@@ -792,6 +809,23 @@ namespace z3y
                     }
                 }
 
+                else if(lineParsed.StartsWith("//CommentIfZero_") && mat != null)
+                {
+                    string[] propertyName = Regex.Split(lineParsed, "_");
+  
+                    if(mat.GetFloat(propertyName[1]) == 0)
+                    {
+                        for (int j = i; j < fileLines.Length; j++)
+                        {
+                            i++;
+                            fileLines[j] = fileLines[j].Insert(0, "//");
+                            if(fileLines[j].TrimStart() == "//CommentIfZero_") break;
+                        }
+                    }
+
+                }
+
+                // Skip the cginc
                 // Specifically requires no whitespace between # and include, as it should be
                 else if (lineParsed.StartsWith("#include"))
                 {

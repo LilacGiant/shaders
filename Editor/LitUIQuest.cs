@@ -18,6 +18,7 @@ namespace z3y
         protected MaterialProperty _MainTexArray = null;
         protected MaterialProperty _EnableTextureArray = null;
         protected MaterialProperty _TextureIndex = null;
+        protected MaterialProperty _EnableTextureArrayInstancing = null;
 
         public void ShaderPropertiesGUI(Material material)
         {
@@ -39,6 +40,8 @@ namespace z3y
             }
 
             me.ShaderProperty(_EnableTextureArray, _EnableTextureArray.displayName);
+            if(_EnableTextureArray.floatValue == 1) me.ShaderProperty(_EnableTextureArrayInstancing, _EnableTextureArrayInstancing.displayName);
+
             me.DoubleSidedGIField();
             me.EnableInstancingField();
             me.RenderQueueField();

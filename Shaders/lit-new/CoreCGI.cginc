@@ -1,17 +1,16 @@
 float4 frag (v2f i, uint facing : SV_IsFrontFace) : SV_Target
 {
     input = i;
+    UNITY_SETUP_INSTANCE_ID(i)
+
     #if defined(PARALLAX)
         parallaxOffset = ParallaxOffset(i.parallaxViewDir);
-    #endif
-    #ifdef INSTANCING_ON
-    UNITY_SETUP_INSTANCE_ID(i)
     #endif
 
     #if defined(TEXTUREARRAY)
         defaultSampler = sampler_MainTexArray;
         defaultTexelSize = _MainTexArray_TexelSize;
-        #ifdef INSTANCING_ON
+        #ifdef TEXTUREARRAYINSTANCED
             textureIndex = UNITY_ACCESS_INSTANCED_PROP(Props, _TextureIndex);
         #else
             textureIndex = i.coord1.z;
@@ -54,6 +53,8 @@ float4 frag (v2f i, uint facing : SV_IsFrontFace) : SV_Target
     float3 vertexLight = 0;
     float3 indirectSpecular = 0;
     float3 directSpecular = 0;
+    float3 vertexLightColor = 0;
+
 
     float3 worldNormal = i.worldNormal;
     float3 bitangent = i.bitangent;
@@ -203,6 +204,10 @@ float4 frag (v2f i, uint facing : SV_IsFrontFace) : SV_Target
         LIGHT_ATTENUATION_NO_SHADOW_MUL(lightAttenNoShadows, i, i.worldPos.xyz);
         float3 lightAttenuation = lightAttenNoShadows * shadow;
         pixelLight = (lightNoL * lightAttenuation * _LightColor0.rgb) * Fd_Burley(perceptualRoughness, NoV, lightNoL, lightLoH);
+    #endif
+
+    #if defined(VERTEXLIGHT_ON) && defined(UNITY_PASS_FORWARDBASE)
+        initVertexLights(i.worldPos, worldNormal, vertexLight, vertexLightColor);
     #endif
 
     

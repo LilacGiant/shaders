@@ -12,7 +12,7 @@ public class InstancedArrayIndex : MonoBehaviour
 
     private void OnValidate()
     {
-        index = Mathf.Clamp(index, 0, 255);
+        index = Mathf.Clamp(index, 0, int.MaxValue);
         Renderer r = gameObject.GetComponent<Renderer>();
         MaterialPropertyBlock b = new MaterialPropertyBlock();
         b.SetFloat("_TextureIndex", index);
@@ -33,7 +33,7 @@ public class InstancedArrayIndexEditor : Editor
         serializedObject.Update();
 
         EditorGUILayout.BeginHorizontal();
-        EditorGUILayout.IntSlider( idx, 0, 255);
+        EditorGUILayout.PropertyField(idx);
         if(GUILayout.Button("-")) idx.intValue --;
         if(GUILayout.Button("+")) idx.intValue ++;
         GUILayout.EndHorizontal();

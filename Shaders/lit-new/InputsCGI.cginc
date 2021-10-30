@@ -77,13 +77,13 @@ float _ArrayCount;
 
 // CBUFFER_END
 
-#ifdef INSTANCING_ON
+
 UNITY_INSTANCING_BUFFER_START(Props)
-    #if defined (TEXTUREARRAY)
+    #if defined (TEXTUREARRAYINSTANCED)
         UNITY_DEFINE_INSTANCED_PROP(float, _TextureIndex)
     #endif
 UNITY_INSTANCING_BUFFER_END(Props)
-#endif
+
 
 #if !defined(OPTIMIZER_ENABLED) // defined if texture gets used
     #define PROP_BUMPMAP
@@ -100,6 +100,16 @@ UNITY_INSTANCING_BUFFER_END(Props)
 static float2 parallaxOffset;
 static float textureIndex;
 static float4 defaultTexelSize;
+
+#if defined(VERTEXLIGHT_ON) && defined(UNITY_PASS_FORWARDBASE)
+struct VertexLightInformation {
+    float3 Direction[4];
+    float3 ColorFalloff[4];
+    float Attenuation[4];
+};
+static VertexLightInformation vertexLightInformation;
+#endif
+
 #if defined(FOG_LINEAR) || defined(FOG_EXP) || defined(FOG_EXP2) 
     #define NEED_FOG
 #endif
@@ -112,4 +122,12 @@ static float4 defaultTexelSize;
 
 #ifdef UNITY_PASS_META
     #include "UnityMetaPass.cginc"
+#endif
+
+#if defined(PARALLAX)
+    #define NEED_PARALLAX_DIR
+#endif
+
+#if defined(LIGHTMAP_SHADOW_MIXING) && defined(SHADOWS_SHADOWMASK) && defined(SHADOWS_SCREEN) && defined(LIGHTMAP_ON)
+    #define NEED_SCREEN_POS
 #endif

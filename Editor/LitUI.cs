@@ -115,6 +115,7 @@ namespace z3y
         protected MaterialProperty _EnableTextureArrayMask = null;
         protected MaterialProperty _ArrayCount = null;
         protected MaterialProperty _MipScale = null;
+        protected MaterialProperty _EnableTextureArrayInstancing = null;
 
 
         public void ShaderPropertiesGUI(Material material)
@@ -343,6 +344,7 @@ namespace z3y
                 prop(_EnableTextureArray);
                 if(texArray)
                 {                    
+                    prop(_EnableTextureArrayInstancing);
                     prop(_EnableTextureArrayMask);
                     prop(_EnableTextureArrayBump);
                 }

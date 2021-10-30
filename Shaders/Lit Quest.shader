@@ -1,6 +1,6 @@
 ﻿// supports lightmap, directional light, light probes, fog, emission
 
-Shader "z3y/lit quest"
+Shader "Mobile/Lit Quest"
 {
     Properties
     {
@@ -13,7 +13,8 @@ Shader "z3y/lit quest"
         _EmissionMap ("Emission Map", 2D) = "white" {}
 
         [Toggle(TEXTUREARRAY)] _EnableTextureArray ("Texture Array", Float) = 0
-        [IntRange] _TextureIndex ("Instance Index", Range(0,255)) = 0
+        [Toggle(TEXTUREARRAYINSTANCED)] _EnableTextureArrayInstancing ("Instanced Array Index", Float) = 0
+        _TextureIndex ("Instance Index", Int) = 0
 
         [Enum(UnityEngine.Rendering.CullMode)] _Cull ("Cull", Int) = 2
     }
@@ -38,6 +39,7 @@ Shader "z3y/lit quest"
 
             #pragma shader_feature_local EMISSION
             #pragma shader_feature_local TEXTUREARRAY
+            #pragma shader_feature_local TEXTUREARRAYINSTANCED
 
             #include "UnityCG.cginc"
             #include "Lighting.cginc"
@@ -106,7 +108,7 @@ Shader "z3y/lit quest"
 
             #ifdef INSTANCING_ON
             UNITY_INSTANCING_BUFFER_START(Props)
-                #if defined (TEXTUREARRAY)
+                #if defined (TEXTUREARRAYINSTANCED)
                     UNITY_DEFINE_INSTANCED_PROP(float, _TextureIndex)
                 #endif
             UNITY_INSTANCING_BUFFER_END(Props)
@@ -142,7 +144,7 @@ Shader "z3y/lit quest"
 
             half4 frag (v2f i) : SV_Target
             {
-                #ifdef INSTANCING_ON
+                #ifdef TEXTUREARRAYINSTANCED
                     UNITY_SETUP_INSTANCE_ID(i)
                 #endif
 
@@ -151,7 +153,7 @@ Shader "z3y/lit quest"
                     half4 mainTexture = _MainTex.Sample(defaultSampler, i.coord0.xy);
                 #else
                     defaultSampler = sampler_MainTexArray;
-                    #ifdef INSTANCING_ON
+                    #ifdef TEXTUREARRAYINSTANCED
                         textureIndex = UNITY_ACCESS_INSTANCED_PROP(Props, _TextureIndex);
                     #else
                         textureIndex = i.arrayIndex;
@@ -191,6 +193,46 @@ Shader "z3y/lit quest"
             }
             ENDCG
         }
+
+        
+        Pass
+        {
+            Name "ShadowCaster"
+            Tags { "LightMode" = "ShadowCaster" }
+
+            ZWrite On ZTest LEqual Cull Off
+
+            CGPROGRAM
+            #pragma vertex vert
+            #pragma fragment frag
+            #pragma target 3.5
+            #pragma multi_compile_shadowcaster
+            #pragma multi_compile_instancing
+
+            #include "UnityCG.cginc"
+
+            struct v2f
+            {
+                V2F_SHADOW_CASTER;
+                UNITY_VERTEX_OUTPUT_STEREO
+            };
+
+            v2f vert(appdata_base v)
+            {
+                v2f o;
+                UNITY_SETUP_INSTANCE_ID(v);
+                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
+                TRANSFER_SHADOW_CASTER_NORMALOFFSET(o)
+                return o;
+            }
+
+            float4 frag( v2f i ) : SV_Target
+            {
+                SHADOW_CASTER_FRAGMENT(i)
+            }
+            ENDCG
+        }
+        
     }
     CustomEditor "z3y.LitUIQuest"
     FallBack "VRChat/Mobile/Lightmapped"
