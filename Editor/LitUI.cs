@@ -122,8 +122,25 @@ namespace z3y
         public void ShaderPropertiesGUI(Material material)
         {
             bool texArray = _EnableTextureArray.floatValue == 1;
+
+            if(!isLocked)
+            {
+
+                if(isBakeryMaterial)
+                {
+                    EditorGUI.indentLevel--;
+                    EditorGUILayout.HelpBox("Revert Bakery materials before editing: Tools > Shader Optimizer > Revert Bakery Materials", MessageType.Info);
+                    EditorGUI.indentLevel++;
+
+                    isLocked = true;
+                }
+
+            }
             
             md[material].ShowSurfaceInputs = Foldout("Surface Inputs", md[material].ShowSurfaceInputs, ()=> {
+                
+                
+
 
 
                 EditorGUI.BeginChangeCheck();
@@ -308,23 +325,26 @@ namespace z3y
                 prop(_NonLinearLightProbeSH);
                 prop(_BakedSpecular);
 
-                // #if BAKERY_INCLUDED
-                // Func.PropertyGroup(() => {
-                //     EditorGUILayout.LabelField("Bakery", EditorStyles.boldLabel);
-                //     prop(_BAKERY_SH);
-                //     prop(_BAKERY_SHNONLINEAR);
-                //     prop(_BAKERY_RNM);
-                //     EditorGUI.BeginDisabledGroup(true);
-                //     if(_BAKERY_SH.floatValue == 1 || _BAKERY_RNM.floatValue == 1)
-                //     {
-                //         prop(bakeryLightmapMode);
-                //         prop(_RNM0);
-                //         prop(_RNM1);
-                //         prop(_RNM2);
-                //     }
-                //     EditorGUI.EndDisabledGroup();
-                // });
-                // #endif
+                #if BAKERY_INCLUDED
+                Func.PropertyGroup(() => {
+                    EditorGUILayout.LabelField("Bakery", EditorStyles.boldLabel);
+                    prop(_BAKERY_SH);
+                    prop(_BAKERY_SHNONLINEAR);
+                    prop(_BAKERY_RNM);
+                    if(_BAKERY_SH.floatValue == 1 || _BAKERY_RNM.floatValue == 1)
+                    {
+                        EditorGUI.BeginDisabledGroup(true);
+                        prop(bakeryLightmapMode);
+                        prop(_RNM0);
+                        prop(_RNM1);
+                        prop(_RNM2);
+                        EditorGUI.EndDisabledGroup();
+                    EditorGUI.indentLevel--;
+                    EditorGUILayout.HelpBox("Generate Bakery materials before locking: Toos > Shader Optimizer > Generate Bakery Materials", MessageType.Info);
+                    EditorGUI.indentLevel++;
+                    }
+                });
+                #endif
             });
 
 
@@ -385,6 +405,7 @@ namespace z3y
         protected MaterialProperty wAg6H2wQzc7UbxaL = null;
 
         public bool isLocked;
+        public bool isBakeryMaterial;
         Material material = null;
         MaterialProperty[] allProps;
 
@@ -399,6 +420,8 @@ namespace z3y
             if (m_FirstTimeApply)
             {
                 m_FirstTimeApply = false;
+                isBakeryMaterial = !material.GetTag("OriginalMaterialPath", false, string.Empty).Equals(string.Empty, StringComparison.Ordinal);
+
             }
             
             Func.ShaderOptimizerButton(wAg6H2wQzc7UbxaL, me);

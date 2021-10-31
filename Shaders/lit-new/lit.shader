@@ -101,6 +101,15 @@
         [Enum(UnityEngine.Rendering.CullMode)] _Cull ("Cull", Int) = 2
         [Enum(Off, 0, On, 1)] _AlphaToMask ("Alpha To Coverage", Int) = 0
 
+
+        [Toggle(BAKERY_SH)] _BAKERY_SH ("Enable SH", Float) = 0
+        // [Toggle(BAKERY_SHNONLINEAR)] _BAKERY_SHNONLINEAR ("SH non-linear mode", Int) = 0
+        [Toggle(BAKERY_RNM)] _BAKERY_RNM ("Enable RNM", Int) = 0
+        [Enum(BAKERYMODE_DEFAULT, 0, BAKERYMODE_VERTEXLM, 1, BAKERYMODE_RNM, 2, BAKERYMODE_SH, 3)] bakeryLightmapMode ("bakeryLightmapMode", Int) = 0
+            _RNM0("RNM0", 2D) = "black" {}
+            _RNM1("RNM1", 2D) = "black" {}
+            _RNM2("RNM2", 2D) = "black" {}
+
         // optimizer toggles
         [ToggleUI] VertexLights("Allow Vertex Lights", Float) = 0
 
@@ -111,6 +120,9 @@
         _BumpScaleAnimated("", Float) = 1
         _ReflectanceAnimated("", Float) = 1
         _ColorAnimated("", Float) = 1
+        bakeryLightmapModeAnimated("", Float) = 1
+        _MainTexArray_TexelSizeAnimated("", Float) = 1
+        _MainTex_TexelSizeAnimated("", Float) = 1
 
     }
     
@@ -138,6 +150,8 @@
         #pragma shader_feature_local TEXTUREARRAY
         #pragma shader_feature_local TEXTUREARRAYMASK
         #pragma shader_feature_local TEXTUREARRAYBUMP
+        #pragma shader_feature_local BAKERY_SH
+        #pragma shader_feature_local BAKERY_RNM
 
         ENDCG
 
@@ -191,11 +205,13 @@
             #pragma multi_compile_fog
             // #pragma multi_compile _ LOD_FADE_CROSSFADE
 
-            #pragma skip_variants BICUBIC_LIGHTMAP REFLECTIONS EMISSION BAKEDSPECULAR
+            #pragma skip_variants BICUBIC_LIGHTMAP REFLECTIONS EMISSION BAKEDSPECULAR BAKERY_SH BAKERY_RNM
             #undef BICUBIC_LIGHTMAP
             #undef REFLECTIONS
             #undef EMISSION
             #undef BAKEDSPECULAR
+            #undef BAKERY_SH
+            #undef BAKERY_RNM
 
 
             #define NEED_TANGENT_BITANGENT
@@ -221,7 +237,7 @@
             #pragma multi_compile_instancing
             // #pragma multi_compile _ LOD_FADE_CROSSFADE
             #pragma skip_variants FOG_LINEAR FOG_EXP FOG_EXP2
-            #pragma skip_variants REFLECTIONS EMISSION BICUBIC_LIGHTMAP PARALLAX BAKEDSPECULAR ANISOTROPY NONLINEAR_LIGHTPROBESH SPECULAR_HIGHLIGHTS _WORKFLOW_UNPACKED TEXTUREARRAYMASK TEXTUREARRAYBUMP
+            #pragma skip_variants REFLECTIONS EMISSION BICUBIC_LIGHTMAP PARALLAX BAKEDSPECULAR ANISOTROPY NONLINEAR_LIGHTPROBESH SPECULAR_HIGHLIGHTS _WORKFLOW_UNPACKED TEXTUREARRAYMASK TEXTUREARRAYBUMP BAKERY_SH BAKERY_RNM
             #undef REFLECTIONS
             #undef EMISSION
             #undef BICUBIC_LIGHTMAP
@@ -233,6 +249,8 @@
             #undef _WORKFLOW_UNPACKED
             #undef TEXTUREARRAYMASK
             #undef TEXTUREARRAYBUMP
+            #undef BAKERY_SH
+            #undef BAKERY_RNM
 
             #include "PassCGI.cginc"
             ENDCG
@@ -247,7 +265,7 @@
             CGPROGRAM
             #pragma shader_feature EDITOR_VISUALIZATION
 
-            #pragma skip_variants BICUBIC_LIGHTMAP SPECULAR_HIGHLIGHTS REFLECTIONS PARALLAX NONLINEAR_LIGHTPROBESH BAKEDSPECULAR ANISOTROPY TEXTUREARRAYMASK TEXTUREARRAYBUMP
+            #pragma skip_variants BICUBIC_LIGHTMAP SPECULAR_HIGHLIGHTS REFLECTIONS PARALLAX NONLINEAR_LIGHTPROBESH BAKEDSPECULAR ANISOTROPY TEXTUREARRAYMASK TEXTUREARRAYBUMP BAKERY_SH BAKERY_RNM
             #undef BICUBIC_LIGHTMAP
             #undef SPECULAR_HIGHLIGHTS
             #undef REFLECTIONS
@@ -257,6 +275,8 @@
             #undef ANISOTROPY
             #undef TEXTUREARRAYMASK
             #undef TEXTUREARRAYBUMP
+            #undef BAKERY_SH
+            #undef BAKERY_RNM
 
             #define NEED_TANGENT_BITANGENT
             #define NEED_WORLD_POS

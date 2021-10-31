@@ -131,3 +131,26 @@ static VertexLightInformation vertexLightInformation;
 #if defined(LIGHTMAP_SHADOW_MIXING) && defined(SHADOWS_SHADOWMASK) && defined(SHADOWS_SCREEN) && defined(LIGHTMAP_ON)
     #define NEED_SCREEN_POS
 #endif
+
+#if !defined(LIGHTMAP_ON) || !defined(UNITY_PASS_FORWARDBASE)
+#undef BAKERY_SH
+#undef BAKERY_RNM
+#endif
+
+#if defined(BAKERY_SH) || defined(BAKERY_RNM)
+    float bakeryLightmapMode;
+    #ifdef BAKERY_SH
+    #define BAKERY_SHNONLINEAR
+    #endif
+    #ifdef BAKEDSPECULAR
+    #define _BAKERY_LMSPEC
+    #define BAKERY_LMSPEC
+    #define NEED_PARALLAX_DIR
+
+    #endif
+
+    #include "Bakery.cginc"
+
+#else
+static float bakeryLightmapMode = 0;
+#endif

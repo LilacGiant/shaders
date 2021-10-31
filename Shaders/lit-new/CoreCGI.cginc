@@ -197,6 +197,7 @@ float4 frag (v2f i, uint facing : SV_IsFrontFace) : SV_Target
     float NoV = abs(dot(worldNormal, viewDir)) + 1e-5;
 
     #ifdef USING_LIGHT_MULTI_COMPILE
+        bool lightExists = any(_WorldSpaceLightPos0.xyz);
         float3 lightDirection = Unity_SafeNormalize(UnityWorldSpaceLightDir(i.worldPos.xyz));
         float3 lightHalfVector = Unity_SafeNormalize(lightDirection + viewDir);
         float lightNoL = saturate(dot(worldNormal, lightDirection));
@@ -333,33 +334,58 @@ float4 frag (v2f i, uint facing : SV_IsFrontFace) : SV_Target
             float V = V_SmithGGXCorrelated_Anisotropic(at, ab, ToV, BoV, ToL, BoL, NoV, lightNoL);
         #endif
 
-        directSpecular += max(0, (D * V) * F) * pixelLight * UNITY_PI;
+        directSpecular = max(0, (D * V) * F) * pixelLight * UNITY_PI;
     }
     #endif
 
-    #ifdef BAKEDSPECULAR
+    #if defined(BAKEDSPECULAR) && defined(UNITY_PASS_FORWARDBASE)
     {
-        float3 bakedDominantDirection = 1;
-        float3 bakedSpecularColor = 0;
+        if(bakeryLightmapMode < 2)
+        {
+            float3 bakedDominantDirection = 1;
+            float3 bakedSpecularColor = 0;
 
-        #if !defined(BAKERY_SH) && !defined(BAKERY_RNM)
 
-            #ifdef DIRLIGHTMAP_COMBINED
-                bakedDominantDirection = (lightMapDirection.xyz) * 2 - 1;
-                bakedSpecularColor = indirectDiffuse;
-            #endif
+                #ifdef DIRLIGHTMAP_COMBINED
+                    bakedDominantDirection = (lightMapDirection.xyz) * 2 - 1;
+                    bakedSpecularColor = indirectDiffuse;
+                #endif
 
-            #ifndef LIGHTMAP_ON
-                bakedSpecularColor = float3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w);
-                bakedDominantDirection = unity_SHAr.xyz + unity_SHAg.xyz + unity_SHAb.xyz;
-            #endif
-            
+                #ifndef LIGHTMAP_ON
+                    bakedSpecularColor = float3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w);
+                    bakedDominantDirection = unity_SHAr.xyz + unity_SHAg.xyz + unity_SHAb.xyz;
+                #endif
+                
+            float3 bakedHalfDir = Unity_SafeNormalize(normalize(bakedDominantDirection) + viewDir);
+            half nh = saturate(dot(worldNormal, bakedHalfDir));
+            half bakedSpecular = D_GGX(nh, clampedRoughness);
+            directSpecular += bakedSpecular * bakedSpecularColor * fresnel;
+        }
+    }
+    #endif
+
+    #if defined(BAKERY_RNM)
+    if (bakeryLightmapMode == BAKERYMODE_RNM)
+    {
+        float3 eyeVecT = 0;
+        #ifdef BAKERY_LMSPEC
+            eyeVecT = -normalize(i.parallaxViewDir);
         #endif
 
-        float3 bakedHalfDir = Unity_SafeNormalize(normalize(bakedDominantDirection) + viewDir);
-        half nh = saturate(dot(worldNormal, bakedHalfDir));
-        half bakedSpecular = D_GGX(nh, clampedRoughness);
-        directSpecular += bakedSpecular * bakedSpecularColor * fresnel;
+        float3 prevSpec = indirectSpecular;
+        BakeryRNM(indirectDiffuse, indirectSpecular, lightmapUV, tangentNormal, perceptualRoughness, eyeVecT);
+        indirectSpecular *= fresnel;
+        indirectSpecular += prevSpec;
+    }
+    #endif
+
+    #ifdef BAKERY_SH
+    if (bakeryLightmapMode == BAKERYMODE_SH)
+    {
+        float3 prevSpec = indirectSpecular;
+        BakerySH(indirectDiffuse, indirectSpecular, lightmapUV, worldNormal, -viewDir, perceptualRoughness);
+        indirectSpecular *= fresnel;
+        indirectSpecular += prevSpec;
     }
     #endif
 
