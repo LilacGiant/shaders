@@ -436,9 +436,8 @@ namespace z3y
             };
         }
 
-        private void prop(MaterialProperty property) => Func.MaterialProp(property, null, me, isLocked, material, null);
-        private void prop(MaterialProperty property, MaterialProperty extraProperty) => Func.MaterialProp(property, extraProperty, me, isLocked, material, null);
-        private void prop(MaterialProperty property, MaterialProperty extraProperty, string nameOverride) => Func.MaterialProp(property, extraProperty, me, isLocked, material, nameOverride);
+        private void prop(MaterialProperty property) => Func.MaterialProp(property, null, me, isLocked, material);
+        private void prop(MaterialProperty property, MaterialProperty extraProperty) => Func.MaterialProp(property, extraProperty, me, isLocked, material);
         
         private void propTileOffset(MaterialProperty property) => Func.propTileOffset(property, isLocked, me, material);
         private void ListAnimatedProps() => Func.ListAnimatedProps(isLocked, allProps, material);

@@ -172,9 +172,9 @@
             #pragma multi_compile_instancing
             #pragma multi_compile_fog
 
-            // CommentIfZero_VertexLights
+            //CommentIfZero_VertexLights
             #pragma multi_compile _ VERTEXLIGHT_ON
-            // CommentIfZero_VertexLights
+            //CommentIfZero_VertexLights
 
             // #pragma multi_compile _ LOD_FADE_CROSSFADE
 
