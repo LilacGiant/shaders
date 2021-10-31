@@ -1,4 +1,4 @@
-﻿Shader "z3y/layered lit"
+﻿Shader "z3y/other/layered lit"
 {
 	Properties
 	{

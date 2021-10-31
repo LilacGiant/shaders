@@ -7,7 +7,7 @@
 #define BAKERYMODE_RNM 2.0f
 #define BAKERYMODE_SH 3.0f
 
-#ifdef BICUBIC_LIGHTMAP
+#ifdef ENABLE_BICUBIC_LIGHTMAP
 #define BAKERY_BICUBIC
 #endif
 

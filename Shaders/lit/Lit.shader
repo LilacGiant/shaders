@@ -1,172 +1,165 @@
-Shader "z3y/old/lit"
+﻿Shader "z3y/lit"
 {
-
     Properties
     {
         wAg6H2wQzc7UbxaL ("Is Locked", Int) = 0
 
+        [Toggle(_WORKFLOW_UNPACKED)] _Workflow ("Unpacked Mask", Int) = 0
+        [KeywordEnum(Opaque, Cutout, Fade, Transparent)] _Mode ("Rendering Mode", Int) = 0
+        _Cutoff ("Alpha Cuttoff", Range(0, 1)) = 0.5
+        _MipScale ("Mip Scale", Range(0, 1)) = 0.25
 
-        [Enum(Opaque, 0, Cutout, 1, Fade, 2, Transparent, 3)] _Mode("Rendering Mode", Int) = 0
-            [Enum(Off, 0, On, 1, Sharpened, 2)] _AlphaToMask ("Alpha To Coverage", Int) = 0
-            _Cutoff ("Alpha Cuttoff", Range(0, 1)) = 0.5
+        [Toggle(TEXTUREARRAY)] _EnableTextureArray ("Texture Arrays", Float) = 0
+        [Toggle(TEXTUREARRAYINSTANCED)] _EnableTextureArrayInstancing ("Instanced Array Index", Float) = 0
+        _TextureIndex ("Instance Index", Int) = 0
 
-        
+        _TextureIndexAnimated("", Int) = 1
+
         _MainTex ("Base Map", 2D) = "white" {}
-            [Enum(UV 0, 0, UV 1, 1, UV 2, 2, Triplanar, 4, Stochastic, 5, SuperSampling, 6)] _MainTexUV ("UV Type", Int) = 0
-            _MainTex_STAnimated("_MainTex_ST", Int) = 1
+        _MainTexArray ("Base Map Array", 2DArray) = "white" {}
+            [Enum(UV 0, 0, UV 1, 1, UV 2, 2)] _MainTex_UV ("UV Type", Int) = 0
             _Color ("Base Color", Color) = (1,1,1,1)
             _Saturation ("Saturation", Range(-1,1)) = 0
-            _SuperSamplingBias ("SuperSampling Bias", Range(-2,1)) = -1
-            [ToggleUI] _EnableVertexColor ("Vertex Colors Mulitply Base", Int) = 0
-      
 
-        [Toggle(ENABLE_PACKED_MODE)] _EnablePackedMode ("Packed Mode", Float) = 1
-
-        _MetallicGlossMap ("Mask Map:Metallic(R), Occlusion(G), Detail Mask(B), Smoothness(A)", 2D) = "white" {}
-            [Enum(UV 0 Locked, 0, UV 1, 1, UV 2, 2, UV 0 Unlocked, 3, Triplanar, 4, Stochastic, 5)] _MetallicGlossMapUV ("UV Type", Int) = 0
-
-        _SmoothnessMap ("Smoothness Map", 2D) = "white" {}
-            [Enum(UV 0 Locked, 0, UV 1, 1, UV 2, 2, UV 0 Unlocked, 3, Triplanar, 4, Stochastic, 5)]  _SmoothnessMapUV ("UV Type", Int) = 0
-            [ToggleUI] _GlossinessInvert ("Invert Smoothness", Float) = 0
-
-        _MetallicMap ("Metallic Map", 2D) = "white" {}
-            [Enum(UV 0 Locked, 0, UV 1, 1, UV 2, 2, UV 0 Unlocked, 3, Triplanar, 4, Stochastic, 5)]  _MetallicMapUV ("UV Type", Int) = 0
-
-        _OcclusionMap ("Occlusion Map", 2D) = "white" {}
-            [Enum(UV 0 Locked, 0, UV 1, 1, UV 2, 2, UV 0 Unlocked, 3, Triplanar, 4, Stochastic, 5)]  _OcclusionMapUV ("UV Type", Int) = 0
 
         _Metallic ("Metallic", Range(0,1)) = 0
         _Glossiness ("Smoothness", Range(0,1)) = 0.5
-        _Occlusion ("Occlusion", Range(0,1)) = 0
+        _Occlusion ("Occlusion", Range(0,1)) = 1
+
+        _MetallicGlossMap ("Mask Map:Metallic(R), Occlusion(G), Detail Mask(B), Smoothness(A)", 2D) = "white" {}
+        [Toggle(TEXTUREARRAYMASK)] _EnableTextureArrayMask ("Mask Map Array", Float) = 0
+        _MetallicGlossMapArray ("Mask Map Array:Metallic(R), Occlusion(G), Detail Mask(B), Smoothness(A)", 2DArray) = "white" {}
+            [Enum(UV 0 Locked, 0, UV 1, 1, UV 2, 2, UV 0 Unlocked, 3)] _MetallicGlossMap_UV ("UV Type", Int) = 0
+
+        _SmoothnessMap ("Smoothness Map", 2D) = "white" {}
+            [Enum(UV 0 Locked, 0, UV 1, 1, UV 2, 2, UV 0 Unlocked, 3)]  _SmoothnessMap_UV ("UV Type", Int) = 0
+            [ToggleUI] _GlossinessInvert ("Invert Texture", Float) = 0
+
+        _MetallicMap ("Metallic Map", 2D) = "white" {}
+            [Enum(UV 0 Locked, 0, UV 1, 1, UV 2, 2, UV 0 Unlocked, 3)]  _MetallicMap_UV ("UV Type", Int) = 0
+
+        _OcclusionMap ("Occlusion Map", 2D) = "white" {}
+            [Enum(UV 0 Locked, 0, UV 1, 1, UV 2, 2, UV 0 Unlocked, 3)]  _OcclusionMap_UV ("UV Type", Int) = 0
 
 
         [Normal] _BumpMap ("Normal Map", 2D) = "bump" {}
+        _BumpMapArray ("Normal Map Array", 2DArray) = "bump" {}
+            [Toggle(TEXTUREARRAYBUMP)] _EnableTextureArrayBump ("Normal Map Array", Float) = 0
             _BumpScale ("Bump Scale", Range(0,10)) = 0
             [Enum(OpenGL, 0, Direct3D, 1)] _NormalMapOrientation ("Orientation", Int) = 0
-            [Enum(UV 0 Locked, 0, UV 1, 1, UV 2, 2, UV 0 Unlocked, 3, Triplanar, 4, Stochastic, 5)] _BumpMapUV ("UV Type", Int) = 0
+            [Enum(UV 0 Locked, 0, UV 1, 1, UV 2, 2, UV 0 Unlocked, 3)] _BumpMap_UV ("UV Type", Int) = 0
             [ToggleUI] _HemiOctahedron ("Hemi Octahedron", Int) = 0
 
 
-        [ToggleUI] _EnableEmission ("Emission", Float) = 0
+        [Toggle(SPECULAR_HIGHLIGHTS)] _SpecularHighlights("Specular Highlights", Float) = 1
+        [Toggle(REFLECTIONS)] _GlossyReflections("Reflections", Float) = 1
+            _FresnelIntensity ("Fresnel Intensity", Range(0,1)) = 1
+            _Reflectance ("Reflectance", Range(0,1)) = 0.5
+            _SpecularOcclusion ("Specular Occlusion", Range(0,1)) = 0
+            _FresnelColor ("Tint", Color) = (1,1,1)
+
+
+        [Toggle(BICUBIC_LIGHTMAP)] _BicubicLightmap ("Bicubic Lightmap", Int) = 0
+
+        [ToggleUI] _GSAA ("Geometric Specular AA", Int) = 0
+            [PowerSlider(2)] _specularAntiAliasingVariance ("Variance", Range(0.0, 1.0)) = 0.15
+            [PowerSlider(2)] _specularAntiAliasingThreshold ("Threshold", Range(0.0, 1.0)) = 0.1
+
+        [Toggle(EMISSION)] _EnableEmission ("Emission", Int) = 0
             _EmissionMap ("Emission Map", 2D) = "white" {}
             [ToggleUI] _EmissionMultBase ("Multiply Base", Int) = 0
             [HDR] _EmissionColor ("Emission Color", Color) = (0,0,0)
-            [Enum(UV 0 Locked, 0, UV 1, 1, UV 2, 2, UV 0 Unlocked, 3, Triplanar, 4, Stochastic, 5)]  _EmissionMapUV ("UV Type", Int) = 0
+            [Enum(UV 0 Locked, 0, UV 1, 1, UV 2, 2, UV 0 Unlocked, 3)]  _EmissionMap_UV ("UV Type", Int) = 0
+
+        _DetailMap ("Detail Map:Desaturated Albedo(R), Normal Y(G), Smoothness(B), Normal X(A)", 2D) = "linearGrey" {}
+            [Enum(UV 0 Locked, 0, UV 1, 1, UV 2, 2, UV 0 Unlocked, 3)]  _DetailMap_UV ("UV Type", Int) = 0
+            _DetailAlbedoScale ("Albedo Scale", Range(0.0, 2.0)) = 0
+            _DetailNormalScale ("Normal Scale", Range(0.0, 2.0)) = 0
+            _DetailSmoothnessScale ("Smoothness Scale", Range(0.0, 2.0)) = 0
+
+        [Toggle(PARALLAX)] _EnableParallax ("Parallax", Int) = 0
+            _Parallax ("Height Scale", Range (0, 0.2)) = 0.02
+            _ParallaxMap ("Height Map", 2D) = "white" {}
+            [IntRange] _ParallaxSteps ("Parallax Steps", Range(1,50)) = 25
+            _ParallaxOffset ("Parallax Offset", Range(-1, 1)) = 0
 
 
-        [ToggleUI] _EnableAnisotropy ("Anisotropy", Int) = 0
+        [Toggle(NONLINEAR_LIGHTPROBESH)] _NonLinearLightProbeSH ("Non-linear Light Probe SH", Int) = 1
+        [Toggle(BAKEDSPECULAR)] _BakedSpecular ("Baked Specular Highlights ", Int) = 0
+
+        [Toggle(ANISOTROPY)] _EnableAnisotropy ("Anisotropy", Int) = 0
             _Anisotropy ("Anisotropy", Range(-1,1)) = 0
             _AnisotropyMap ("Anisotropy Direction Map:Bitangent(R), Tangent(G)", 2D) = "white" {}
-
-
-        [Toggle(ENABLE_SPECULAR_HIGHLIGHTS)] _SpecularHighlights("Specular Highlights", Float) = 1
-        [Toggle(ENABLE_REFLECTIONS)] _GlossyReflections("Reflections", Float) = 1
-            [Enum(Metallic, 0, Specular, 1)] _SpecularWorkflow ("Workflow", Int) = 0
-            _SpecGlossMap ("Specular Color", 2D) = "white" {}
-            _SpecColor ("Specular Color", Color) = (0.5,0.5,0.5,0.5)
-            [Enum(UV 0 Locked, 0, UV 1, 1, UV 2, 2, UV 0 Unlocked, 3, Triplanar, 4, Stochastic, 5)]  _SpecGlossMapUV ("UV Type", Int) = 0
-            _SheenColor ("Sheen Color", Color) = (0.5,0.5,0.5,0.5)
-            _SheenRoughness ("Sheen Roughness", Range(0.004,1)) = 0.004
-            _FresnelColor ("Tint", Color) = (1,1,1,1)
-            _Reflectance ("Reflectance", Range(0,1)) = 0.5
-
-
-        [ToggleUI] _GSAA ("Geometric Specular AA", Int) = 0
-            [PowerSlider(3)] _specularAntiAliasingVariance ("Variance", Range(0.0, 1.0)) = 0.15
-            [PowerSlider(3)] _specularAntiAliasingThreshold ("Threshold", Range(0.0, 1.0)) = 0.1
-            
-
-        [Toggle(ENABLE_BICUBIC_LIGHTMAP)] _BicubicLightmap ("Bicubic Lightmap", Float) = 0
-        [ToggleUI] _LightProbeMethod ("Non-linear Light Probe SH", Int) = 0
-        _LightmapMultiplier ("Lightmap Multiplier", Range(0, 2)) = 1
-        _SpecularOcclusion ("Indirect Specular Occlusion", Range(0, 1)) = 0
-        _SpecularOcclusionSensitivity ("Occlusion Sensitivity", Range(0, 1)) = 0
-
+        
 
         [Enum(UnityEngine.Rendering.BlendOp)] _BlendOp ("Blend Op", Int) = 0
         [Enum(UnityEngine.Rendering.BlendOp)] _BlendOpAlpha ("Blend Op Alpha", Int) = 0
         [Enum(UnityEngine.Rendering.BlendMode)] _SrcBlend ("Source Blend", Int) = 1
         [Enum(UnityEngine.Rendering.BlendMode)] _DstBlend ("Destination Blend", Int) = 0
-
         [Enum(Off, 0, On, 1)] _ZWrite ("ZWrite", Int) = 1
         [Enum(UnityEngine.Rendering.CompareFunction)] _ZTest ("ZTest", Int) = 4
         [Enum(UnityEngine.Rendering.CullMode)] _Cull ("Cull", Int) = 2
+        [Enum(Off, 0, On, 1)] _AlphaToMask ("Alpha To Coverage", Int) = 0
 
 
-        [Toggle(ENABLE_PARALLAX)] _EnableParallax ("Parallax", Int) = 0
-            _Parallax ("Height Scale", Range (0, 0.2)) = 0.02
-            _ParallaxMap ("Height Map", 2D) = "black" {}
-            [IntRange] _ParallaxSteps ("Parallax Steps", Range(1,50)) = 25
-            _ParallaxOffset ("Parallax Offset", Range(-1, 1)) = 0
-
-
-        _DetailMap ("Detail Map:Desaturated Albedo(R), Normal Y(G), Smoothness(B), Normal X(A)", 2D) = "linearGrey" {}
-            [Enum(UV 0 Locked, 0, UV 1, 1, UV 2, 2, UV 0 Unlocked, 3, Triplanar, 4, Stochastic, 5)]  _DetailMapUV ("UV Type", Int) = 0
-            _DetailAlbedoScale ("Albedo Scale", Range(0.0, 2.0)) = 1
-            _DetailNormalScale ("Normal Scale", Range(0.0, 2.0)) = 0
-            _DetailSmoothnessScale ("Smoothness Scale", Range(0.0, 2.0)) = 1
-        
-        
-        [Toggle(ENABLE_AUDIOLINK)] _EnableAudioLink ("Audio Link", Float) = 0
-            _AudioTexture ("Audio Link Render Texture", 2D) = "black" {}
-            _ALSmoothing ("Audio Link Smoothing", Range(0, 1)) = 0.5
-
-            [Enum(Bass, 0, Low Mids, 1, High Mids, 2, Treble, 3)] _ALEmissionBand ("Audio Link Emission Band", Int) = 0
-            [Enum(Disabled, 0, Gradient, 1, Path, 2, Intensity, 3)] _ALEmissionType ("Audio Link Emission Type", Int) = 0
-            _ALEmissionMap ("Audio Link Emission Path & Mask: Path(G), Mask(A)", 2D) = "white" {}
-
-
-        [Toggle(BAKERY_LMSPEC)] _BAKERY_LMSPEC ("Baked Specular Highlights ", Int) = 0
         [Toggle(BAKERY_SH)] _BAKERY_SH ("Enable SH", Float) = 0
-        [Toggle(BAKERY_SHNONLINEAR)] _BAKERY_SHNONLINEAR ("SH non-linear mode", Int) = 0
         [Toggle(BAKERY_RNM)] _BAKERY_RNM ("Enable RNM", Int) = 0
         [Enum(BAKERYMODE_DEFAULT, 0, BAKERYMODE_VERTEXLM, 1, BAKERYMODE_RNM, 2, BAKERYMODE_SH, 3)] bakeryLightmapMode ("bakeryLightmapMode", Int) = 0
-            _SpecularDirection ("Non-Directional Lightmap Specular Direction", Vector) = (0, 1, 0)
             _RNM0("RNM0", 2D) = "black" {}
             _RNM1("RNM1", 2D) = "black" {}
             _RNM2("RNM2", 2D) = "black" {}
 
+        // optimizer toggles
+        [ToggleUI] VertexLights("Allow Vertex Lights", Float) = 0
 
-        [Toggle(CENTROID_NORMAL)] _CentroidNormal ("Centroid Normal", Int) = 0
-
-
-        [Toggle(LOD_FADE_CROSSFADE)] _LodCrossFade ("Dithered LOD Cross-Fade", Int) = 0
-            [ToggleUI] _FlatShading ("Flat Shading", Float) = 0
-
-
-        [Toggle(ENABLE_DISPLACEMENT)] _EnableDisplacement ("Vertex Displacement", Int) = 0
-            _DisplacementMask ("Displacement Mask:XYZ (RGB)", 2D) = "white" {}
-            _DisplacementIntensity ("Displacement Intensity", Float) = 0
-            _DisplacementScale ("Displacement Scale", Float) = 1
-            [Enum(UV 0 , 0, UV 1, 1, UV 2, 2)] _DisplacementMaskUV ("Displacement UV", Int) = 0
-
-            _DisplacementNoise ("Displacement Noise", 2D) = "white" {}
-            _DisplacementNoisePan ("Noise Pan Speed XY", Vector) = (1, 1, 0)
-            [ToggleUI] _RandomizePosition ("Randomize Panning", Int) = 0
-
-
-            [ToggleUI] _SubsurfaceScattering ("Subsurface Scattering", Int) = 0
-                _Scale ("Scale", Float) = 1
-                _Power ("Power", Float) = 1
-                _ThicknessMap ("Thickness Map", 2D) = "white" {}
-                [Enum(UV 0 Locked, 0, UV 1, 1, UV 2, 2, UV 0 Unlocked, 3)]  _ThicknessMapUV ("UV Type", Int) = 0
-                _SubsurfaceTint ("Subsurface Tint", Color) = (1,1,1,1)
-
-
-
+        // unlocked properties
+        _MetallicAnimated("", Float) = 1
+        _GlossinessAnimated("", Float) = 1
+        _OcclusionAnimated("", Float) = 1
+        _BumpScaleAnimated("", Float) = 1
+        _ReflectanceAnimated("", Float) = 1
+        _ColorAnimated("", Float) = 1
+        bakeryLightmapModeAnimated("", Float) = 1
+        _MainTexArray_TexelSizeAnimated("", Float) = 1
+        _MainTex_TexelSizeAnimated("", Float) = 1
 
     }
+    
 
     SubShader
     {
+        CGINCLUDE
+        #pragma target 5.0
+        #pragma vertex vert
+        #pragma fragment frag
+        #pragma exclude_renderers gles3
+        #pragma fragmentoption ARB_precision_hint_fastest
+        
+        #pragma shader_feature_local _ _MODE_CUTOUT _MODE_FADE _MODE_TRANSPARENT
+        #pragma shader_feature_local _WORKFLOW_UNPACKED
+        #pragma shader_feature_local BICUBIC_LIGHTMAP
+        #pragma shader_feature_local SPECULAR_HIGHLIGHTS
+        #pragma shader_feature_local REFLECTIONS
+        #pragma shader_feature_local EMISSION
+        #pragma shader_feature_local PARALLAX
+        #pragma shader_feature_local NONLINEAR_LIGHTPROBESH
+        #pragma shader_feature_local BAKEDSPECULAR
+        #pragma shader_feature_local ANISOTROPY
+        #pragma shader_feature_local TEXTUREARRAYINSTANCED
+        #pragma shader_feature_local TEXTUREARRAY
+        #pragma shader_feature_local TEXTUREARRAYMASK
+        #pragma shader_feature_local TEXTUREARRAYBUMP
+        #pragma shader_feature_local BAKERY_SH
+        #pragma shader_feature_local BAKERY_RNM
+
+        ENDCG
 
         Tags { "RenderType"="Opaque" "Queue"="Geometry" }
 
         Pass
         {
-            Name "FORWARD"
+            Name "FORWARDBASE"
             Tags { "LightMode"="ForwardBase" }
-            
             ZWrite [_ZWrite]
             Cull [_Cull]
             ZTest [_ZTest]
@@ -175,44 +168,27 @@ Shader "z3y/old/lit"
             Blend [_SrcBlend] [_DstBlend]
 
             CGPROGRAM
-            #pragma target 5.0
-            #pragma vertex vert
-            #pragma fragment frag
-            #pragma exclude_renderers gles3
-            #pragma fragmentoption ARB_precision_hint_fastest
             #pragma multi_compile_fwdbase
             #pragma multi_compile_instancing
             #pragma multi_compile_fog
+
+            // CommentIfZero_VertexLights
             #pragma multi_compile _ VERTEXLIGHT_ON
-            #pragma multi_compile _ LOD_FADE_CROSSFADE
+            // CommentIfZero_VertexLights
 
-            #pragma shader_feature_local ENABLE_SPECULAR_HIGHLIGHTS
-            #pragma shader_feature_local ENABLE_REFLECTIONS
-            #pragma shader_feature_local ENABLE_PACKED_MODE
-            #pragma shader_feature_local ENABLE_BICUBIC_LIGHTMAP
-            #pragma shader_feature_local ENABLE_PARALLAX
-            #pragma shader_feature_local ENABLE_AUDIOLINK
-            #pragma shader_feature_local BAKERY_SHNONLINEAR
-            #pragma shader_feature_local CENTROID_NORMAL
-            #pragma shader_feature_local ENABLE_DISPLACEMENT
+            // #pragma multi_compile _ LOD_FADE_CROSSFADE
 
-            #pragma shader_feature_local BAKERY_SH
-            #pragma shader_feature_local BAKERY_RNM
-            #pragma shader_feature_local BAKERY_LMSPEC
+            #define NEED_TANGENT_BITANGENT
+            #define NEED_WORLD_POS
+            #define NEED_WORLD_NORMAL
 
-
-            #ifndef UNITY_PASS_FORWARDBASE
-                #define UNITY_PASS_FORWARDBASE
-            #endif
-
-            #include "LitPass.cginc"
+            #include "PassCGI.cginc"
             ENDCG
         }
 
-
         Pass
         {
-            Name "FWDADD"
+            Name "FORWARDADD"
             Tags { "LightMode"="ForwardAdd" }
             Fog { Color (0,0,0,0) }
             ZWrite Off
@@ -223,34 +199,32 @@ Shader "z3y/old/lit"
             AlphaToMask [_AlphaToMask]
 
             CGPROGRAM
-            #pragma target 5.0
-            #pragma vertex vert
-            #pragma fragment frag
-            #pragma exclude_renderers gles3
             #pragma multi_compile_fwdadd_fullshadows
             #pragma multi_compile_instancing
             #pragma multi_compile_fog
-            #pragma multi_compile _ LOD_FADE_CROSSFADE
+            // #pragma multi_compile _ LOD_FADE_CROSSFADE
 
-            #pragma shader_feature_local ENABLE_SPECULAR_HIGHLIGHTS
-            #pragma shader_feature_local ENABLE_PACKED_MODE
-            #pragma shader_feature_local ENABLE_PARALLAX
-            #pragma shader_feature_local CENTROID_NORMAL
-            #pragma shader_feature_local ENABLE_DISPLACEMENT
+            #pragma skip_variants BICUBIC_LIGHTMAP REFLECTIONS EMISSION BAKEDSPECULAR BAKERY_SH BAKERY_RNM
+            #undef BICUBIC_LIGHTMAP
+            #undef REFLECTIONS
+            #undef EMISSION
+            #undef BAKEDSPECULAR
+            #undef BAKERY_SH
+            #undef BAKERY_RNM
 
 
-            #ifndef UNITY_PASS_FORWARDADD
-                #define UNITY_PASS_FORWARDADD
-            #endif
-
-            #include "LitPass.cginc"
+            #define NEED_TANGENT_BITANGENT
+            #define NEED_WORLD_POS
+            #define NEED_WORLD_NORMAL
+            
+            #include "PassCGI.cginc"
             ENDCG
         }
 
 
         Pass
         {
-            Name "ShadowCaster"
+            Name "SHADOWCASTER"
             Tags { "LightMode"="ShadowCaster" }
             AlphaToMask Off
             ZWrite On
@@ -258,22 +232,26 @@ Shader "z3y/old/lit"
             ZTest LEqual
 
             CGPROGRAM
-            #pragma target 5.0
-            #pragma vertex vert
-            #pragma exclude_renderers gles3
-            #pragma fragment ShadowCasterfrag
             #pragma multi_compile_shadowcaster
             #pragma multi_compile_instancing
-            #pragma multi_compile _ LOD_FADE_CROSSFADE
+            // #pragma multi_compile _ LOD_FADE_CROSSFADE
             #pragma skip_variants FOG_LINEAR FOG_EXP FOG_EXP2
-            
-            #pragma shader_feature_local ENABLE_DISPLACEMENT
+            #pragma skip_variants REFLECTIONS EMISSION BICUBIC_LIGHTMAP PARALLAX BAKEDSPECULAR ANISOTROPY NONLINEAR_LIGHTPROBESH SPECULAR_HIGHLIGHTS _WORKFLOW_UNPACKED TEXTUREARRAYMASK TEXTUREARRAYBUMP BAKERY_SH BAKERY_RNM
+            #undef REFLECTIONS
+            #undef EMISSION
+            #undef BICUBIC_LIGHTMAP
+            #undef PARALLAX
+            #undef BAKEDSPECULAR
+            #undef ANISOTROPY
+            #undef NONLINEAR_LIGHTPROBESH
+            #undef SPECULAR_HIGHLIGHTS
+            #undef _WORKFLOW_UNPACKED
+            #undef TEXTUREARRAYMASK
+            #undef TEXTUREARRAYBUMP
+            #undef BAKERY_SH
+            #undef BAKERY_RNM
 
-            #ifndef UNITY_PASS_SHADOWCASTER
-                #define UNITY_PASS_SHADOWCASTER
-            #endif
-
-            #include "LitPass.cginc"
+            #include "PassCGI.cginc"
             ENDCG
         }
 
@@ -284,24 +262,29 @@ Shader "z3y/old/lit"
             Cull Off
 
             CGPROGRAM
-            #pragma vertex vert
-            #pragma fragment frag
-
-            #pragma shader_feature_local ENABLE_PACKED_MODE
             #pragma shader_feature EDITOR_VISUALIZATION
-            #pragma shader_feature_local ENABLE_AUDIOLINK
-            
 
+            #pragma skip_variants BICUBIC_LIGHTMAP SPECULAR_HIGHLIGHTS REFLECTIONS PARALLAX NONLINEAR_LIGHTPROBESH BAKEDSPECULAR ANISOTROPY TEXTUREARRAYMASK TEXTUREARRAYBUMP BAKERY_SH BAKERY_RNM
+            #undef BICUBIC_LIGHTMAP
+            #undef SPECULAR_HIGHLIGHTS
+            #undef REFLECTIONS
+            #undef PARALLAX
+            #undef NONLINEAR_LIGHTPROBESH
+            #undef BAKEDSPECULAR
+            #undef ANISOTROPY
+            #undef TEXTUREARRAYMASK
+            #undef TEXTUREARRAYBUMP
+            #undef BAKERY_SH
+            #undef BAKERY_RNM
 
-            #ifndef UNITY_PASS_META
-                #define UNITY_PASS_META
-            #endif
+            #define NEED_TANGENT_BITANGENT
+            #define NEED_WORLD_POS
+            #define NEED_WORLD_NORMAL
 
-            #include "LitPass.cginc"
+            #include "PassCGI.cginc"
             ENDCG
         }
-
     }
-    FallBack "Mobile/Lit Quest"
-    CustomEditor "z3y.LitShaderEditor"
+    CustomEditor "z3y.LitUI"
+    FallBack "z3y/other/simple lit"
 }

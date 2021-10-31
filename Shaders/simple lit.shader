@@ -1,6 +1,6 @@
 ﻿// supports lightmap, directional light, light probes, fog, emission
 
-Shader "Mobile/Lit Quest"
+Shader "z3y/other/simple lit"
 {
     Properties
     {
