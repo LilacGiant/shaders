@@ -24,7 +24,7 @@
 
         _Metallic ("Metallic", Range(0,1)) = 0
         _Glossiness ("Smoothness", Range(0,1)) = 0.5
-        _Occlusion ("Occlusion", Range(0,1)) = 1
+        _Occlusion ("Occlusion", Range(0,1)) = 0
 
         _MetallicGlossMap ("Mask Map:Metallic(R), Occlusion(G), Detail Mask(B), Smoothness(A)", 2D) = "white" {}
         [Toggle(TEXTUREARRAYMASK)] _EnableTextureArrayMask ("Mask Map Array", Float) = 0
