@@ -3,6 +3,7 @@ using UnityEditor;
 using UnityEngine;
 using System.IO;
 using System;
+using System.Linq;
 
 namespace z3y
 {
@@ -125,7 +126,7 @@ namespace z3y
             EditorGUI.BeginDisabledGroup(isLocked);
             if(property is null) return;
 
-            string animatedPropName = null;
+            MaterialProperty animatedProp = null;
 
             if( property.type == MaterialProperty.PropType.Range ||
                 property.type == MaterialProperty.PropType.Float ||
@@ -133,33 +134,79 @@ namespace z3y
                 property.type == MaterialProperty.PropType.Color)
             {
                 me.ShaderProperty(property, property.displayName);
-                animatedPropName = property.name.ToString();
+                animatedProp = property;
 
             }
 
             if(property.type == MaterialProperty.PropType.Texture) 
             {
                 string[] p = property.displayName.Split(hoverSplitSeparator);
-                animatedPropName = extraProperty != null ? extraProperty.name.ToString() : null;
+                animatedProp = extraProperty != null ? extraProperty : null;
+                p[0] = p[0]; 
 
 
 
                 me.TexturePropertySingleLine(new GUIContent(p[0], p.Length == 2 ? p[1] : null), property, extraProperty);
             }
 
-            AnimatedPropertyToggle(animatedPropName, material);
+            HandleMouseEvents(animatedProp, material);
 
             EditorGUI.EndDisabledGroup();
  
         }
         const string AnimatedPropertySuffix = "Animated";
 
-        public static void AnimatedPropertyToggle (string k, Material material)
+        public struct ResetPropertyData
         {
-            if(k == null) return;
+            public MaterialProperty p;
+            public float defaultFloatValue;
+            public Vector4 defaultVectorValue;
+            public string[] attributes;
+        }
+
+        static ResetPropertyData resetProperty;
+
+        public static void HandleMouseEvents (MaterialProperty p, Material material)
+        {
+            if(p is null) return;
+
+            string k = p.name;
             string animatedName = k + AnimatedPropertySuffix;
             bool isAnimated = material.GetTag(animatedName, false) == "" ? false : true;
             var e = Event.current;
+
+            if (e.type == EventType.MouseDown && GUILayoutUtility.GetLastRect().Contains(e.mousePosition) && e.button == 1)
+            {
+                int propIndex = material.shader.FindPropertyIndex(p.name);
+                if(p.type == MaterialProperty.PropType.Float || p.type == MaterialProperty.PropType.Range || p.type == MaterialProperty.PropType.Vector)
+                {
+                    resetProperty.p = p;
+
+                    
+
+                    if(p.type == MaterialProperty.PropType.Vector)
+                        resetProperty.defaultVectorValue = material.shader.GetPropertyDefaultVectorValue(propIndex);
+                    else
+                        resetProperty.defaultFloatValue = material.shader.GetPropertyDefaultFloatValue(propIndex);
+
+                    resetProperty.attributes = material.shader.GetPropertyAttributes(propIndex);
+                    bool isKeywordToggle = false;
+                    foreach (var s in resetProperty.attributes)
+                    {
+                        if(s.StartsWith("Toggle(")) isKeywordToggle = true;
+                        else if(s.StartsWith("ToggleOff(")) isKeywordToggle = true;
+                        else if(s.StartsWith("KeywordEnum(")) isKeywordToggle = true;
+                    }
+                    if(isKeywordToggle) return;
+
+                    GenericMenu menu = new GenericMenu();
+                    menu.AddItem(new GUIContent("Reset"), false, ResetProperty);
+                    menu.ShowAsContext();
+
+                }
+                
+                
+            }
 
             if (e.type == EventType.MouseDown && GUILayoutUtility.GetLastRect().Contains(e.mousePosition) && e.button == 2)
             {
@@ -173,6 +220,20 @@ namespace z3y
 
                 GUI.DrawTexture(stopWatch, Func.animatedTex);
 
+            }
+        }
+
+        public static void ResetProperty()
+        {
+            
+
+            if(resetProperty.p.type == MaterialProperty.PropType.Range || resetProperty.p.type == MaterialProperty.PropType.Float)
+            {
+                resetProperty.p.floatValue = resetProperty.defaultFloatValue;
+            }
+            else
+            {
+                resetProperty.p.vectorValue = resetProperty.defaultVectorValue;
             }
         }
 
@@ -208,7 +269,7 @@ namespace z3y
         {
             EditorGUI.BeginDisabledGroup(isLocked);
             me.TextureScaleOffsetProperty(property);
-            AnimatedPropertyToggle(property.name.ToString(), material);
+            HandleMouseEvents(property, material);
             EditorGUI.EndDisabledGroup();
         }
 
@@ -261,9 +322,6 @@ namespace z3y
                     }
                     else
                     {
-                        #if BAKERY_INCLUDED
-                            ShaderOptimizer.RevertHandleBakeryPropertyBlocks();
-                        #endif
                         foreach (Material m in materialEditor.targets)
                             if (!ShaderOptimizer.Unlock(m))
                                 m.SetFloat(shaderOptimizer.name, 1);

@@ -211,4 +211,3 @@ uniform float _ALEmissionBand;
 uniform float _ALEmissionType;
 uniform float _ALSmoothing;
 UNITY_DECLARE_TEX2D(_ALEmissionMap);
-

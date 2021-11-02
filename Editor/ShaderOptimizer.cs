@@ -48,18 +48,9 @@ using VRC.SDKBase.Editor.BuildPipeline;
 #endif
 #endregion
 
-
 namespace z3y
 {
-    
-    class AutoLockOnBuild : IPreprocessBuildWithReport
-    {
-        public int callbackOrder => 69;
-        public void OnPreprocessBuild(BuildReport report)
-        {
-            ShaderOptimizer.LockAllMaterials();
-        }
-    }
+
 
 #if VRC_SDK_VRCSDK2 || VRC_SDK_VRCSDK3
     public class LockMaterialsOnVRCWorldUpload : IVRCSDKBuildRequestedCallback
@@ -82,16 +73,7 @@ namespace z3y
 
         public void OnProcessShader(Shader shader, ShaderSnippetData snippet, IList<ShaderCompilerData> data)
         {
-            bool shouldStrip = false;
-
-            bool usingOptimizer = false;
-            try 
-            {
-                usingOptimizer = ShaderUtil.GetPropertyName(shader, 0) == ShaderOptimizer.ShaderOptimizerEnabled;
-            }
-            catch {}
-            
-            if (usingOptimizer && !shader.name.StartsWith("Hidden/")) shouldStrip = true; // make your shader pink if you dont lock it :>
+            bool shouldStrip = ShaderOptimizer.IsShaderUsingOptimizer(shader) && !shader.name.StartsWith("Hidden/");
 
             for (int i = data.Count - 1; i >= 0; --i)
             {
@@ -109,22 +91,6 @@ namespace z3y
         }
     }
 
-    
-    public enum LightMode
-    {
-        Always=1,
-        ForwardBase=2,
-        ForwardAdd=4,
-        Deferred=8,
-        ShadowCaster=16,
-        MotionVectors=32,
-        PrepassBase=64,
-        PrepassFinal=128,
-        Vertex=256,
-        VertexLMRGBM=512,
-        VertexLM=1024
-    }
-
     // Static methods to generate new shader files with in-place constants based on a material's properties
     // and link that new shader to the material automatically
     public class ShaderOptimizer
@@ -132,37 +98,32 @@ namespace z3y
         // For some reason, 'if' statements with replaced constant (literal) conditions cause some compilation error
         // So until that is figured out, branches will be removed by default
         // Set to false if you want to keep UNITY_BRANCH and [branch]
-        public static bool RemoveUnityBranches = true;
-
+        private static bool RemoveUnityBranches = true;
 
         // LOD Crossfade Dithing doesn't have multi_compile keyword correctly toggled at build time (its always included) so
         // this hard-coded material property will uncomment //#pragma multi_compile _ LOD_FADE_CROSSFADE in optimized .shader files
-        public static readonly string LODCrossFadePropertyName = "_LodCrossFade";
-
-
+        private static readonly string LODCrossFadePropertyName = "_LodCrossFade";
         
-
         // Material property suffix that controls whether the property of the same name gets baked into the optimized shader
         // e.g. if _Color exists and _ColorAnimated = 1, _Color will not be baked in
-        public static readonly string AnimatedPropertySuffix = "Animated";
+        private static readonly string AnimatedPropertySuffix = "Animated";
 
-        public static readonly string OriginalShaderTag = "OriginalShaderTag";
-        public static readonly string ShaderOptimizerEnabled = "wAg6H2wQzc7UbxaL";
-
+        private static readonly string OriginalShaderTag = "OriginalShaderTag";
+        private static readonly string ShaderOptimizerEnabled = "wAg6H2wQzc7UbxaL";
 
         // Material properties are put into each CGPROGRAM as preprocessor defines when the optimizer is run.
         // This is mainly targeted at culling interpolators and lines that rely on those interpolators.
         // (The compiler is not smart enough to cull VS output that isn't used anywhere in the PS)
         // Additionally, simply enabling the optimizer can define a keyword, whose name is stored here.
         // This keyword is added to the beginning of all passes, right after CGPROGRAM
-        public static readonly string OptimizerEnabledKeyword = "OPTIMIZER_ENABLED";
+
+        private static readonly string OptimizerEnabledKeyword = "OPTIMIZER_ENABLED";
 
 
         private static readonly bool ReplaceAnimatedParameters = false;
-
+        
         public static void LockMaterial(Material mat, bool applyLater, Material sharedMaterial)
         {
-
             mat.SetFloat(ShaderOptimizerEnabled, 1);
             MaterialProperty[] props = MaterialEditor.GetMaterialProperties(new Object[] { mat });
             if (!Lock(mat, props, applyLater, sharedMaterial)) // Error locking shader, revert property
@@ -172,11 +133,6 @@ namespace z3y
         [MenuItem("Tools/Shader Optimizer/Unlock Materials In Scene")]
         public static void UnlockAllMaterials()
         {
-            #if BAKERY_INCLUDED
-                ftLightmapsStorage storage = ftRenderLightmap.FindRenderSettingsStorage();
-                if(storage.renderSettingsRenderDirMode == 3 || storage.renderSettingsRenderDirMode == 4) RevertHandleBakeryPropertyBlocks();
-            #endif
-
             Material[] mats = GetMaterialsUsingOptimizer(true);
 
             foreach (Material m in mats)
@@ -186,7 +142,7 @@ namespace z3y
             }
         }
 
-        public static readonly string[] PropertiesToSkip = {
+        private static readonly string[] PropertiesToSkip = {
             ShaderOptimizerEnabled,
             "_BlendOp",
             "_BlendOpAlpha",
@@ -207,26 +163,22 @@ namespace z3y
         [MenuItem("Tools/Shader Optimizer/Lock Materials In Scene")]
         public static void LockAllMaterials()
         {
-            // #if BAKERY_INCLUDED
-            //     ftLightmapsStorage storage = ftRenderLightmap.FindRenderSettingsStorage();
-            //     if(storage.renderSettingsRenderDirMode == 3 || storage.renderSettingsRenderDirMode == 4) HandleBakeryPropertyBlocks();
-            // #endif
             Material[] mats = GetMaterialsUsingOptimizer(false);
             float progress = mats.Length;
+
+            int sharedCount = 0;
 
             if(progress == 0) return;
             
             AssetDatabase.StartAssetEditing();
             Dictionary<string, Material> MaterialsPropertyHash = new Dictionary<string, Material>();
 
-
-
             for (int i=0; i<progress; i++)
             {
                 EditorUtility.DisplayCancelableProgressBar("Generating Shaders", mats[i].name, i/progress);
 
                 int propCount = ShaderUtil.GetPropertyCount(mats[i].shader);
-
+                MaterialProperty[] props = MaterialEditor.GetMaterialProperties(new Object[] { mats[i] });
                 StringBuilder materialPropertyValues = new StringBuilder(mats[i].shader.name);
 
                 for(int l=0; l<propCount; l++)
@@ -239,55 +191,65 @@ namespace z3y
                         continue;
                     }
 
-                    bool isAnimated = mats[i].GetTag(propName, false) != "";
+                    bool isAnimated = !mats[i].GetTag(propName, false).Equals(string.Empty, StringComparison.Ordinal);
+
+                    if(!isAnimated)
+                    {
+                        MaterialProperty animatedProp = Array.Find(props, x => x.name == propName + AnimatedPropertySuffix);
+                        if (animatedProp != null)
+                        {
+                            isAnimated = animatedProp.floatValue == 1;
+                        }
+                    }
 
                     if(isAnimated)
                     {
-                        materialPropertyValues.Append(propName + "_Animated");
+                        materialPropertyValues.Append($"{propName}_Animated");
                         continue;
                     }
                     
                     switch(ShaderUtil.GetPropertyType(mats[i].shader, l))
                     {
                         case(ShaderUtil.ShaderPropertyType.Float):
-                            materialPropertyValues.Append(mats[i].GetFloat(propName).ToString());
+                            materialPropertyValues.Append(mats[i].GetFloat(propName));
                             break;
 
                         case(ShaderUtil.ShaderPropertyType.TexEnv):
                             Texture t = mats[i].GetTexture(propName);
                             Vector4 texelSize = new Vector4(1.0f, 1.0f, 1.0f, 1.0f);
                             
-                            materialPropertyValues.Append(t != null ? "true" : "false");
-                            materialPropertyValues.Append(mats[i].GetTextureOffset(propName).ToString());
-                            materialPropertyValues.Append(mats[i].GetTextureScale(propName).ToString());
+                            materialPropertyValues.Append(t is null ? "false" : "true");
+                            materialPropertyValues.Append(mats[i].GetTextureOffset(propName));
+                            materialPropertyValues.Append(mats[i].GetTextureScale(propName));
 
                             if (t != null && TexelSizeCheck.Contains(propName)) texelSize = new Vector4(1.0f / t.width, 1.0f / t.height, t.width, t.height);
-                            materialPropertyValues.Append(texelSize.ToString());
+                            materialPropertyValues.Append(texelSize);
                             break;
 
                         case(ShaderUtil.ShaderPropertyType.Color):
-                            materialPropertyValues.Append(mats[i].GetColor(propName).ToString());
+                            materialPropertyValues.Append(mats[i].GetColor(propName));
                             break;
 
                         case(ShaderUtil.ShaderPropertyType.Range):
-                            materialPropertyValues.Append(mats[i].GetFloat(propName).ToString());
+                            materialPropertyValues.Append(mats[i].GetFloat(propName));
                             break;
 
                         case(ShaderUtil.ShaderPropertyType.Vector):
-                            materialPropertyValues.Append(mats[i].GetVector(propName).ToString());
+                            materialPropertyValues.Append(mats[i].GetVector(propName));
                             break;
                     }
                 }
 
                 Material sharedMaterial = null;
-                string matPropHash = ComputeMD5(materialPropertyValues.ToString());
-                if (MaterialsPropertyHash.ContainsKey(matPropHash))
+                string propertyKeys = materialPropertyValues.ToString();
+                if (MaterialsPropertyHash.ContainsKey(propertyKeys))
                 {
-                    MaterialsPropertyHash.TryGetValue(matPropHash, out sharedMaterial);
+                    MaterialsPropertyHash.TryGetValue(propertyKeys, out sharedMaterial);
+                    sharedCount++;
                 }
                 else
                 {
-                    MaterialsPropertyHash.Add(matPropHash, mats[i]);
+                    MaterialsPropertyHash.Add(propertyKeys, mats[i]);
                 }
                 
                 LockMaterial(mats[i], true, sharedMaterial);
@@ -303,35 +265,9 @@ namespace z3y
                 LockApplyShader(mats[i]);
             }
             EditorUtility.ClearProgressBar();
+
+            Debug.Log($"[<Color=fuchsia>ShaderOptimizer</Color>] Locked <b>{mats.Length}</b> Materials. Generated <b>{mats.Length-sharedCount}</b> unique shaders. <b>{sharedCount}</b> materials sharing same shader.");
             
-        }
-
-
-        public static Material[] GetAllMaterialsWithShader(string shaderName)
-        {
-            List<Material> materials = new List<Material>();
-            Scene scene = SceneManager.GetActiveScene();
-            string[] materialPaths = AssetDatabase.GetDependencies(scene.path).Where(x => x.EndsWith(".mat")).ToArray();
-            var renderers = Object.FindObjectsOfType<Renderer>();
-            
-            for (int i = 0; i < materialPaths.Length; i++)
-            {
-                Material material = AssetDatabase.LoadAssetAtPath<Material>(materialPaths[i]);
-                if(material.shader.name == shaderName) materials.Add(material);
-            }
-
-            if(renderers != null) foreach (var rend in renderers)
-            {
-                if(rend != null) foreach (var mat in rend.sharedMaterials)
-                {
-                    if(mat != null) if(mat.shader.name == shaderName)
-                    {
-                        materials.Add(mat);
-                    }
-                }
-            }
-
-            return materials.Distinct().ToArray();
         }
 
         public static Material[] GetMaterialsUsingOptimizer(bool isLocked)
@@ -343,47 +279,53 @@ namespace z3y
             string[] materialPaths = AssetDatabase.GetDependencies(scene.path).Where(x => x.EndsWith(".mat")).ToArray();
             var renderers = Object.FindObjectsOfType<Renderer>();
 
-            for (int i = 0; i < materialPaths.Length; i++)
+            foreach (var t in materialPaths)
             {
-                Material mat = AssetDatabase.LoadAssetAtPath<Material>(materialPaths[i]);
+                Material mat = AssetDatabase.LoadAssetAtPath<Material>(t);
                 foundMaterials.Add(mat);
             }
 
-            if(renderers != null) foreach (var rend in renderers)
+            for (int i = 0; i < renderers?.Length; i++)
             {
-                if(rend != null) foreach (var mat in rend.sharedMaterials)
+                for (int j = 0; j < renderers[i].sharedMaterials?.Length; j++)
                 {
-                    if(mat != null)
-                    {
-                        foundMaterials.Add(mat);
-                    }
+                    foundMaterials.Add(renderers[i].sharedMaterials[j]);
                 }
             }
 
             foreach (Material mat in foundMaterials)
             {
-
-                if(mat.shader.name != "Hidden/InternalErrorShader")
+                if(mat is null) continue;
+                if(!mat.shader.name.Equals("Hidden/InternalErrorShader"))
                 {
-                    bool usingOptimizer = false;
-                    try 
-                    {
-                        usingOptimizer = ShaderUtil.GetPropertyName(mat.shader, 0) == ShaderOptimizerEnabled;
-                    }
-                    catch {}
-
-                    if(!materials.Contains(mat) && usingOptimizer)
+                    if(!materials.Contains(mat) && IsShaderUsingOptimizer(mat.shader))
                         if(mat.GetFloat(ShaderOptimizerEnabled) == (isLocked ? 1 : 0))
                             materials.Add(mat);
                 }
                 else
                 {
-                    if(!materials.Contains(mat) && mat.GetTag(OriginalShaderTag, false) != string.Empty)
+
+                    if(!materials.Contains(mat) && !mat.GetTag(OriginalShaderTag, false).Equals(string.Empty))
                         if(isLocked)
                             materials.Add(mat);
                 }
             }
             return materials.Distinct().ToArray();
+        }
+
+        public static bool IsShaderUsingOptimizer(Shader shader)
+        {
+            bool a = false;
+            try 
+            {
+                a = ShaderUtil.GetPropertyName(shader, 0) == ShaderOptimizerEnabled;
+            }
+            catch
+            {
+                // ignored
+            }
+
+            return a;
         }
 
         /**
@@ -411,7 +353,6 @@ namespace z3y
         */
         #if BAKERY_INCLUDED
         [MenuItem("Tools/Shader Optimizer/Generate Bakery Materials")]
-        #endif
         public static void HandleBakeryPropertyBlocks()
         {
             const string newMaterialPath = "Assets/GeneratedMaterials/";
@@ -419,6 +360,8 @@ namespace z3y
 
             MeshRenderer[] mr = Object.FindObjectsOfType<MeshRenderer>();
             Dictionary<string, Material> generatedMaterialList = new Dictionary<string, Material>();
+
+            int materialsCount = 0;
             
 
             for (int i = 0; i < mr.Length; i++)
@@ -444,11 +387,12 @@ namespace z3y
                             bool usingOptimizer = false;
                             try 
                             {
-                                usingOptimizer = ShaderUtil.GetPropertyName(material.shader, 0) == ShaderOptimizerEnabled;
+                                usingOptimizer = ShaderUtil.GetPropertyName(material.shader, 0).Equals(ShaderOptimizerEnabled);
                             }
                             catch {}
                             
-                            if  (usingOptimizer && material.GetTag("OriginalMaterialPath", false) == string.Empty && (material.shaderKeywords.Contains("BAKERY_SH") || material.shaderKeywords.Contains("BAKERY_RNM")))
+                            if  (usingOptimizer && material.GetTag("OriginalMaterialPath", false).Equals(string.Empty) && (material.shaderKeywords.Contains("BAKERY_SH") || material.shaderKeywords.Contains("BAKERY_RNM")))
+
                             {
                                 string materialPath = AssetDatabase.GetAssetPath(material);
                                 string textureName = AssetDatabase.GetAssetPath(RNM0) + "_" + AssetDatabase.GetAssetPath(RNM1) + "_" + AssetDatabase.GetAssetPath(RNM2);
@@ -468,6 +412,7 @@ namespace z3y
                                     newMaterial.SetInt("bakeryLightmapMode", propertyLightmapMode);
                                     newMaterial.SetOverrideTag("OriginalMaterialPath", AssetDatabase.AssetPathToGUID(materialPath));
                                     generatedMaterialList.Add(matTexHash, newMaterial);
+                                    materialsCount ++;
 
                                     
                                     try
@@ -478,8 +423,6 @@ namespace z3y
                                     {
                                         Debug.LogError($"Unable to create new material {newMaterial.name} for {mr} {e}");
                                     }
-
-                                    //Debug.Log($"Created new material for {mr} named {newMaterial.name}");
 
                                 }
 
@@ -498,13 +441,15 @@ namespace z3y
             }
             EditorUtility.ClearProgressBar();
             AssetDatabase.Refresh();
+            Debug.Log($"[<Color=fuchsia>ShaderOptimizer</Color>] Generated <b>{materialsCount}</b> Materials.");
         }
-        #if BAKERY_INCLUDED
+
+
         [MenuItem("Tools/Shader Optimizer/Revert Bakery Materials")]
-        #endif
         public static void RevertHandleBakeryPropertyBlocks()
         {
             var renderers = Object.FindObjectsOfType<MeshRenderer>();
+
 
             if(renderers != null) foreach (var rend in renderers)
             {
@@ -541,6 +486,7 @@ namespace z3y
                 }
             }
         }
+        #endif
 
         // https://forum.unity.com/threads/hash-function-for-game.452779/
         private static string ComputeMD5(string str)
@@ -553,7 +499,9 @@ namespace z3y
 
         // Would be better to dynamically parse the "C:\Program Files\UnityXXXX\Editor\Data\CGIncludes\" folder
         // to get version specific includes but eh
-        public static readonly string[] DefaultUnityShaderIncludes = {
+
+        private static readonly string[] DefaultUnityShaderIncludes = {
+
             "UnityUI.cginc",
             "AutoLight.cginc",
             "GLSLSupport.glslinc",
@@ -598,9 +546,11 @@ namespace z3y
             "UnityStandardUtils.cginc"
         };
 
-        public static readonly char[] ValidSeparators = {' ','\t','\r','\n',';',',','.','(',')','[',']','{','}','>','<','=','!','&','|','^','+','-','*','/','#','?' };
 
-        public static readonly string[] ValidPropertyDataTypes = {
+        private static readonly char[] ValidSeparators = {' ','\t','\r','\n',';',',','.','(',')','[',']','{','}','>','<','=','!','&','|','^','+','-','*','/','#','?' };
+
+        private static readonly string[] ValidPropertyDataTypes = {
+
             "float",
             "float2",
             "float3",
@@ -624,35 +574,25 @@ namespace z3y
             Float
         }
 
-        public class PropertyData
+        private class PropertyData
         {
             public PropertyType type;
             public string name;
             public Vector4 value;
         }
 
-        public class Macro
+        private class Macro
         {
             public string name;
             public string[] args;
             public string contents;
         }
 
-        public class ParsedShaderFile
+        private class ParsedShaderFile
         {
             public string filePath;
             public string[] lines;
         }
-
-        public class TextureProperty
-        {
-            public string name;
-            public Texture texture;
-            public int uv;
-            public Vector2 scale;
-            public Vector2 offset;
-        }
-
 
         public static bool Lock(Material material, MaterialProperty[] props)
         {
@@ -660,24 +600,25 @@ namespace z3y
             return true;
         }
 
-        public static bool Lock(Material material, MaterialProperty[] props, bool applyShaderLater, Material sharedMaterial)
+        private static bool Lock(Material material, MaterialProperty[] props, bool applyShaderLater, Material sharedMaterial)
         {
  
             Shader shader = material.shader;
             string shaderFilePath = AssetDatabase.GetAssetPath(shader);
             string smallguid = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(material));
-            string newShaderName = "Hidden/" + shader.name + "/" + smallguid;
-            string newShaderDirectory = "Assets/OptimizedShaders/" + smallguid + "/";
-            ApplyLater applyLater = new ApplyLater();
+            string newShaderName = $"Hidden/{shader.name}/{smallguid}";
+            string newShaderDirectory = $"Assets/OptimizedShaders/{smallguid}/";
+            string newShaderPath = $"{newShaderDirectory}{Path.GetFileName(shaderFilePath)}";
+            ReplaceStruct replaceStruct = new ReplaceStruct();
             
             
-            if(sharedMaterial != null)
+            if(!(sharedMaterial is null))
             {
-                applyLater.material = material;
-                applyLater.shader = sharedMaterial.shader;
-                applyLater.smallguid = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(sharedMaterial));
-                applyLater.newShaderName = "Hidden/" + shader.name + "/" + applyLater.smallguid;
-                applyStructsLater.Add(material, applyLater);
+                replaceStruct.Material = material;
+                replaceStruct.Shader = sharedMaterial.shader;
+                replaceStruct.SmallGuid = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(sharedMaterial));
+                replaceStruct.NewShaderPath = $"Assets/OptimizedShaders/{replaceStruct.SmallGuid}/{Path.GetFileName(AssetDatabase.GetAssetPath(sharedMaterial.shader))}";
+                ReplaceStructs.Add(material, replaceStruct);
                 return true;
 
             }
@@ -694,7 +635,7 @@ namespace z3y
             // Append all keywords active on the material
             foreach (string keyword in material.shaderKeywords)
             {
-                if (keyword == "") continue; // idk why but null keywords exist if _ keyword is used and not removed by the editor at some point
+                if (keyword.Equals(string.Empty)) continue; // idk why but null keywords exist if _ keyword is used and not removed by the editor at some point
                 definesSB.Append("#define ");
                 definesSB.Append(keyword);
                 definesSB.Append(Environment.NewLine);
@@ -706,7 +647,7 @@ namespace z3y
 
             foreach (MaterialProperty prop in props)
             {
-                if (prop == null) continue;
+                if (prop is null) continue;
 
                 // Every property gets turned into a preprocessor variable
                 switch(prop.type)
@@ -731,7 +672,9 @@ namespace z3y
 
                 if (
                   prop.name.EndsWith(AnimatedPropertySuffix) ||
-                 (material.GetTag(prop.name + AnimatedPropertySuffix, false) != string.Empty))
+
+                 (!material.GetTag(prop.name + AnimatedPropertySuffix, false).Equals(string.Empty)))
+
                     continue;
 
 
@@ -907,70 +850,79 @@ namespace z3y
             }
             
 
-            applyLater.material = material;
-            applyLater.shader = shader;
-            applyLater.smallguid = smallguid;
-            applyLater.newShaderName = newShaderName;
+            replaceStruct.Material = material;
+            replaceStruct.Shader = shader;
+            replaceStruct.SmallGuid = smallguid;
+            replaceStruct.NewShaderPath = newShaderPath;
 
             if (applyShaderLater)
             {
-                applyStructsLater.Add(material, applyLater);
+                ReplaceStructs.Add(material, replaceStruct);
                 return true;
             }
 
             AssetDatabase.Refresh();
 
-            return ReplaceShader(applyLater);
+            return ReplaceShader(replaceStruct);
         }
 
-        private static readonly Dictionary<Material, ApplyLater> applyStructsLater = new Dictionary<Material, ApplyLater>();
 
-        private struct ApplyLater
+        private static readonly Dictionary<Material, ReplaceStruct> ReplaceStructs = new Dictionary<Material, ReplaceStruct>();
+
+
+        private struct ReplaceStruct
         {
-            public Material material;
-            public Shader shader;
-            public string smallguid;
-            public string newShaderName;
+            public Material Material;
+            public Shader Shader;
+            public string SmallGuid;
+            public string NewShaderPath;
         }
-        
+
+
         private static void LockApplyShader(Material material)
         {
-            if (applyStructsLater.ContainsKey(material) == false) return;
-            ApplyLater applyStruct = applyStructsLater[material];
-            applyStructsLater.Remove(material);
+            if (ReplaceStructs.ContainsKey(material) == false) return;
+            ReplaceStruct applyStruct = ReplaceStructs[material];
+            ReplaceStructs.Remove(material);
+
             ReplaceShader(applyStruct);
         }
 
 
-        private static bool ReplaceShader(ApplyLater applyLater)
+        private static bool ReplaceShader(ReplaceStruct replaceStruct)
         {
 
             // Write original shader to override tag
-            applyLater.material.SetOverrideTag(OriginalShaderTag, applyLater.shader.name);
+            replaceStruct.Material.SetOverrideTag(OriginalShaderTag, replaceStruct.Shader.name);
             // Write the new shader folder name in an override tag so it will be deleted 
-            applyLater.material.SetOverrideTag("OptimizedShaderFolder", applyLater.smallguid);
+            replaceStruct.Material.SetOverrideTag("OptimizedShaderFolder", replaceStruct.SmallGuid);
 
             // For some reason when shaders are swapped on a material the RenderType override tag gets completely deleted and render queue set back to -1
             // So these are saved as temp values and reassigned after switching shaders
-            string renderType = applyLater.material.GetTag("RenderType", false, string.Empty);
-            int renderQueue = applyLater.material.renderQueue;
+
+            string renderType = replaceStruct.Material.GetTag("RenderType", false, string.Empty);
+            int renderQueue = replaceStruct.Material.renderQueue;
+
 
             // Actually switch the shader
-            Shader newShader = Shader.Find(applyLater.newShaderName);
+            // Shader newShader = Shader.Find(applyLater.newShaderName);
+            Shader newShader = AssetDatabase.LoadAssetAtPath<Shader>(replaceStruct.NewShaderPath);
             
-            if (newShader == null)
+            if (newShader is null)
             {
                // LockMaterial(applyLater.material, false, null);
-                Debug.LogError("[Kaj Shader Optimizer] Generated shader " + applyLater.newShaderName + " for " + applyLater.material +" could not be found ");
+                Debug.LogError("[Kaj Shader Optimizer] Generated shader " + replaceStruct.NewShaderPath + " for " + replaceStruct.Material +" could not be found ");
                 return false;
             }
-            applyLater.material.shader = newShader;
-            applyLater.material.SetOverrideTag("RenderType", renderType);
-            applyLater.material.renderQueue = renderQueue;
+            replaceStruct.Material.shader = newShader;
+            replaceStruct.Material.SetOverrideTag("RenderType", renderType);
+            replaceStruct.Material.renderQueue = renderQueue;
 
             // Remove ALL keywords
-            foreach (string keyword in applyLater.material.shaderKeywords)
-                applyLater.material.DisableKeyword(keyword);
+
+            foreach (string keyword in replaceStruct.Material.shaderKeywords)
+                replaceStruct.Material.DisableKeyword(keyword);
+
 
             return true;
         }
@@ -1015,7 +967,6 @@ namespace z3y
             {
                 string lineParsed = fileLines[i].TrimStart();
 
-                // Skip the cginc
                 if (lineParsed.StartsWith("//#if") && mat != null)
                 {
                     string[] materialProperties = Regex.Split(lineParsed.Replace("//#if", ""), ",");
@@ -1042,6 +993,23 @@ namespace z3y
                     }
                 }
 
+                else if(lineParsed.StartsWith("//CommentIfZero_") && mat != null)
+                {
+                    string[] propertyName = Regex.Split(lineParsed, "_");
+  
+                    if(mat.GetFloat(propertyName[1]) == 0)
+                    {
+                        for (int j = i+1; j < fileLines.Length; j++)
+                        {
+                            if(fileLines[j].TrimStart().StartsWith("//CommentIfZero_" + propertyName[1])) j = fileLines.Length -1;
+                            fileLines[j] = fileLines[j].Insert(0, "//");
+                            i++;
+                        }
+                    }
+
+                }
+
+                // Skip the cginc
                 // Specifically requires no whitespace between # and include, as it should be
                 else if (lineParsed.StartsWith("#include"))
                 {
@@ -1276,13 +1244,15 @@ namespace z3y
         public static bool Unlock (Material material)
         {
             string originalShaderName = material.GetTag(OriginalShaderTag, false, string.Empty);
-            if (originalShaderName == "")
+
+            if (originalShaderName.Equals(string.Empty))
+
             {
                 Debug.LogError("[Kaj Shader Optimizer] Original shader not saved to material, could not unlock shader");
                 return false;
             }
             Shader orignalShader = Shader.Find(originalShaderName);
-            if (orignalShader == null)
+            if (orignalShader is null)
             {
                 Debug.LogError("[Kaj Shader Optimizer] Original shader " + originalShaderName + " could not be found");
                 return false;
