@@ -30,7 +30,7 @@ namespace z3y.MaterialCreator
             public Texture2D mask;
         }
 
-        [MenuItem("Assets/Create/Lit/Material")]
+        [MenuItem("Assets/Create/Lit/Material", false, 0)]
         private static void GetCurrentPath()
         {
             string[] currentFolder = {AssetDatabase.GUIDToAssetPath(UnityEditor.Selection.assetGUIDs[0])};
@@ -38,7 +38,7 @@ namespace z3y.MaterialCreator
             if(Selection.assetGUIDs.Length == 1)
             {
                 string[] splitCurretFolderName = Regex.Split(currentFolder[0], "/");
-                string curretFolderName = splitCurretFolderName[splitCurretFolderName.Length-1];
+                string curretFolderName = splitCurretFolderName.Last();
                 string[] foundTexturePaths = new string[foundTextureGUIDs.Length];
                 string[] foundTextureNames = new string[foundTextureGUIDs.Length];
                 for (int i = 0; i < foundTextureGUIDs.Length; i++)
@@ -54,9 +54,9 @@ namespace z3y.MaterialCreator
                 {
                     string t = foundTextureNames[i].ToLower();
 
-                    if(t.Contains("albedo") || t.Contains("color") || t.Contains("diff"))
+                    if(t.Contains("albedo") || t.Contains("color") || t.Contains("diff") || t.Contains("_col") || t.Contains(" col"))
                         pbr.albedo = LoadTexture(foundTexturePaths[i]);
-                    if(t.Contains("normal"))
+                    if(t.Contains("normal") || t.Contains("_nor") || t.Contains(" nor"))
                     {
                         pbr.normal = LoadTexture(foundTexturePaths[i]);
 
@@ -81,7 +81,7 @@ namespace z3y.MaterialCreator
                             mask.roughness = LoadTexture(foundTexturePaths[i]);
                             mask.roughnessPath = foundTexturePaths[i];
                         }
-                        if(t.Contains("occlusion"))
+                        if(t.Contains("occlusion") || t.Contains(" ao") || t.Contains("_ao"))
                         {
                             mask.occlusion = LoadTexture(foundTexturePaths[i]);
                             mask.occlusionPath = foundTexturePaths[i];
@@ -99,7 +99,6 @@ namespace z3y.MaterialCreator
                 Shader shader = Shader.Find("z3y/lit");
                 Material mat = new Material(shader);
                 mat.name = curretFolderName;
-                Debug.Log(mat.name);
 
                 if(pbr.albedo != null) mat.SetTexture("_MainTex", pbr.albedo);
                 if(pbr.normal != null)
@@ -123,26 +122,22 @@ namespace z3y.MaterialCreator
 
                     if(mask.metallic != null)
                     {
-                        UncompressTexture(mask.metallicPath);
                         redChannel.texture = mask.metallic;
                         mat.SetFloat("_Metallic", 1);
                     }
                     if(mask.occlusion != null) 
                     {
-                        UncompressTexture(mask.occlusionPath);
                         greenChannel.texture = mask.occlusion;
                         mat.SetFloat("_Occlusion", 1);
                     }
                     if(mask.roughness != null)
                     {
-                        UncompressTexture(mask.roughnessPath);
                         alphaChannel.texture = mask.roughness;
                         alphaChannel.invert = true;
                         mat.SetFloat("_Glossiness", 1);
                     }
                     else if(mask.smoothness != null)
                     {
-                        UncompressTexture(mask.smoothnessPath);
                         alphaChannel.texture = mask.smoothness;
                         mat.SetFloat("_Glossiness", 1);
                     }
@@ -165,15 +160,6 @@ namespace z3y.MaterialCreator
                 AssetDatabase.CreateAsset(mat, currentFolder[0] + "/" + mat.name + ".mat");
 
             }
-        }
-
-        private static void UncompressTexture(string path)
-        {
-            TextureImporter tex = (TextureImporter)UnityEditor.AssetImporter.GetAtPath(path);
-            tex.textureCompression = TextureImporterCompression.Uncompressed;
-            tex.sRGBTexture = true;
-            tex.SaveAndReimport();
-
         }
 
         private static Texture2D LoadTexture(string path)
@@ -319,6 +305,15 @@ namespace z3y.MaterialCreator
                 }
                 else
                 {
+                    string texturePath = AssetDatabase.GetAssetPath(texture);
+                    TextureImporter tex = (TextureImporter)UnityEditor.AssetImporter.GetAtPath(texturePath);
+                    TextureImporterSettings originalSettings = new TextureImporterSettings();
+                    tex.ReadTextureSettings(originalSettings);
+                    
+                    tex.textureCompression = TextureImporterCompression.Uncompressed;
+                    tex.sRGBTexture = true;
+                    tex.SaveAndReimport();
+
                     Texture2D newTexture = GetColors(texture, width, height, out Color[] myColors, unloadTempTexture);
                     colors = myColors.Select(c =>
                     {
@@ -338,6 +333,10 @@ namespace z3y.MaterialCreator
                             colors[i] = 1 - colors[i];
                         }
                     }
+
+                    TextureImporter restoreSettings = (TextureImporter)AssetImporter.GetAtPath(texturePath);
+                    restoreSettings.SetTextureSettings(originalSettings);
+                    restoreSettings.SaveAndReimport();
                     return newTexture;
                 }
             }
