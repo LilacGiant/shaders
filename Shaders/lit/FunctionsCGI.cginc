@@ -610,3 +610,37 @@ void initVertexLights(float3 worldPos, float3 worldNormal, inout float3 vLight, 
     vLight = vertexLightData;
 }
 #endif
+#ifdef ENABLE_AUDIOLINK
+void ApplyAudioLinkEmission(inout float3 emissionMap)
+{
+    float4 alEmissionMap = 1;
+    #if defined(PROP_ALEMISSIONMAP)
+        alEmissionMap = SampleTexture(_ALEmissionMap, _EmissionMap_ST, _EmissionMap_UV);
+    #endif
+    
+    float alEmissionType = 0;
+    float alEmissionBand = _ALEmissionBand;
+    float alSmoothing = (1 - _ALSmoothing);
+    float alemissionMask = ((alEmissionMap.b * 256) > 1 ) * alEmissionMap.a;
+    
+
+    switch(_ALEmissionType)
+    {
+        case 1:
+            alEmissionType = alSmoothing * 15;
+            alEmissionBand += ALPASS_FILTEREDAUDIOLINK.y;
+            alemissionMask = alEmissionMap.b;
+            break;
+        case 2:
+            alEmissionType = alEmissionMap.b * (128 *  (1 - alSmoothing));
+            break;
+        case 3:
+            alEmissionType = alSmoothing * 15;
+            alEmissionBand += ALPASS_FILTEREDAUDIOLINK.y;
+            break;
+    }
+
+    float alEmissionSample = _ALEmissionType ? AudioLinkLerpMultiline(float2(alEmissionType , alEmissionBand)).r * alemissionMask : 1;
+    emissionMap *= alEmissionSample;
+}
+#endif

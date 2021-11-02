@@ -109,8 +109,19 @@
             _RNM1("RNM1", 2D) = "black" {}
             _RNM2("RNM2", 2D) = "black" {}
 
+
+        [Toggle(ENABLE_AUDIOLINK)] _EnableAudioLink ("Audio Link", Float) = 0
+            _AudioTexture ("Audio Link Render Texture", 2D) = "black" {}
+            _ALSmoothing ("Audio Link Smoothing", Range(0, 1)) = 0.5
+
+            [Enum(Bass, 0, Low Mids, 1, High Mids, 2, Treble, 3)] _ALEmissionBand ("Audio Link Emission Band", Int) = 0
+            [Enum(Disabled, 0, Gradient, 1, Path, 2, Intensity, 3)] _ALEmissionType ("Audio Link Emission Type", Int) = 0
+            _ALEmissionMap ("Audio Link Emission Path & Mask: Path(G), Mask(A)", 2D) = "white" {}
+
         // optimizer toggles
-        [ToggleUI] VertexLights("Allow Vertex Lights", Float) = 0
+        [ToggleUI] VertexLights ("Allow Vertex Lights", Float) = 0
+        [ToggleUI] _AudioLinkLocalTexture ("LocalTexture", Float) = 1
+        [ToggleUI] _LodCrossFade ("Dithered LOD Crossfade", Float) = 0
 
         // unlocked properties
         _MetallicAnimated("", Float) = 1
@@ -151,6 +162,7 @@
         #pragma shader_feature_local TEXTUREARRAYBUMP
         #pragma shader_feature_local BAKERY_SH
         #pragma shader_feature_local BAKERY_RNM
+        #pragma shader_feature_local ENABLE_AUDIOLINK
 
         ENDCG
 
@@ -171,12 +183,12 @@
             #pragma multi_compile_fwdbase
             #pragma multi_compile_instancing
             #pragma multi_compile_fog
+            #pragma multi_compile _ LOD_FADE_CROSSFADE
 
             //CommentIfZero_VertexLights
             #pragma multi_compile _ VERTEXLIGHT_ON
             //CommentIfZero_VertexLights
 
-            // #pragma multi_compile _ LOD_FADE_CROSSFADE
 
             #define NEED_TANGENT_BITANGENT
             #define NEED_WORLD_POS
@@ -202,7 +214,7 @@
             #pragma multi_compile_fwdadd_fullshadows
             #pragma multi_compile_instancing
             #pragma multi_compile_fog
-            // #pragma multi_compile _ LOD_FADE_CROSSFADE
+            #pragma multi_compile _ LOD_FADE_CROSSFADE
 
             #pragma skip_variants BICUBIC_LIGHTMAP REFLECTIONS EMISSION BAKEDSPECULAR BAKERY_SH BAKERY_RNM
             #undef BICUBIC_LIGHTMAP
@@ -234,7 +246,7 @@
             CGPROGRAM
             #pragma multi_compile_shadowcaster
             #pragma multi_compile_instancing
-            // #pragma multi_compile _ LOD_FADE_CROSSFADE
+            #pragma multi_compile _ LOD_FADE_CROSSFADE
             #pragma skip_variants FOG_LINEAR FOG_EXP FOG_EXP2
             #pragma skip_variants REFLECTIONS EMISSION BICUBIC_LIGHTMAP PARALLAX BAKEDSPECULAR ANISOTROPY NONLINEAR_LIGHTPROBESH SPECULAR_HIGHLIGHTS _WORKFLOW_UNPACKED TEXTUREARRAYMASK TEXTUREARRAYBUMP BAKERY_SH BAKERY_RNM
             #undef REFLECTIONS

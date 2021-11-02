@@ -95,6 +95,7 @@ UNITY_INSTANCING_BUFFER_END(Props)
     #define PROP_ANISOTROPYMAP
     #define PROP_DETAILMAP
     #define PROP_PARALLAXMAP
+    #define PROP_ALEMISSIONMAP
 #endif
 
 static float2 parallaxOffset;
@@ -153,4 +154,8 @@ static VertexLightInformation vertexLightInformation;
 
 #else
 static float bakeryLightmapMode = 0;
+#endif
+
+#ifdef ENABLE_AUDIOLINK
+    #include "AudioLink.cginc"
 #endif

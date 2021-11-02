@@ -117,6 +117,13 @@ namespace z3y
         protected MaterialProperty _MipScale = null;
         protected MaterialProperty _EnableTextureArrayInstancing = null;
         protected MaterialProperty VertexLights = null;
+        protected MaterialProperty _LodCrossFade = null;
+        protected MaterialProperty _EnableAudioLink = null;
+        protected MaterialProperty _AudioTexture = null;
+        protected MaterialProperty _ALSmoothing = null;
+        protected MaterialProperty _ALEmissionBand = null;
+        protected MaterialProperty _ALEmissionType = null;
+        protected MaterialProperty _ALEmissionMap = null;
 
 
         public void ShaderPropertiesGUI(Material material)
@@ -278,6 +285,17 @@ namespace z3y
                         });
                         me.LightmapEmissionProperty();
                         prop(_EmissionMultBase);
+
+                        if(_EnableAudioLink.floatValue == 1)
+                        {
+                            EditorGUILayout.Space();
+                            prop(_ALEmissionType);
+                            if(_ALEmissionType.floatValue != 0){
+                                prop(_ALEmissionBand);
+                                prop(_ALEmissionMap);
+                                Func.sRGBWarning(_ALEmissionMap);
+                            }
+                        }
                     });
                 }
                 
@@ -314,6 +332,20 @@ namespace z3y
             });
 
             md[material].ShowShaderFeatures = Foldout("Shader Features", md[material].ShowShaderFeatures, ()=> {
+                
+
+                prop(_EnableAudioLink);
+                if(_EnableAudioLink.floatValue == 1){
+                    Func.PropertyGroup(() => {
+                    prop(_AudioTexture);
+                    prop(_ALSmoothing);
+                    });
+                };
+                
+
+
+
+
 
                 
                 
@@ -347,20 +379,19 @@ namespace z3y
                 #endif
             });
 
+            md[material].Show_RenderingOptions = Foldout("Rendering Options", md[material].Show_RenderingOptions, ()=> {
+                prop(_BlendOp);
+                prop(_BlendOpAlpha);
+                prop(_SrcBlend);
+                prop(_DstBlend);
+                prop(_ZWrite);
+                prop(_ZTest);
+                prop(_AlphaToMask);
+                prop(_Cull);
+            });
+
 
             md[material].ShowAdvanced = Foldout("Advanced", md[material].ShowAdvanced, ()=> {
-
-                EditorGUILayout.LabelField("Rendering Options", EditorStyles.boldLabel);
-                md[material].Show_RenderingOptions = Func.TriangleFoldout(md[material].Show_RenderingOptions, ()=> {
-                    prop(_BlendOp);
-                    prop(_BlendOpAlpha);
-                    prop(_SrcBlend);
-                    prop(_DstBlend);
-                    prop(_ZWrite);
-                    prop(_ZTest);
-                    prop(_AlphaToMask);
-                });
-                EditorGUILayout.Space();
 
                 prop(_EnableTextureArray);
                 if(texArray)
@@ -368,16 +399,17 @@ namespace z3y
                     prop(_EnableTextureArrayInstancing);
                     prop(_EnableTextureArrayMask);
                     prop(_EnableTextureArrayBump);
-                }
+                    EditorGUILayout.Space();
 
+                }
                 prop(_Workflow);
                 prop(VertexLights);
+                prop(_LodCrossFade);
+                EditorGUILayout.Space();
                 
                 me.DoubleSidedGIField();
                 me.EnableInstancingField();
                 me.RenderQueueField();
-                prop(_Cull);
-
                 EditorGUILayout.Space();
                 ListAnimatedProps();
             });

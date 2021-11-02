@@ -3,6 +3,10 @@ float4 frag (v2f i, uint facing : SV_IsFrontFace) : SV_Target
     input = i;
     UNITY_SETUP_INSTANCE_ID(i)
 
+    #if defined(LOD_FADE_CROSSFADE)
+		UnityApplyDitherCrossFade(i.pos);
+	#endif
+
     #if defined(PARALLAX)
         parallaxOffset = ParallaxOffset(i.parallaxViewDir);
     #endif
@@ -400,6 +404,9 @@ float4 frag (v2f i, uint facing : SV_IsFrontFace) : SV_Target
         emissionMap = SampleTexture(_EmissionMap, _EmissionMap_ST, _EmissionMap_UV).rgb;
         #endif
         if(_EmissionMultBase) emissionMap *= mainTexture.rgb;
+        #ifdef ENABLE_AUDIOLINK
+            ApplyAudioLinkEmission(emissionMap);
+        #endif
         emission = emissionMap * pow(_EmissionColor, 2.2);
     #endif
 
