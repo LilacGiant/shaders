@@ -114,9 +114,9 @@
             _AudioTexture ("Audio Link Render Texture", 2D) = "black" {}
             _ALSmoothing ("Audio Link Smoothing", Range(0, 1)) = 0.5
 
-            [Enum(Bass, 0, Low Mids, 1, High Mids, 2, Treble, 3)] _ALEmissionBand ("Audio Link Emission Band", Int) = 0
-            [Enum(Disabled, 0, Gradient, 1, Path, 2, Intensity, 3)] _ALEmissionType ("Audio Link Emission Type", Int) = 0
-            _ALEmissionMap ("Audio Link Emission Path & Mask: Path(G), Mask(A)", 2D) = "white" {}
+            [Enum(Disabled, 0, Gradient, 1, Path, 2, Intensity, 3)] _ALEmissionType ("Audio Link", Int) = 0
+            [Enum(Bass, 0, Low Mids, 1, High Mids, 2, Treble, 3)] _ALEmissionBand ("AL Band", Int) = 0
+            _ALEmissionMap ("AL Path & Mask: Path(G), Mask(A)", 2D) = "white" {}
 
         // optimizer toggles
         [ToggleUI] VertexLights ("Allow Vertex Lights", Float) = 0

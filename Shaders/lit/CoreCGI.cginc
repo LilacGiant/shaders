@@ -168,7 +168,18 @@ float4 frag (v2f i, uint facing : SV_IsFrontFace) : SV_Target
     
 
     #if defined(CALC_TANGENT_BITANGENT) && defined(NEED_TANGENT_BITANGENT)
-        float3 tangentNormal = UnpackScaleNormal(normalMap, _BumpScale);
+        float3 tangentNormal;
+        if(!_HemiOctahedron) tangentNormal = UnpackScaleNormal(normalMap, _BumpScale);
+        else
+        {
+            half2 f = normalMap.ag * 2 - 1;
+            // https://twitter.com/Stubbesaurus/status/937994790553227264
+            normalMap.xyz = float3(f.x, f.y, 1 - abs(f.x) - abs(f.y));
+            float t = saturate(-normalMap.z);
+            normalMap.xy += normalMap.xy >= 0.0 ? -t : t;
+            normalMap.xy *= _BumpScale;
+            tangentNormal = normalize(normalMap);
+        }
 
         #if defined(PROP_DETAILMAP)
             float4 detailNormalMap = float4(detailMap.a, detailMap.g, 1, 1);
@@ -357,7 +368,7 @@ float4 frag (v2f i, uint facing : SV_IsFrontFace) : SV_Target
             float3 bakedDominantDirection = 1;
             float3 bakedSpecularColor = 0;
 
-            #ifdef DIRLIGHTMAP_COMBINED
+            #if defined(DIRLIGHTMAP_COMBINED) && defined(LIGHTMAP_ON)
                 bakedDominantDirection = (lightMapDirection.xyz) * 2 - 1;
                 bakedSpecularColor = indirectDiffuse;
             #endif
