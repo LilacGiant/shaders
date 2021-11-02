@@ -257,47 +257,10 @@ namespace z3y
 
                 
                 
-                if(!texArray)
-                {
-                    prop(_EnableParallax);
-                    if(_EnableParallax.floatValue == 1)
-                    {
-                        Func.PropertyGroup(() => {
-                            prop(_ParallaxMap, _Parallax);
-                            prop(_ParallaxOffset);
-                            prop(_ParallaxSteps);
-                        });
-                    }
-                    Func.sRGBWarning(_ParallaxMap);
-                }
+                
 
 
-                prop(_EnableEmission);
-                if(_EnableEmission.floatValue == 1)
-                {
-                    Func.PropertyGroup(() => {
-                        prop(_EmissionMap, _EmissionColor);
-
-                        md[material].Show_EmissionMap = Func.TriangleFoldout(md[material].Show_EmissionMap, ()=> {
-                            prop(_EmissionMap_UV);
-                            if(_EmissionMap_UV.floatValue != 0) propTileOffset(_EmissionMap);
-                            
-                        });
-                        me.LightmapEmissionProperty();
-                        prop(_EmissionMultBase);
-
-                        if(_EnableAudioLink.floatValue == 1)
-                        {
-                            EditorGUILayout.Space();
-                            prop(_ALEmissionType);
-                            if(_ALEmissionType.floatValue != 0){
-                                prop(_ALEmissionBand);
-                                prop(_ALEmissionMap);
-                                Func.sRGBWarning(_ALEmissionMap);
-                            }
-                        }
-                    });
-                }
+                
                 
 
 
@@ -333,6 +296,48 @@ namespace z3y
 
             md[material].ShowShaderFeatures = Foldout("Shader Features", md[material].ShowShaderFeatures, ()=> {
                 
+                prop(_EnableEmission);
+                if(_EnableEmission.floatValue == 1)
+                {
+                    Func.PropertyGroup(() => {
+                        prop(_EmissionMap, _EmissionColor);
+
+                        md[material].Show_EmissionMap = Func.TriangleFoldout(md[material].Show_EmissionMap, ()=> {
+                            prop(_EmissionMap_UV);
+                            if(_EmissionMap_UV.floatValue != 0) propTileOffset(_EmissionMap);
+                            
+                        });
+                        me.LightmapEmissionProperty();
+                        prop(_EmissionMultBase);
+
+                        if(_EnableAudioLink.floatValue == 1)
+                        {
+                            EditorGUILayout.Space();
+                            prop(_ALEmissionType);
+                            if(_ALEmissionType.floatValue != 0){
+                                prop(_ALEmissionBand);
+                                prop(_ALEmissionMap);
+                                Func.sRGBWarning(_ALEmissionMap);
+                            }
+                        }
+                    });
+                }
+                
+                if(!texArray)
+                {
+                    prop(_EnableParallax);
+                    if(_EnableParallax.floatValue == 1)
+                    {
+                        Func.PropertyGroup(() => {
+                            prop(_ParallaxMap, _Parallax);
+                            prop(_ParallaxOffset);
+                            prop(_ParallaxSteps);
+                        });
+                    }
+                    Func.sRGBWarning(_ParallaxMap);
+                }
+
+                prop(_LodCrossFade);
 
                 prop(_EnableAudioLink);
                 if(_EnableAudioLink.floatValue == 1){
@@ -341,6 +346,8 @@ namespace z3y
                     prop(_ALSmoothing);
                     });
                 };
+
+                
                 
 
 
@@ -399,12 +406,12 @@ namespace z3y
                     prop(_EnableTextureArrayInstancing);
                     prop(_EnableTextureArrayMask);
                     prop(_EnableTextureArrayBump);
-                    EditorGUILayout.Space();
-
                 }
+                EditorGUILayout.Space();
+
                 prop(_Workflow);
                 prop(VertexLights);
-                prop(_LodCrossFade);
+                
                 EditorGUILayout.Space();
                 
                 me.DoubleSidedGIField();

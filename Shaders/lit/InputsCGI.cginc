@@ -111,6 +111,8 @@ struct VertexLightInformation {
 static VertexLightInformation vertexLightInformation;
 #endif
 
+// #define FLATSHADING
+
 #if defined(FOG_LINEAR) || defined(FOG_EXP) || defined(FOG_EXP2) 
     #define NEED_FOG
 #endif

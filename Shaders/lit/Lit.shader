@@ -84,7 +84,7 @@
             _ParallaxOffset ("Parallax Offset", Range(-1, 1)) = 0
 
 
-        [Toggle(NONLINEAR_LIGHTPROBESH)] _NonLinearLightProbeSH ("Non-linear Light Probe SH", Int) = 1
+        [Toggle(NONLINEAR_LIGHTPROBESH)] _NonLinearLightProbeSH ("Non-linear Light Probe SH", Int) = 0
         [Toggle(BAKEDSPECULAR)] _BakedSpecular ("Baked Specular Highlights ", Int) = 0
 
         [Toggle(ANISOTROPY)] _EnableAnisotropy ("Anisotropy", Int) = 0

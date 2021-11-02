@@ -208,7 +208,11 @@ float4 frag (v2f i, uint facing : SV_IsFrontFace) : SV_Target
         float lightLoH = saturate(dot(lightDirection, lightHalfVector));
         LIGHT_ATTENUATION_NO_SHADOW_MUL(lightAttenNoShadows, i, i.worldPos.xyz);
         float3 lightAttenuation = lightAttenNoShadows * shadow;
+        #ifndef FLATSHADING 
         pixelLight = (lightNoL * lightAttenuation * _LightColor0.rgb) * Fd_Burley(perceptualRoughness, NoV, lightNoL, lightLoH);
+        #else
+        pixelLight = lightAttenuation * saturate(_LightColor0.rgb);
+        #endif
     #endif
 
     #if defined(VERTEXLIGHT_ON) && defined(UNITY_PASS_FORWARDBASE)
@@ -248,7 +252,11 @@ float4 frag (v2f i, uint facing : SV_IsFrontFace) : SV_Target
             indirectDiffuse.b = shEvaluateDiffuseL1Geomerics_local(L0.b, unity_SHAb.xyz, worldNormal);
             indirectDiffuse = max(0, indirectDiffuse);
         #else
+            #ifndef FLATSHADING
             indirectDiffuse = max(0, ShadeSH9(float4(worldNormal, 1)));
+            #else
+            indirectDiffuse = max(0, ShadeSH9(float4(0,0,0, 1)));
+            #endif
         #endif
     #endif
 
@@ -349,16 +357,15 @@ float4 frag (v2f i, uint facing : SV_IsFrontFace) : SV_Target
             float3 bakedDominantDirection = 1;
             float3 bakedSpecularColor = 0;
 
+            #ifdef DIRLIGHTMAP_COMBINED
+                bakedDominantDirection = (lightMapDirection.xyz) * 2 - 1;
+                bakedSpecularColor = indirectDiffuse;
+            #endif
 
-                #ifdef DIRLIGHTMAP_COMBINED
-                    bakedDominantDirection = (lightMapDirection.xyz) * 2 - 1;
-                    bakedSpecularColor = indirectDiffuse;
-                #endif
-
-                #ifndef LIGHTMAP_ON
-                    bakedSpecularColor = float3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w);
-                    bakedDominantDirection = unity_SHAr.xyz + unity_SHAg.xyz + unity_SHAb.xyz;
-                #endif
+            #ifndef LIGHTMAP_ON
+                bakedSpecularColor = float3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w);
+                bakedDominantDirection = unity_SHAr.xyz + unity_SHAg.xyz + unity_SHAb.xyz;
+            #endif
                 
             float3 bakedHalfDir = Unity_SafeNormalize(normalize(bakedDominantDirection) + viewDir);
             half nh = saturate(dot(worldNormal, bakedHalfDir));
