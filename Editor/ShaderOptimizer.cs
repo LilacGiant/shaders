@@ -51,6 +51,7 @@ using VRC.SDKBase.Editor.BuildPipeline;
 namespace z3y
 {
 
+
 #if VRC_SDK_VRCSDK2 || VRC_SDK_VRCSDK3
     public class LockMaterialsOnVRCWorldUpload : IVRCSDKBuildRequestedCallback
     {
@@ -115,7 +116,9 @@ namespace z3y
         // (The compiler is not smart enough to cull VS output that isn't used anywhere in the PS)
         // Additionally, simply enabling the optimizer can define a keyword, whose name is stored here.
         // This keyword is added to the beginning of all passes, right after CGPROGRAM
+
         private static readonly string OptimizerEnabledKeyword = "OPTIMIZER_ENABLED";
+
 
         private static readonly bool ReplaceAnimatedParameters = false;
         
@@ -301,6 +304,7 @@ namespace z3y
                 }
                 else
                 {
+
                     if(!materials.Contains(mat) && !mat.GetTag(OriginalShaderTag, false).Equals(string.Empty))
                         if(isLocked)
                             materials.Add(mat);
@@ -388,6 +392,7 @@ namespace z3y
                             catch {}
                             
                             if  (usingOptimizer && material.GetTag("OriginalMaterialPath", false).Equals(string.Empty) && (material.shaderKeywords.Contains("BAKERY_SH") || material.shaderKeywords.Contains("BAKERY_RNM")))
+
                             {
                                 string materialPath = AssetDatabase.GetAssetPath(material);
                                 string textureName = AssetDatabase.GetAssetPath(RNM0) + "_" + AssetDatabase.GetAssetPath(RNM1) + "_" + AssetDatabase.GetAssetPath(RNM2);
@@ -494,7 +499,9 @@ namespace z3y
 
         // Would be better to dynamically parse the "C:\Program Files\UnityXXXX\Editor\Data\CGIncludes\" folder
         // to get version specific includes but eh
+
         private static readonly string[] DefaultUnityShaderIncludes = {
+
             "UnityUI.cginc",
             "AutoLight.cginc",
             "GLSLSupport.glslinc",
@@ -539,9 +546,11 @@ namespace z3y
             "UnityStandardUtils.cginc"
         };
 
+
         private static readonly char[] ValidSeparators = {' ','\t','\r','\n',';',',','.','(',')','[',']','{','}','>','<','=','!','&','|','^','+','-','*','/','#','?' };
 
         private static readonly string[] ValidPropertyDataTypes = {
+
             "float",
             "float2",
             "float3",
@@ -663,7 +672,9 @@ namespace z3y
 
                 if (
                   prop.name.EndsWith(AnimatedPropertySuffix) ||
+
                  (!material.GetTag(prop.name + AnimatedPropertySuffix, false).Equals(string.Empty)))
+
                     continue;
 
 
@@ -855,7 +866,9 @@ namespace z3y
             return ReplaceShader(replaceStruct);
         }
 
+
         private static readonly Dictionary<Material, ReplaceStruct> ReplaceStructs = new Dictionary<Material, ReplaceStruct>();
+
 
         private struct ReplaceStruct
         {
@@ -865,11 +878,13 @@ namespace z3y
             public string NewShaderPath;
         }
 
+
         private static void LockApplyShader(Material material)
         {
             if (ReplaceStructs.ContainsKey(material) == false) return;
             ReplaceStruct applyStruct = ReplaceStructs[material];
             ReplaceStructs.Remove(material);
+
             ReplaceShader(applyStruct);
         }
 
@@ -884,8 +899,10 @@ namespace z3y
 
             // For some reason when shaders are swapped on a material the RenderType override tag gets completely deleted and render queue set back to -1
             // So these are saved as temp values and reassigned after switching shaders
+
             string renderType = replaceStruct.Material.GetTag("RenderType", false, string.Empty);
             int renderQueue = replaceStruct.Material.renderQueue;
+
 
             // Actually switch the shader
             // Shader newShader = Shader.Find(applyLater.newShaderName);
@@ -902,8 +919,10 @@ namespace z3y
             replaceStruct.Material.renderQueue = renderQueue;
 
             // Remove ALL keywords
+
             foreach (string keyword in replaceStruct.Material.shaderKeywords)
                 replaceStruct.Material.DisableKeyword(keyword);
+
 
             return true;
         }
@@ -1225,7 +1244,9 @@ namespace z3y
         public static bool Unlock (Material material)
         {
             string originalShaderName = material.GetTag(OriginalShaderTag, false, string.Empty);
+
             if (originalShaderName.Equals(string.Empty))
+
             {
                 Debug.LogError("[Kaj Shader Optimizer] Original shader not saved to material, could not unlock shader");
                 return false;
