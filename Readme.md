@@ -15,7 +15,6 @@ A standard shader replacement for VRChat worlds.
 - Specular Occlusion
 - Shader Optimizer (with improved speed)
 - Audio Link
-- Simple fallback for Quest
 
 #### Currently known missing features and bugs:
 - dithered shadow with transparency
