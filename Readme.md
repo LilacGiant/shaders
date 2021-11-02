@@ -1,22 +1,24 @@
-A shader I put together to use in vrchat worlds.
+A standard shader replacement for VRChat worlds.
 
-### Improvements over standard:
+### Shader Features:
 
-- geometric specular antialiasing
-- alpha to coverage
-- bicubic lightmap interpolation
-- directional lightmap specular
-- bakery sh,rnm and specular
-- better parallax
-- anisotropy
-- dithered lod crossfade
-- audio link emission
-- detail and mask map based on hdrp/lit
-- shader lock in optimizer
+- Geometric Specular AA
+- Antialiased Cutout (Apha to Coverage)
+- Bakery SH, RNM and lightmapped specular
+- Bicubic lightmap interpolation
+- Texture Arrays
+- Multistep Parallax
+- Anisotropy
+- Dithered LOD Crossfade
+- Detail and Mask Map based on hdrp/lit
+- Automatic mask map packing and material creation
+- Specular Occlusion
+- Shader Optimizer (with improved speed)
+- Audio Link
+- Simple fallback for Quest
 
 #### Currently known missing features and bugs:
-- fade mode slightly broken
 - dithered shadow with transparency
-- generating materials for bakery might leave some material slots empty (probably fixed)
+- lightprobe volumes
 
-https://discord.gg/bw46tKgRFT
+If you want to ask something add me z3y#3214 or join https://discord.gg/bw46tKgRFT
