@@ -340,11 +340,11 @@ namespace z3y
                 }
 
                 prop(_LodCrossFade);
-                prop(_EnableStochastic);
-                if(_EnableStochastic.floatValue == 1)
-                {
-                    propTileOffset(_Stochastic);
-                }
+                // prop(_EnableStochastic);
+                // if(_EnableStochastic.floatValue == 1)
+                // {
+                //     propTileOffset(_Stochastic);
+                // }
 
 
                 prop(_EnableAudioLink);

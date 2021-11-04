@@ -71,7 +71,7 @@
             [Enum(UV 0 Locked, 0, UV 1, 1, UV 2, 2, UV 0 Unlocked, 3)]  _EmissionMap_UV ("UV Type", Int) = 0
 
         _DetailMap ("Detail Map:Desaturated Albedo(R), Normal Y(G), Smoothness(B), Normal X(A)", 2D) = "linearGrey" {}
-            [Enum(UV 0 Locked, 0, UV 1, 1, UV 2, 2, UV 0 Unlocked, 3)]  _DetailMap_UV ("UV Type", Int) = 0
+            [Enum(UV 0 Locked, 0, UV 1, 1, UV 2, 2, UV 0 Unlocked, 3)]  _DetailMap_UV ("UV Type", Int) = 3
             _DetailAlbedoScale ("Albedo Scale", Range(0.0, 2.0)) = 0
             _DetailNormalScale ("Normal Scale", Range(0.0, 2.0)) = 0
             _DetailSmoothnessScale ("Smoothness Scale", Range(0.0, 2.0)) = 0
@@ -83,8 +83,8 @@
             _ParallaxOffset ("Parallax Offset", Range(-1, 1)) = 0
 
 
-        [Toggle(STOCHASTIC)] _EnableStochastic ("Stochastic", Int) = 0
-        _Stochastic ("tile offset", 2D) = "white" {}
+        // [Toggle(STOCHASTIC)] _EnableStochastic ("Stochastic", Int) = 0
+        // _Stochastic ("tile offset", 2D) = "white" {}
 
         [Toggle(NONLINEAR_LIGHTPROBESH)] _NonLinearLightProbeSH ("Non-linear Light Probe SH", Int) = 0
         [Toggle(BAKEDSPECULAR)] _BakedSpecular ("Baked Specular ", Int) = 0
