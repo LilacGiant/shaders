@@ -121,6 +121,7 @@ namespace z3y
 
 
         private static readonly bool ReplaceAnimatedParameters = false;
+        private static readonly bool TexelSizeCheckEnabled = true;
         
         public static void LockMaterial(Material mat, bool applyLater, Material sharedMaterial)
         {
@@ -222,8 +223,11 @@ namespace z3y
                             materialPropertyValues.Append(mats[i].GetTextureOffset(propName));
                             materialPropertyValues.Append(mats[i].GetTextureScale(propName));
 
-                            if (t != null && TexelSizeCheck.Contains(propName)) texelSize = new Vector4(1.0f / t.width, 1.0f / t.height, t.width, t.height);
-                            materialPropertyValues.Append(texelSize);
+                            if(TexelSizeCheckEnabled)
+                            {
+                                if (t != null && TexelSizeCheck.Contains(propName)) texelSize = new Vector4(1.0f / t.width, 1.0f / t.height, t.width, t.height);
+                                materialPropertyValues.Append(texelSize);
+                            }
                             break;
 
                         case(ShaderUtil.ShaderPropertyType.Color):
@@ -732,17 +736,20 @@ namespace z3y
                             ST.value = new Vector4(scale.x, scale.y, offset.x, offset.y);
                             constantProps.Add(ST);
                         }
-                        animatedProp = Array.Find(props, x => x.name == prop.name + "_TexelSize" + AnimatedPropertySuffix);
-                        if (!(animatedProp != null && animatedProp.floatValue == 1))
+                        if(TexelSizeCheckEnabled)
                         {
-                            PropertyData TexelSize = new PropertyData();
-                            TexelSize.type = PropertyType.Vector;
-                            TexelSize.name = prop.name + "_TexelSize";
-                            Texture t = prop.textureValue;
-                            if (t != null)
-                                TexelSize.value = new Vector4(1.0f / t.width, 1.0f / t.height, t.width, t.height);
-                            else TexelSize.value = new Vector4(1.0f, 1.0f, 1.0f, 1.0f);
-                            constantProps.Add(TexelSize);
+                            animatedProp = Array.Find(props, x => x.name == prop.name + "_TexelSize" + AnimatedPropertySuffix);
+                            if (!(animatedProp != null && animatedProp.floatValue == 1))
+                            {
+                                PropertyData TexelSize = new PropertyData();
+                                TexelSize.type = PropertyType.Vector;
+                                TexelSize.name = prop.name + "_TexelSize";
+                                Texture t = prop.textureValue;
+                                if (t != null)
+                                    TexelSize.value = new Vector4(1.0f / t.width, 1.0f / t.height, t.width, t.height);
+                                else TexelSize.value = new Vector4(1.0f, 1.0f, 1.0f, 1.0f);
+                                constantProps.Add(TexelSize);
+                            }
                         }
                         break;
                 }
