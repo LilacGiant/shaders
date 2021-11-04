@@ -3,7 +3,7 @@ A standard shader replacement for VRChat worlds.
 ### Shader Features:
 
 - Geometric Specular AA
-- Antialiased Cutout (Apha to Coverage)
+- Antialiased Cutout (Alpha to Coverage)
 - Bakery SH, RNM and lightmapped specular
 - Bicubic lightmap interpolation
 - Texture Arrays
