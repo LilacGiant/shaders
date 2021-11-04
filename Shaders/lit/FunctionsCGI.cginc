@@ -1,3 +1,5 @@
+// Upgrade NOTE: excluded shader from OpenGL ES 2.0 because it uses non-square matrices
+#pragma exclude_renderers gles
 // https://github.com/Xiexe/Unity-Lit-Shader-Templates/blob/master/LICENSE
 // https://github.com/google/filament/blob/main/LICENSE
 #define grayscaleVec half3(0.2125, 0.7154, 0.0721)
