@@ -42,9 +42,6 @@ float4 frag (v2f i, uint facing : SV_IsFrontFace) : SV_Target
     SHADOW_CASTER_FRAGMENT(i);
 #else
     #if defined (_MODE_CUTOUT)
-    #ifndef STOCHASTIC
-    alpha *= 1 + max(0, CalculateMipLevel(GetMainTexUV(_MainTex_UV) * defaultTexelSize.zw)) * _MipScale;
-    #endif
     alpha = (alpha - _Cutoff) / max(fwidth(alpha), 0.0001) + 0.5;
     #endif
 

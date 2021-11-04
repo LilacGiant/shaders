@@ -22,7 +22,7 @@ float2 hash2D2D (float2 s)
     //magic numbers
     return frac(sin(glsl_mod(float2(dot(s, float2(127.1,311.7)), dot(s, float2(269.5,183.3))), 3.14159))*43758.5453);
 }
-
+#ifndef STOCHASTIC
 float4 SampleTexture(Texture2D tex, float4 st, sampler s, int type)
 {
     float4 sampledTexture = 0;
@@ -41,38 +41,46 @@ float4 SampleTexture(Texture2D tex, float4 st, sampler s, int type)
         case 3:
             sampledTexture = tex.Sample(s, input.coord0.xy * st.xy + st.zw + parallaxOffset);
             break;
-        // case 4:
-        //     // https://www.reddit.com/r/Unity3D/comments/dhr5g2/i_made_a_stochastic_texture_sampling_shader/
-        //     //triangle vertices and blend weights
-        //     //BW_vx[0...2].xyz = triangle verts
-        //     //BW_vx[3].xy = blend weights (z is unused)
-        //     float4x3 BW_vx;
-
-        //     //uv transformed into triangular grid space with UV scaled by approximation of 2*sqrt(3)
-        //     float2 skewUV = mul(float2x2 (1.0 , 0.0 , -0.57735027 , 1.15470054), (input.coord0.xy * st.xy + st.zw) * 3.464);
-
-        //     //vertex IDs and barycentric coords
-        //     float2 vxID = float2 (floor(skewUV));
-        //     float3 barry = float3 (frac(skewUV), 0);
-        //     barry.z = 1.0-barry.x-barry.y;
-
-        //     BW_vx = ((barry.z>0) ? 
-        //         float4x3(float3(vxID, 0), float3(vxID + float2(0, 1), 0), float3(vxID + float2(1, 0), 0), barry.zyx) :
-        //         float4x3(float3(vxID + float2 (1, 1), 0), float3(vxID + float2 (1, 0), 0), float3(vxID + float2 (0, 1), 0), float3(-barry.z, 1.0-barry.y, 1.0-barry.x)));
-
-        //     //calculate derivatives to avoid triangular grid artifacts
-        //     float2 dxu = ddx(input.coord0.xy * st.xy + st.zw);
-        //     float2 dyu = ddy(input.coord0.xy * st.xy + st.zw);
-
-        //     //blend samples with calculated weights
-        //     sampledTexture =    mul(tex.SampleGrad(s, (input.coord0.xy * st.xy + st.zw) + hash2D2D(BW_vx[0].xy), dxu, dyu), BW_vx[3].x) + 
-        //                         mul(tex.SampleGrad(s, (input.coord0.xy * st.xy + st.zw) + hash2D2D(BW_vx[1].xy), dxu, dyu), BW_vx[3].y) + 
-        //                         mul(tex.SampleGrad(s, (input.coord0.xy * st.xy + st.zw) + hash2D2D(BW_vx[2].xy), dxu, dyu), BW_vx[3].z);
-        //     break;
     }
 
     return sampledTexture;
 }
+#else
+float4 SampleTexture(Texture2D tex, float4 st, sampler s, int type)
+{
+    st.xy = _Stochastic_ST.xy;
+    st.zw = _Stochastic_ST.zw;
+    float4 sampledTexture = 0;
+    // https://www.reddit.com/r/Unity3D/comments/dhr5g2/i_made_a_stochastic_texture_sampling_shader/
+    //triangle vertices and blend weights
+    //BW_vx[0...2].xyz = triangle verts
+    //BW_vx[3].xy = blend weights (z is unused)
+    float4x3 BW_vx;
+
+    //uv transformed into triangular grid space with UV scaled by approximation of 2*sqrt(3)
+    float2 skewUV = mul(float2x2 (1.0 , 0.0 , -0.57735027 , 1.15470054), (input.coord0.xy * st.xy + st.zw) * 3.464);
+
+    //vertex IDs and barycentric coords
+    float2 vxID = float2 (floor(skewUV));
+    float3 barry = float3 (frac(skewUV), 0);
+    barry.z = 1.0-barry.x-barry.y;
+
+    BW_vx = ((barry.z>0) ? 
+        float4x3(float3(vxID, 0), float3(vxID + float2(0, 1), 0), float3(vxID + float2(1, 0), 0), barry.zyx) :
+        float4x3(float3(vxID + float2 (1, 1), 0), float3(vxID + float2 (1, 0), 0), float3(vxID + float2 (0, 1), 0), float3(-barry.z, 1.0-barry.y, 1.0-barry.x)));
+
+    //calculate derivatives to avoid triangular grid artifacts
+    float2 dxu = ddx(input.coord0.xy * st.xy + st.zw);
+    float2 dyu = ddy(input.coord0.xy * st.xy + st.zw);
+
+    //blend samples with calculated weights
+    sampledTexture =    mul(tex.SampleGrad(s, (input.coord0.xy * st.xy + st.zw) + hash2D2D(BW_vx[0].xy), dxu, dyu), BW_vx[3].x) + 
+                        mul(tex.SampleGrad(s, (input.coord0.xy * st.xy + st.zw) + hash2D2D(BW_vx[1].xy), dxu, dyu), BW_vx[3].y) + 
+                        mul(tex.SampleGrad(s, (input.coord0.xy * st.xy + st.zw) + hash2D2D(BW_vx[2].xy), dxu, dyu), BW_vx[3].z);
+
+    return sampledTexture;
+}
+#endif
 
 
 float4 SampleTexture(Texture2D tex, float4 st, int type)

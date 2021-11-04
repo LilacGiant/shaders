@@ -7,7 +7,6 @@
         [Toggle(_WORKFLOW_UNPACKED)] _Workflow ("Unpacked Mask", Int) = 0
         [KeywordEnum(Opaque, Cutout, Fade, Transparent)] _Mode ("Rendering Mode", Int) = 0
         _Cutoff ("Alpha Cuttoff", Range(0, 1)) = 0.5
-        _MipScale ("Mip Scale", Range(0, 1)) = 0.25
 
         [Toggle(TEXTUREARRAY)] _EnableTextureArray ("Texture Arrays", Float) = 0
         [Toggle(TEXTUREARRAYINSTANCED)] _EnableTextureArrayInstancing ("Instanced Array Index", Float) = 0
@@ -84,8 +83,11 @@
             _ParallaxOffset ("Parallax Offset", Range(-1, 1)) = 0
 
 
+        [Toggle(STOCHASTIC)] _EnableStochastic ("Stochastic", Int) = 0
+        _Stochastic ("tile offset", 2D) = "white" {}
+
         [Toggle(NONLINEAR_LIGHTPROBESH)] _NonLinearLightProbeSH ("Non-linear Light Probe SH", Int) = 0
-        [Toggle(BAKEDSPECULAR)] _BakedSpecular ("Baked Specular Highlights ", Int) = 0
+        [Toggle(BAKEDSPECULAR)] _BakedSpecular ("Baked Specular ", Int) = 0
 
         [Toggle(ANISOTROPY)] _EnableAnisotropy ("Anisotropy", Int) = 0
             _Anisotropy ("Anisotropy", Range(-1,1)) = 0
@@ -128,11 +130,7 @@
         _GlossinessAnimated("", Float) = 1
         _OcclusionAnimated("", Float) = 1
         _BumpScaleAnimated("", Float) = 1
-        _ReflectanceAnimated("", Float) = 1
         _ColorAnimated("", Float) = 1
-        bakeryLightmapModeAnimated("", Float) = 1
-        _MainTexArray_TexelSizeAnimated("", Float) = 1
-        _MainTex_TexelSizeAnimated("", Float) = 1
 
     }
     
@@ -156,6 +154,7 @@
         #pragma shader_feature_local NONLINEAR_LIGHTPROBESH
         #pragma shader_feature_local BAKEDSPECULAR
         #pragma shader_feature_local ANISOTROPY
+        #pragma shader_feature_local STOCHASTIC
         #pragma shader_feature_local TEXTUREARRAYINSTANCED
         #pragma shader_feature_local TEXTUREARRAY
         #pragma shader_feature_local TEXTUREARRAYMASK
@@ -248,7 +247,7 @@
             #pragma multi_compile_instancing
             #pragma multi_compile _ LOD_FADE_CROSSFADE
             #pragma skip_variants FOG_LINEAR FOG_EXP FOG_EXP2
-            #pragma skip_variants REFLECTIONS EMISSION BICUBIC_LIGHTMAP PARALLAX BAKEDSPECULAR ANISOTROPY NONLINEAR_LIGHTPROBESH SPECULAR_HIGHLIGHTS _WORKFLOW_UNPACKED TEXTUREARRAYMASK TEXTUREARRAYBUMP BAKERY_SH BAKERY_RNM
+            #pragma skip_variants REFLECTIONS EMISSION BICUBIC_LIGHTMAP PARALLAX BAKEDSPECULAR ANISOTROPY NONLINEAR_LIGHTPROBESH SPECULAR_HIGHLIGHTS _WORKFLOW_UNPACKED TEXTUREARRAYMASK TEXTUREARRAYBUMP BAKERY_SH BAKERY_RNM ENABLE_AUDIOLINK
             #undef REFLECTIONS
             #undef EMISSION
             #undef BICUBIC_LIGHTMAP
@@ -262,6 +261,7 @@
             #undef TEXTUREARRAYBUMP
             #undef BAKERY_SH
             #undef BAKERY_RNM
+            #undef ENABLE_AUDIOLINK
 
             #include "PassCGI.cginc"
             ENDCG
