@@ -259,45 +259,6 @@ namespace z3y
 
                 
                 
-                
-
-
-                
-                
-
-
-            });
-
-            md[material].ShowSpecular = Foldout("Specular Reflections", md[material].ShowSpecular, ()=> {
-                prop(_GlossyReflections);
-                prop(_SpecularHighlights);
-                prop(_Reflectance);
-                prop(_FresnelIntensity);
-                prop(_SpecularOcclusion);
-                prop(_FresnelColor);
-
-                
-                prop(_GSAA);
-                if(_GSAA.floatValue == 1){
-                    Func.PropertyGroup(() => {
-                        prop(_specularAntiAliasingVariance);
-                        prop(_specularAntiAliasingThreshold);
-                    });
-                };
-
-                prop(_EnableAnisotropy);
-                
-                if(_EnableAnisotropy.floatValue == 1){
-                    Func.PropertyGroup(() => {
-                        prop(_Anisotropy);
-                        prop(_AnisotropyMap);
-                        propTileOffset(_AnisotropyMap);
-                    });
-                };
-            });
-
-            md[material].ShowShaderFeatures = Foldout("Shader Features", md[material].ShowShaderFeatures, ()=> {
-                
                 prop(_EnableEmission);
                 if(_EnableEmission.floatValue == 1)
                 {
@@ -339,33 +300,44 @@ namespace z3y
                     Func.sRGBWarning(_ParallaxMap);
                 }
 
-                prop(_LodCrossFade);
-                // prop(_EnableStochastic);
-                // if(_EnableStochastic.floatValue == 1)
-                // {
-                //     propTileOffset(_Stochastic);
-                // }
+
+                
+                
 
 
-                prop(_EnableAudioLink);
-                if(_EnableAudioLink.floatValue == 1){
+            });
+
+            md[material].ShowSpecular = Foldout("Specular Reflections", md[material].ShowSpecular, ()=> {
+                prop(_GlossyReflections);
+                prop(_SpecularHighlights);
+                prop(_Reflectance);
+                prop(_FresnelIntensity);
+                prop(_SpecularOcclusion);
+                prop(_FresnelColor);
+
+                
+                prop(_GSAA);
+                if(_GSAA.floatValue == 1){
                     Func.PropertyGroup(() => {
-                    prop(_AudioTexture);
-                    prop(_ALSmoothing);
+                        prop(_specularAntiAliasingVariance);
+                        prop(_specularAntiAliasingThreshold);
                     });
                 };
 
+                prop(_EnableAnisotropy);
                 
-                
-
-
-
-
-
-                
-                
-
+                if(_EnableAnisotropy.floatValue == 1){
+                    Func.PropertyGroup(() => {
+                        prop(_Anisotropy);
+                        prop(_AnisotropyMap);
+                        propTileOffset(_AnisotropyMap);
+                    });
+                };
             });
+
+            // md[material].ShowShaderFeatures = Foldout("Shader Features", md[material].ShowShaderFeatures, ()=> {
+
+            // });
 
             md[material].ShowBakedLight = Foldout("Indirect Diffuse", md[material].ShowBakedLight, ()=> {
                 prop(_BicubicLightmap);
@@ -419,6 +391,21 @@ namespace z3y
 
                 prop(_Workflow);
                 prop(VertexLights);
+                prop(_LodCrossFade);
+                // prop(_EnableStochastic);
+                // if(_EnableStochastic.floatValue == 1)
+                // {
+                //     propTileOffset(_Stochastic);
+                // }
+
+
+                prop(_EnableAudioLink);
+                if(_EnableAudioLink.floatValue == 1){
+                    Func.PropertyGroup(() => {
+                    prop(_AudioTexture);
+                    prop(_ALSmoothing);
+                    });
+                };
                 
                 EditorGUILayout.Space();
                 
