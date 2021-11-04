@@ -124,6 +124,8 @@ namespace z3y
         protected MaterialProperty _ALEmissionBand = null;
         protected MaterialProperty _ALEmissionType = null;
         protected MaterialProperty _ALEmissionMap = null;
+        protected MaterialProperty _EnableStochastic = null;
+        protected MaterialProperty _Stochastic = null;
 
 
         public void ShaderPropertiesGUI(Material material)
@@ -338,6 +340,12 @@ namespace z3y
                 }
 
                 prop(_LodCrossFade);
+                prop(_EnableStochastic);
+                if(_EnableStochastic.floatValue == 1)
+                {
+                    propTileOffset(_Stochastic);
+                }
+
 
                 prop(_EnableAudioLink);
                 if(_EnableAudioLink.floatValue == 1){
@@ -386,19 +394,19 @@ namespace z3y
                 #endif
             });
 
-            md[material].Show_RenderingOptions = Foldout("Rendering Options", md[material].Show_RenderingOptions, ()=> {
-                prop(_BlendOp);
-                prop(_BlendOpAlpha);
-                prop(_SrcBlend);
-                prop(_DstBlend);
-                prop(_ZWrite);
-                prop(_ZTest);
-                prop(_AlphaToMask);
-                prop(_Cull);
-            });
-
-
             md[material].ShowAdvanced = Foldout("Advanced", md[material].ShowAdvanced, ()=> {
+                
+                EditorGUILayout.LabelField("Rendering Options", EditorStyles.boldLabel);
+                md[material].Show_RenderingOptions = Func.TriangleFoldout(md[material].Show_RenderingOptions, ()=> {
+                    prop(_BlendOp);
+                    prop(_BlendOpAlpha);
+                    prop(_SrcBlend);
+                    prop(_DstBlend);
+                    prop(_ZWrite);
+                    prop(_ZTest);
+                    prop(_AlphaToMask);
+                });
+                EditorGUILayout.Space();
 
                 prop(_EnableTextureArray);
                 if(texArray)
@@ -417,6 +425,7 @@ namespace z3y
                 me.DoubleSidedGIField();
                 me.EnableInstancingField();
                 me.RenderQueueField();
+                prop(_Cull);
                 EditorGUILayout.Space();
                 ListAnimatedProps();
             });
@@ -481,6 +490,7 @@ namespace z3y
         private void propTileOffset(MaterialProperty property) => Func.propTileOffset(property, isLocked, me, material);
         private void ListAnimatedProps() => Func.ListAnimatedProps(isLocked, allProps, material);
         private bool Foldout(string foldoutText, bool foldoutName, Action action) => Func.Foldout(foldoutText, foldoutName, action);
+
 
         
 

@@ -236,9 +236,9 @@ namespace z3y.MaterialCreator
 
                 for (int i=0;i< finalColors.Length;i++)
                 {
-                    finalColors[i].r = (reds!=null) ? reds[i] : 0;
-                    finalColors[i].g = (greens != null) ? greens[i] : 0;
-                    finalColors[i].b = (blues != null) ? blues[i] : 0;
+                    finalColors[i].r = (reds!=null) ? reds[i] : 1;
+                    finalColors[i].g = (greens != null) ? greens[i] : 1;
+                    finalColors[i].b = (blues != null) ? blues[i] : 1;
                     finalColors[i].a = (alphas != null) ? alphas[i] : 1;
                 }
                 newTexture.SetPixels(finalColors);

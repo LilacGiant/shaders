@@ -8,6 +8,7 @@ DECLARE_TEX2D_CUSTOM_SAMPLER(_MainTex);
 float4 _MainTex_TexelSize;
 float _MipScale;
 float4 _Color;
+float4 _Stochastic_ST;
 float _Reflectance;
 float _FresnelIntensity;
 float3 _FresnelColor;
@@ -98,6 +99,13 @@ UNITY_INSTANCING_BUFFER_END(Props)
     #define PROP_ALEMISSIONMAP
 #endif
 
+#if defined(STOCHASTIC)
+    #undef PARALLAX
+#endif
+#if defined(PARALLAX)
+    #undef STOCHASTIC
+#endif
+
 static float2 parallaxOffset;
 static float textureIndex;
 static float4 defaultTexelSize;
@@ -140,8 +148,8 @@ static VertexLightInformation vertexLightInformation;
 #undef BAKERY_RNM
 #endif
 
+float bakeryLightmapMode;
 #if defined(BAKERY_SH) || defined(BAKERY_RNM)
-    float bakeryLightmapMode;
     #ifdef BAKERY_SH
     #define BAKERY_SHNONLINEAR
     #endif
@@ -153,9 +161,6 @@ static VertexLightInformation vertexLightInformation;
     #endif
 
     #include "Bakery.cginc"
-
-#else
-static float bakeryLightmapMode = 0;
 #endif
 
 #ifdef ENABLE_AUDIOLINK
