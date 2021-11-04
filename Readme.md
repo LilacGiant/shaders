@@ -1,5 +1,6 @@
 A standard shader replacement for VRChat worlds.
 
+## [Download](https://github.com/z3y/shaders/archive/refs/heads/main.zip)
 ### Shader Features:
 
 - Geometric Specular AA
