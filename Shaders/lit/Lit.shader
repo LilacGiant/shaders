@@ -7,6 +7,8 @@
         [Toggle(_WORKFLOW_UNPACKED)] _Workflow ("Unpacked Mask", Int) = 0
         [KeywordEnum(Opaque, Cutout, Fade, Transparent)] _Mode ("Rendering Mode", Int) = 0
         _Cutoff ("Alpha Cuttoff", Range(0, 1)) = 0.5
+        _MipScale ("Mip Scale", Range(0, 1)) = 0.25        
+
 
         [Toggle(TEXTUREARRAY)] _EnableTextureArray ("Texture Arrays", Float) = 0
         [Toggle(TEXTUREARRAYINSTANCED)] _EnableTextureArrayInstancing ("Instanced Array Index", Float) = 0
