@@ -1,14 +1,12 @@
+// Upgrade NOTE: excluded shader from OpenGL ES 2.0 because it uses non-square matrices
+#pragma exclude_renderers gles
 // https://github.com/Xiexe/Unity-Lit-Shader-Templates/blob/master/LICENSE
-// Upgrade NOTE: excluded shader from DX11 because it uses wrong array syntax (type[size] name)
-#pragma exclude_renderers d3d11
 // https://github.com/google/filament/blob/main/LICENSE
 #define grayscaleVec half3(0.2125, 0.7154, 0.0721)
 #define TAU 6.28318530718
 
 #define glsl_mod(x,y) (((x)-(y)*floor((x)/(y))))
 // custom uv sample texture
-// Upgrade NOTE: excluded shader from OpenGL ES 2.0 because it uses non-square matrices
-#pragma exclude_renderers gles
 // type 0: uv0 and locked to maintex tiling
 // type 1: uv1 unlocked
 // type 2: uv2 unlocked
