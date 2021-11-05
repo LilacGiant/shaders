@@ -106,13 +106,13 @@ Shader "z3y/other/simple lit"
             half3 _EmissionColor;
             #endif
 
-            #ifdef INSTANCING_ON
+
             UNITY_INSTANCING_BUFFER_START(Props)
                 #if defined (TEXTUREARRAYINSTANCED)
                     UNITY_DEFINE_INSTANCED_PROP(float, _TextureIndex)
                 #endif
             UNITY_INSTANCING_BUFFER_END(Props)
-            #endif
+
 
             v2f vert (appdata v)
             {
@@ -234,6 +234,6 @@ Shader "z3y/other/simple lit"
         }
         
     }
-    CustomEditor "z3y.LitUIQuest"
+    CustomEditor "z3y.ShaderEditor.SimpleLitGUI"
     FallBack "VRChat/Mobile/Lightmapped"
 }

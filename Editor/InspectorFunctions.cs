@@ -9,10 +9,10 @@ namespace z3y.ShaderEditorFunctions
 {
     public class InspectorData
     {
-        public Dictionary<string, bool?> values = new Dictionary<string, bool?>();
+        public Dictionary<string, bool?> FoldoutValues = new Dictionary<string, bool?>();
         public Dictionary<string, MaterialProperty> MaterialProperties = new Dictionary<string, MaterialProperty>();
     }
-    
+
     [InitializeOnLoad]
     public class Functions
     {
@@ -186,13 +186,13 @@ namespace z3y.ShaderEditorFunctions
             if (e.type == EventType.MouseDown && GUILayoutUtility.GetLastRect().Contains(e.mousePosition) && e.button == 1)
             {
                 int propIndex = material.shader.FindPropertyIndex(p.name);
-                if(p.type == MaterialProperty.PropType.Float || p.type == MaterialProperty.PropType.Range || p.type == MaterialProperty.PropType.Vector)
+                if(p.type == MaterialProperty.PropType.Float || p.type == MaterialProperty.PropType.Range || p.type == MaterialProperty.PropType.Vector || p.type == MaterialProperty.PropType.Color)
                 {
                     resetProperty.p = p;
 
                     
 
-                    if(p.type == MaterialProperty.PropType.Vector)
+                    if(p.type == MaterialProperty.PropType.Vector || p.type == MaterialProperty.PropType.Color)
                         resetProperty.defaultVectorValue = material.shader.GetPropertyDefaultVectorValue(propIndex);
                     else
                         resetProperty.defaultFloatValue = material.shader.GetPropertyDefaultFloatValue(propIndex);
@@ -239,9 +239,13 @@ namespace z3y.ShaderEditorFunctions
             {
                 resetProperty.p.floatValue = resetProperty.defaultFloatValue;
             }
-            else
+            else if(resetProperty.p.type == MaterialProperty.PropType.Vector)
             {
                 resetProperty.p.vectorValue = resetProperty.defaultVectorValue;
+            }
+            else
+            {
+                resetProperty.p.colorValue = resetProperty.defaultVectorValue;
             }
         }
 

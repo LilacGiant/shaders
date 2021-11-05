@@ -11,36 +11,33 @@ namespace z3y.ShaderEditor
     public class LitUI : ShaderGUI
     {
 
-        public void ShaderPropertiesGUI(Material material)
+        public void ShaderPropertiesGUI(Material material, MaterialProperty[] props, MaterialEditor materialEditor)
         {
             if(!isLocked)
             {
-
                 if(isBakeryMaterial)
                 {
                     EditorGUI.indentLevel--;
                     EditorGUILayout.HelpBox("Revert Bakery materials before editing: Tools > Shader Optimizer > Revert Bakery Materials", MessageType.Info);
                     EditorGUI.indentLevel++;
-
                     isLocked = true;
                 }
-
             }
+
             DrawFoldout("Surface Inputs", ()=>
             {
-                
+
                 EditorGUI.BeginChangeCheck();
                 Prop("_Mode");
                 if (EditorGUI.EndChangeCheck())
                 {
-                    foreach(Material m in me.targets)
+                    foreach(Material m in materialEditor.targets)
                     {
                         SetupMaterialWithBlendMode(m, (int)GetProperty("_Mode").floatValue);
                     }
                 }
 
-                int mode = (int)GetProperty("_Mode").floatValue;
-                if(mode == 1 || mode == 4)
+                if(GetFloatValue("_Mode") == 1 || GetFloatValue("_Mode") == 4)
                 {
                     Prop("_Cutoff");
                     Prop("_MipScale");
@@ -51,7 +48,7 @@ namespace z3y.ShaderEditor
                 DrawTriangleFoldout("_MainTex", ()=>
                 {
                     Prop("_MainTex_UV");
-                    propTileOffset("_MainTex");
+                    PropTileOffset("_MainTex");
                     Prop("_Saturation");
                 });
                 EditorGUILayout.Space();
@@ -66,7 +63,7 @@ namespace z3y.ShaderEditor
                     DrawTriangleFoldout("_MetallicGlossMap", ()=>
                     {
                         Prop("_MetallicGlossMap_UV");
-                        if (GetProperty("_MetallicGlossMap_UV").floatValue != 0) propTileOffset("_MetallicGlossMap");
+                        if (GetFloatValue("_MetallicGlossMap_UV") != 0) PropTileOffset("_MetallicGlossMap");
                     });
                     sRGBWarning(GetProperty("_MetallicGlossMap"));
                 }
@@ -77,7 +74,7 @@ namespace z3y.ShaderEditor
                     {
 
                         Prop("_MetallicMap_UV");
-                        if (GetProperty("_MetallicMap_UV").floatValue != 0) propTileOffset("_MetallicMap");
+                        if (GetFloatValue("_MetallicMap_UV") != 0) PropTileOffset("_MetallicMap");
                     });
                     sRGBWarning(GetProperty("_MetallicMap_"));
 
@@ -85,7 +82,7 @@ namespace z3y.ShaderEditor
                     DrawTriangleFoldout("_SmoothnessMap", ()=>
                     {
                         Prop("_SmoothnessMap_UV");
-                        if (GetProperty("_SmoothnessMap_UV").floatValue != 0) propTileOffset("_SmoothnessMap");
+                        if (GetFloatValue("_SmoothnessMap_UV") != 0) PropTileOffset("_SmoothnessMap");
 
                         Prop("_GlossinessInvert");
                     });
@@ -95,7 +92,7 @@ namespace z3y.ShaderEditor
                     DrawTriangleFoldout("_OcclusionMap", ()=>
                     {
                         Prop("_OcclusionMap_UV");
-                        if (GetProperty("_OcclusionMap_UV").floatValue != 0) propTileOffset("_OcclusionMap");
+                        if (GetFloatValue("_OcclusionMap_UV") != 0) PropTileOffset("_OcclusionMap");
                     });
                     sRGBWarning(GetProperty("_OcclusionMap"));
                 }
@@ -106,7 +103,7 @@ namespace z3y.ShaderEditor
                 DrawTriangleFoldout("_BumpMap", ()=>
                 {
                     Prop("_BumpMap_UV");
-                    if(GetProperty("_BumpMap_UV").floatValue != 0) propTileOffset("_BumpMap");
+                    if(GetFloatValue("_BumpMap_UV") != 0) PropTileOffset("_BumpMap");
                     
                     Prop("_NormalMapOrientation");
                     Prop("_HemiOctahedron");
@@ -118,7 +115,7 @@ namespace z3y.ShaderEditor
                 DrawTriangleFoldout("_DetailMap", ()=>
                 {
                     Prop("_DetailMap_UV");
-                    if(GetProperty("_DetailMap_UV").floatValue != 0) propTileOffset("_DetailMap");
+                    if(GetFloatValue("_DetailMap_UV") != 0) PropTileOffset("_DetailMap");
                     
                     Prop("_DetailAlbedoScale");
                     Prop("_DetailNormalScale");
@@ -136,10 +133,10 @@ namespace z3y.ShaderEditor
                         DrawTriangleFoldout("_EmissionMap", ()=>
                         {
                             Prop("_EmissionMap_UV");
-                            if(GetProperty("_EmissionMap_UV").floatValue != 0) propTileOffset("_EmissionMap");
+                            if(GetProperty("_EmissionMap_UV").floatValue != 0) PropTileOffset("_EmissionMap");
                             
                         });
-                        me.LightmapEmissionProperty();
+                        materialEditor.LightmapEmissionProperty();
                         Prop("_EmissionMultBase");
 
                         if(IfProp("_EnableAudioLink"))
@@ -207,7 +204,7 @@ namespace z3y.ShaderEditor
                     {
                         Prop("_Anisotropy");
                         Prop("_AnisotropyMap");
-                        propTileOffset("_AnisotropyMap");
+                        PropTileOffset("_AnisotropyMap");
                     });
                 };
             });
@@ -286,12 +283,12 @@ namespace z3y.ShaderEditor
                 
                 EditorGUILayout.Space();
                 
-                me.DoubleSidedGIField();
-                me.EnableInstancingField();
-                me.RenderQueueField();
+                materialEditor.DoubleSidedGIField();
+                materialEditor.EnableInstancingField();
+                materialEditor.RenderQueueField();
                 Prop("_Cull");
                 EditorGUILayout.Space();
-                DrawAnimatedPropertiesList(isLocked, allProps, material);
+                DrawAnimatedPropertiesList(isLocked, props, material);
             });
 
             
@@ -310,20 +307,17 @@ namespace z3y.ShaderEditor
             if(GetProperty("wAg6H2wQzc7UbxaL").floatValue != 0) return;
         }
 
-        protected static Dictionary<Material, InspectorData> data = new Dictionary<Material, InspectorData>();
-        MaterialEditor me;
+        MaterialEditor materialEditor;
         public bool m_FirstTimeApply = true;
 
         public bool isLocked;
         public bool isBakeryMaterial;
         Material material = null;
-        MaterialProperty[] allProps;
 
         public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] props)
         {
-            me = materialEditor;
+            this.materialEditor = materialEditor;
             material = materialEditor.target as Material;
-            allProps = props;
 
             if (m_FirstTimeApply)
             {
@@ -336,73 +330,19 @@ namespace z3y.ShaderEditor
             
             if(GetProperty("wAg6H2wQzc7UbxaL") != null)
             {
-                ShaderOptimizerButton(GetProperty("wAg6H2wQzc7UbxaL"), me);
-                isLocked = GetProperty("wAg6H2wQzc7UbxaL").floatValue == 1;
+                ShaderOptimizerButton(GetProperty("wAg6H2wQzc7UbxaL"), materialEditor);
+                isLocked = GetFloatValue("wAg6H2wQzc7UbxaL") == 1;
                 EditorGUI.indentLevel++;
             }
             EditorGUI.BeginChangeCheck();
 
-            ShaderPropertiesGUI(material);
+            ShaderPropertiesGUI(material, props, materialEditor);
 
             if (EditorGUI.EndChangeCheck()) {
                 ApplyChanges();
             };
         }
 
-
-        // public static Dictionary<string, MaterialProperty> MaterialProperties = new Dictionary<string, MaterialProperty>();
-        private void SetupPropertiesDictionary(MaterialProperty[] props)
-        {
-            for (int i = 0; i < props.Length; i++)
-            {
-                MaterialProperty p = props[i];
-                data[material].MaterialProperties[p.name] = p;
-            }
-        }
-
-        private MaterialProperty GetProperty(string name)
-        {
-            data[material].MaterialProperties.TryGetValue(name, out MaterialProperty p);
-            return p;
-        }
-
-        
-        
-        private void Prop(string property, string extraProperty = null) => MaterialProp(GetProperty(property), extraProperty is null ? null : GetProperty(extraProperty), me, isLocked, material);
-
-
-        private void propTileOffset(string property) => DrawPropTileOffset(GetProperty(property), isLocked, me, material);
-
-        public void DrawFoldout(string name, Action action, bool defaultValue = false)
-        {
-            data[material].values.TryGetValue(name, out bool? isOpen);
-            bool o = isOpen ?? defaultValue;
-            o = Foldout(name, o, action);
-            data[material].values[name] = o;
-        }
-        
-        
-        public void DrawTriangleFoldout(string name, Action action, bool defaultValue = false)
-        {
-            data[material].values.TryGetValue(name, out bool? isOpen);
-            bool o = isOpen ?? defaultValue;
-            o = TriangleFoldout(o, action);
-            data[material].values[name] = o;
-        }
-
-        public bool IfProp(string name) => GetProperty(name)?.floatValue == 1;
-
-        public int PropEnumValue(string name) => (int)GetProperty(name)?.floatValue;
-
-
-        private void SetupFoldoutDictionary(Material material)
-        {
-            if (data.ContainsKey(material)) return;
-
-            InspectorData toggles = new InspectorData();
-            data.Add(material, toggles);
-        }
-        
         public static void SetupMaterialWithBlendMode(Material material, int type)
         {
             switch (type)
@@ -443,5 +383,52 @@ namespace z3y.ShaderEditor
         }
 
 
+        // inspector setup
+        protected static Dictionary<Material, InspectorData> data = new Dictionary<Material, InspectorData>();
+
+        private void Prop(string property, string extraProperty = null) => MaterialProp(GetProperty(property), extraProperty is null ? null : GetProperty(extraProperty), materialEditor, isLocked, material);
+        private void PropTileOffset(string property) => DrawPropTileOffset(GetProperty(property), isLocked, materialEditor, material);
+        public float GetFloatValue(string name) => (float)GetProperty(name)?.floatValue;
+        public bool IfProp(string name) => GetProperty(name)?.floatValue == 1;
+
+        private void SetupPropertiesDictionary(MaterialProperty[] props)
+        {
+            data[material].MaterialProperties.Clear();
+            for (int i = 0; i < props.Length; i++)
+            {
+                MaterialProperty p = props[i];
+                data[material].MaterialProperties[p.name] = p;
+            }
+        }
+
+        private MaterialProperty GetProperty(string name)
+        {
+            data[material].MaterialProperties.TryGetValue(name, out MaterialProperty p);
+            return p;
+        }
+
+        public void DrawFoldout(string name, Action action, bool defaultValue = false)
+        {
+            data[material].FoldoutValues.TryGetValue(name, out bool? isOpen);
+            bool o = isOpen ?? defaultValue;
+            o = Foldout(name, o, action);
+            data[material].FoldoutValues[name] = o;
+        }
+        
+        public void DrawTriangleFoldout(string name, Action action, bool defaultValue = false)
+        {
+            data[material].FoldoutValues.TryGetValue(name, out bool? isOpen);
+            bool o = isOpen ?? defaultValue;
+            o = TriangleFoldout(o, action);
+            data[material].FoldoutValues[name] = o;
+        }
+
+        private void SetupFoldoutDictionary(Material material)
+        {
+            if (data.ContainsKey(material)) return;
+
+            InspectorData toggles = new InspectorData();
+            data.Add(material, toggles);
+        }
     }
 }

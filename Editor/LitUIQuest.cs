@@ -2,90 +2,115 @@
 using UnityEngine;
 using System.Collections.Generic;
 using System;
-using System.Reflection;
+using z3y.ShaderEditorFunctions;
+using static z3y.ShaderEditorFunctions.Functions;
 
-namespace z3y
+namespace z3y.ShaderEditor
 {
-    
-    public class LitUIQuest : ShaderGUI
+
+    public class SimpleLitGUI : ShaderGUI
     {
-        protected MaterialProperty _MainTex = null;
-        protected MaterialProperty _Color = null;
-        protected MaterialProperty _EnableEmission = null;
-        protected MaterialProperty _EmissionColor = null;
-        protected MaterialProperty _EmissionMap = null;
-        protected MaterialProperty _Cull = null;
-        protected MaterialProperty _MainTexArray = null;
-        protected MaterialProperty _EnableTextureArray = null;
-        protected MaterialProperty _TextureIndex = null;
-        protected MaterialProperty _EnableTextureArrayInstancing = null;
 
-        public void ShaderPropertiesGUI(Material material)
+        public void ShaderPropertiesGUI(Material material, MaterialProperty[] props, MaterialEditor materialEditor)
         {
-            if(_EnableTextureArray.floatValue == 0)
-            {
-                me.TexturePropertySingleLine(new GUIContent(_MainTex.displayName), _MainTex, _Color);
-            }
-            else
-            {
-                // if(material.enableInstancing) me.ShaderProperty(_TextureIndex, _TextureIndex.displayName);
-                me.TexturePropertySingleLine(new GUIContent(_MainTexArray.displayName), _MainTexArray, _Color);
-            }
 
-            me.ShaderProperty(_EnableEmission, _EnableEmission.displayName);
+            Prop(IfProp("_EnableTextureArray") ? "_MainTexArray" : "_MainTex", "_Color");
+            
+            Prop("_EnableEmission");
 
-            if(_EnableEmission.floatValue == 1)
-            {
-                me.TexturePropertySingleLine(new GUIContent(_EmissionMap.displayName), _EmissionMap, _EmissionColor);
-            }
+            if(IfProp("_EnableEmission")) Prop("_EmissionMap", "_EmissionColor");
 
-            me.ShaderProperty(_EnableTextureArray, _EnableTextureArray.displayName);
-            if(_EnableTextureArray.floatValue == 1) me.ShaderProperty(_EnableTextureArrayInstancing, _EnableTextureArrayInstancing.displayName);
+            Prop("_EnableTextureArray");
+            if(IfProp("_EnableTextureArray")) Prop("_EnableTextureArrayInstancing");;
 
-            me.DoubleSidedGIField();
-            me.EnableInstancingField();
-            me.RenderQueueField();
-            me.ShaderProperty(_Cull, _Cull.displayName);
+            materialEditor.DoubleSidedGIField();
+            materialEditor.EnableInstancingField();
+            materialEditor.RenderQueueField();
+            Prop("_Cull");
+
+
             
         }
 
 
-        protected BindingFlags bindingFlags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static;
-        MaterialEditor me;
+        private void ApplyChanges()
+        {
+            SetupGIFlags(GetProperty("_EnableEmission").floatValue, material);
+        }
+
+        MaterialEditor materialEditor;
         public bool m_FirstTimeApply = true;
 
         Material material = null;
-        MaterialProperty[] allProps;
 
         public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] props)
         {
-            FindProperties(props);
-            me = materialEditor;
+            this.materialEditor = materialEditor;
             material = materialEditor.target as Material;
-            allProps = props;
 
             if (m_FirstTimeApply)
             {
                 m_FirstTimeApply = false;
+                SetupFoldoutDictionary(material);
+                SetupPropertiesDictionary(props);
             }
             
             EditorGUI.BeginChangeCheck();
-            EditorGUI.indentLevel++;
 
-            ShaderPropertiesGUI(material);
+            ShaderPropertiesGUI(material, props, materialEditor);
+
+            if (EditorGUI.EndChangeCheck()) {
+                ApplyChanges();
+            };
+        }
+
+
+        // inspector setup
+        protected static Dictionary<Material, InspectorData> data = new Dictionary<Material, InspectorData>();
+
+        private void Prop(string property, string extraProperty = null) => MaterialProp(GetProperty(property), extraProperty is null ? null : GetProperty(extraProperty), materialEditor, false, material);
+        private void PropTileOffset(string property) => DrawPropTileOffset(GetProperty(property), false, materialEditor, material);
+        public float GetFloatValue(string name) => (float)GetProperty(name)?.floatValue;
+        public bool IfProp(string name) => GetProperty(name)?.floatValue == 1;
+
+        private void SetupPropertiesDictionary(MaterialProperty[] props)
+        {
+            data[material].MaterialProperties.Clear();
+            for (int i = 0; i < props.Length; i++)
+            {
+                MaterialProperty p = props[i];
+                data[material].MaterialProperties[p.name] = p;
+            }
+        }
+
+        private MaterialProperty GetProperty(string name)
+        {
+            data[material].MaterialProperties.TryGetValue(name, out MaterialProperty p);
+            return p;
+        }
+
+        public void DrawFoldout(string name, Action action, bool defaultValue = false)
+        {
+            data[material].FoldoutValues.TryGetValue(name, out bool? isOpen);
+            bool o = isOpen ?? defaultValue;
+            o = Foldout(name, o, action);
+            data[material].FoldoutValues[name] = o;
         }
         
-        public void FindProperties(MaterialProperty[] props)
+        public void DrawTriangleFoldout(string name, Action action, bool defaultValue = false)
         {
-            //Find all material properties listed in the script using reflection, and set them using a loop only if they're of type MaterialProperty.
-            //This makes things a lot nicer to maintain and cleaner to look at.
-            foreach (var property in GetType().GetFields(bindingFlags))
-            {
-                if (property.FieldType == typeof(MaterialProperty))
-                {
-                    try { property.SetValue(this, FindProperty(property.Name, props)); } catch { /*Is it really a problem if it doesn't exist?*/ }
-                }
-            }
+            data[material].FoldoutValues.TryGetValue(name, out bool? isOpen);
+            bool o = isOpen ?? defaultValue;
+            o = TriangleFoldout(o, action);
+            data[material].FoldoutValues[name] = o;
+        }
+
+        private void SetupFoldoutDictionary(Material material)
+        {
+            if (data.ContainsKey(material)) return;
+
+            InspectorData toggles = new InspectorData();
+            data.Add(material, toggles);
         }
     }
 }
