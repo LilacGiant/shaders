@@ -299,6 +299,6 @@
             ENDCG
         }
     }
-    CustomEditor "z3y.LitUI"
+    CustomEditor "z3y.ShaderEditor.LitUI"
     FallBack "z3y/other/simple lit"
 }

@@ -5,10 +5,16 @@ using System.IO;
 using System;
 using System.Linq;
 
-namespace z3y
+namespace z3y.ShaderEditorFunctions
 {
+    public class InspectorData
+    {
+        public Dictionary<string, bool?> values = new Dictionary<string, bool?>();
+        public Dictionary<string, MaterialProperty> MaterialProperties = new Dictionary<string, MaterialProperty>();
+    }
+    
     [InitializeOnLoad]
-    public static class Func
+    public class Functions
     {
         public static Texture2D groupTex = (Texture2D)Resources.Load( EditorGUIUtility.isProSkin ? "lit_group" : "lit_group_light", typeof(Texture2D));
         public static Texture2D animatedTex = (Texture2D)Resources.Load( "lit_animated", typeof(Texture2D));
@@ -120,6 +126,8 @@ namespace z3y
 			}
 		}
         private const char hoverSplitSeparator = ':';
+        // public static void Prop(string property, string extraProperty = null) => MaterialProp(GetProperty(property), extraProperty is null ? null : GetProperty(extraProperty), me, isLocked, material);
+
         public static void MaterialProp(MaterialProperty property, MaterialProperty extraProperty, MaterialEditor me, bool isLocked, Material material)
         {
 
@@ -218,7 +226,7 @@ namespace z3y
                 Rect lastRect = GUILayoutUtility.GetLastRect();
                 Rect stopWatch = new Rect(lastRect.x - 16f, lastRect.y + 4f, 11f, 11f);
 
-                GUI.DrawTexture(stopWatch, Func.animatedTex);
+                GUI.DrawTexture(stopWatch, animatedTex);
 
             }
         }
@@ -237,7 +245,7 @@ namespace z3y
             }
         }
 
-        public static void ListAnimatedProps(bool isLocked, MaterialProperty[] allProps, Material material)
+        public static void DrawAnimatedPropertiesList(bool isLocked, MaterialProperty[] allProps, Material material)
         {
             EditorGUI.indentLevel--;
             EditorGUILayout.HelpBox("Middle click a property to keep it unlocked", MessageType.Info);
@@ -252,7 +260,7 @@ namespace z3y
                     EditorGUILayout.LabelField(property.displayName);
                     Rect lastRect = GUILayoutUtility.GetLastRect();
                     Rect x = new Rect(lastRect.x, lastRect.y + 4f, 15f, 12f);
-                    GUI.DrawTexture(x, Func.xTex);
+                    GUI.DrawTexture(x, xTex);
 
                     var e = Event.current;
                     if (e.type == EventType.MouseDown && x.Contains(e.mousePosition) && e.button == 0)
@@ -265,7 +273,7 @@ namespace z3y
             EditorGUI.EndDisabledGroup();
         }
 
-        public static void propTileOffset(MaterialProperty property, bool isLocked, MaterialEditor me, Material material)
+        public static void DrawPropTileOffset(MaterialProperty property, bool isLocked, MaterialEditor me, Material material)
         {
             EditorGUI.BeginDisabledGroup(isLocked);
             me.TextureScaleOffsetProperty(property);
@@ -275,7 +283,7 @@ namespace z3y
 
         public static bool Foldout(string foldoutText, bool foldoutName, Action action)
         {
-            foldoutName = Func.Foldout(foldoutText, foldoutName);
+            foldoutName = Foldout(foldoutText, foldoutName);
             if(foldoutName)
             {
                 EditorGUILayout.Space();
@@ -287,10 +295,10 @@ namespace z3y
 
         public static bool TriangleFoldout(bool foldoutName, Action action)
         {
-            foldoutName = Func.TextureFoldout(foldoutName);
+            foldoutName = TextureFoldout(foldoutName);
             if(foldoutName)
             {
-                Func.PropertyGroup(() => {
+                PropertyGroup(() => {
                     action();
                 });
             }
@@ -331,43 +339,23 @@ namespace z3y
             }
         }
 
-        public static void SetupMaterialWithBlendMode(Material material, float type)
-        {
-            switch (type)
-            {
-                case 0:
-                    material.SetOverrideTag("RenderType", "");
-                    material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
-                    material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.Zero);
-                    material.SetInt("_ZWrite", 1);
-                    material.SetInt("_AlphaToMask", 0);
-                    material.renderQueue = -1;
-                    break;
-                case 1:
-                    material.SetOverrideTag("RenderType", "TransparentCutout");
-                    material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
-                    material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.Zero);
-                    material.SetInt("_ZWrite", 1);
-                    material.renderQueue = (int)UnityEngine.Rendering.RenderQueue.AlphaTest;
-                    break;
-                case 2:
-                    material.SetOverrideTag("RenderType", "Transparent");
-                    material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
-                    material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
-                    material.SetInt("_ZWrite", 0);
-                    material.SetInt("_AlphaToMask", 0);
-                    material.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
-                    break;
-                case 3:
-                    material.SetOverrideTag("RenderType", "Transparent");
-                    material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
-                    material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
-                    material.SetInt("_ZWrite", 0);
-                    material.SetInt("_AlphaToMask", 0);
-                    material.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
-                    break;
-            }
-        }
+        // public static Dictionary<string, MaterialProperty> MaterialProperties = new Dictionary<string, MaterialProperty>();
+        // public static void SetupPropertiesDictionary(MaterialProperty[] props)
+        // {
+        //     for (int i = 0; i < props.Length; i++)
+        //     {
+        //         MaterialProperty p = props[i];
+        //         MaterialProperties[p.name] = p;
+        //     }
+        // }
+
+        // public static MaterialProperty GetProperty(string name)
+        // {
+        //     MaterialProperties.TryGetValue(name, out MaterialProperty p);
+        //     return p;
+        // }
+
+
 
         public static void SetupGIFlags(float emissionEnabled, Material material)
         {
@@ -382,11 +370,6 @@ namespace z3y
             }
         }
 
-        
-
-        
-
-        
 
 
     }

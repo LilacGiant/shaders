@@ -49,7 +49,7 @@ namespace z3y
             
         }
 
-        protected static Dictionary<Material, LitFoldouts> md = new Dictionary<Material, LitFoldouts>();
+
         protected BindingFlags bindingFlags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static;
         MaterialEditor me;
         public bool m_FirstTimeApply = true;
