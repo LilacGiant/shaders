@@ -193,6 +193,7 @@ namespace z3y.ShaderEditor
                     PropertyGroup(() => {
                         Prop("_specularAntiAliasingVariance");
                         Prop("_specularAntiAliasingThreshold");
+                        Prop("_GSAANormal");
                     });
                 };
 

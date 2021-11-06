@@ -149,7 +149,11 @@ float4 frag (v2f i, uint facing : SV_IsFrontFace) : SV_Target
     mainTexture.rgb = lerp(dot(mainTexture.rgb, grayscaleVec), mainTexture.rgb, _Saturation + 1);
 
     UNITY_BRANCH
-    if(_GSAA) perceptualRoughness = GSAA_Filament(worldNormal, perceptualRoughness);
+    if(_GSAA)
+    {
+        if(!_GSAANormal)
+        perceptualRoughness = GSAA_Filament(worldNormal, perceptualRoughness);
+    }
 
     float4 normalMap = float4(0.5, 0.5, 1, 1);
 
@@ -208,6 +212,13 @@ float4 frag (v2f i, uint facing : SV_IsFrontFace) : SV_Target
         tangent = normalize(tangent);
         bitangent = normalize(bitangent);
     #endif
+
+    UNITY_BRANCH
+    if(_GSAA)
+    {
+        if(_GSAANormal)
+        perceptualRoughness = GSAA_Filament(worldNormal, perceptualRoughness);
+    }
 
     float3 viewDir = normalize(_WorldSpaceCameraPos - i.worldPos.xyz);
     float NoV = abs(dot(worldNormal, viewDir)) + 1e-5;

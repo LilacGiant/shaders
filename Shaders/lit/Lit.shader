@@ -63,6 +63,7 @@
         [Toggle(BICUBIC_LIGHTMAP)] _BicubicLightmap ("Bicubic Lightmap", Int) = 0
 
         [ToggleUI] _GSAA ("Geometric Specular AA", Int) = 0
+            [ToggleUI] _GSAANormal ("GSAA Affect Normal Map", Int) = 0
             [PowerSlider(2)] _specularAntiAliasingVariance ("Variance", Range(0.0, 1.0)) = 0.15
             [PowerSlider(2)] _specularAntiAliasingThreshold ("Threshold", Range(0.0, 1.0)) = 0.1
 

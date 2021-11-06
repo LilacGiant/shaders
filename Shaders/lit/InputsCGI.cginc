@@ -28,7 +28,8 @@ float _BumpScale;
 uint _NormalMapOrientation;
 uint _HemiOctahedron;
 
-uint _GSAA;
+float _GSAA;
+float _GSAANormal;
 float _specularAntiAliasingVariance;
 float _specularAntiAliasingThreshold;
 
