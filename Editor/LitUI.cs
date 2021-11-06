@@ -264,11 +264,8 @@ namespace z3y.ShaderEditor
                 Prop("_Workflow");
                 Prop("VertexLights");
                 Prop("_LodCrossFade");
-                // prop(_EnableStochastic);
-                // if(_EnableStochastic.floatValue == 1)
-                // {
-                //     propTileOffset(_Stochastic);
-                // }
+                EditorGUILayout.Space();
+                
 
 
                 Prop("_EnableAudioLink");
@@ -280,6 +277,11 @@ namespace z3y.ShaderEditor
                         Prop("_ALSmoothing");
                     });
                 };
+                Prop("_EnableStochastic");
+                if(IfProp("_EnableStochastic"))
+                {
+                    PropTileOffset("_Stochastic");
+                }
                 
                 EditorGUILayout.Space();
                 

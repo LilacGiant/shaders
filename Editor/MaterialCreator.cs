@@ -30,6 +30,19 @@ namespace z3y.MaterialCreator
             public Texture2D mask;
         }
 
+        private static string[] albedoMatch = 
+        {
+            "albedo",
+            "color",
+            "diffuse"
+        };
+
+        private static string[] normalMatch = 
+        {
+            "normal",
+            "bump"
+        };
+
         [MenuItem("Assets/Create/Lit/Material", false, 0)]
         private static void GetCurrentPath()
         {
@@ -50,6 +63,7 @@ namespace z3y.MaterialCreator
 
                 PBRTextures pbr = new PBRTextures();
                 MaskMap mask = new MaskMap();
+
                 for (int i = 0; i < foundTextureNames.Length; i++)
                 {
                     string t = foundTextureNames[i].ToLower();
@@ -65,9 +79,9 @@ namespace z3y.MaterialCreator
                         tex.SaveAndReimport();
                     }
 
-                    if(t.Contains("mask"))
+                    if(pbr.mask != null)
                     {
-                        pbr.mask = LoadTexture(foundTexturePaths[i]);
+                        // pbr.mask = LoadTexture(foundTexturePaths[i]);
                     }
                     else 
                     {
@@ -167,6 +181,20 @@ namespace z3y.MaterialCreator
             Texture2D t;
             t = (Texture2D)AssetDatabase.LoadAssetAtPath(path, typeof(Texture2D));
             return t;
+        }
+
+        private static Texture2D FindClosestTexture(string[] texturePath, string[] closestMatch, int maxDistance = 100)
+        {
+            Texture2D tex = null;
+            string[] textureFileNames = new string[texturePath.Length];
+            for (int i = 0; i < texturePath.Length; i++)
+            {
+                textureFileNames[i] = System.IO.Path.GetFileNameWithoutExtension(texturePath[i]).ToLower();
+            }
+
+            int? index = LevenshteinDistance.ComputeArray(textureFileNames, closestMatch, maxDistance);
+            if(index != null) tex = LoadTexture(texturePath[(int)index]);
+            return tex;
         }
 
         [System.Serializable]
@@ -364,6 +392,84 @@ namespace z3y.MaterialCreator
                 }
                 return newTexture;
             }
+        }
+    }
+
+    // https://stackoverflow.com/questions/13793560/find-closest-match-to-input-string-in-a-list-of-strings/13793600
+    /// <summary>
+    /// Contains approximate string matching
+    /// </summary>
+    static class LevenshteinDistance
+    {
+        /// <summary>
+        /// Compute the distance between two strings.
+        /// </summary>
+        public static int Compute(string s, string t)
+        {
+            int n = s.Length;
+            int m = t.Length;
+            int[,] d = new int[n + 1, m + 1];
+
+            // Step 1
+            if (n == 0)
+            {
+                return m;
+            }
+
+            if (m == 0)
+            {
+                return n;
+            }
+
+            // Step 2
+            for (int i = 0; i <= n; d[i, 0] = i++)
+            {
+            }
+
+            for (int j = 0; j <= m; d[0, j] = j++)
+            {
+            }
+
+            // Step 3
+            for (int i = 1; i <= n; i++)
+            {
+                //Step 4
+                for (int j = 1; j <= m; j++)
+                {
+                // Step 5
+                int cost = (t[j - 1] == s[i - 1]) ? 0 : 1;
+
+                // Step 6
+                d[i, j] = Mathf.Min(
+                    Mathf.Min(d[i - 1, j] + 1, d[i, j - 1] + 1),
+                    d[i - 1, j - 1] + cost);
+                }
+            }
+            // Step 7
+            return d[n, m];
+        }
+
+        // return index of array s with closest match to t
+        public static int? ComputeArray(string[] s, string[] t, int closestDistance = 100)
+        {
+            int? a = null;
+            for (int i = 0; i < s.Length; i++)
+            {
+                s[i] = s[i].ToLower();
+                for (int j = 0; j < t.Length; j++)
+                {
+                    t[j] = t[j].ToLower();
+                    int b = Compute(s[i], t[j]);
+                    if(b < closestDistance)
+                    {
+                        closestDistance = b;
+                        a = i;
+                    }
+                        
+                }
+            }
+
+            return a;
         }
     }
 }

@@ -85,8 +85,8 @@
             _ParallaxOffset ("Parallax Offset", Range(-1, 1)) = 0
 
 
-        // [Toggle(STOCHASTIC)] _EnableStochastic ("Stochastic", Int) = 0
-        // _Stochastic ("tile offset", 2D) = "white" {}
+        [Toggle(STOCHASTIC)] _EnableStochastic ("Stochastic", Int) = 0
+        _Stochastic ("tile offset", 2D) = "white" {}
 
         [Toggle(NONLINEAR_LIGHTPROBESH)] _NonLinearLightProbeSH ("Non-linear Light Probe SH", Int) = 0
         [Toggle(BAKEDSPECULAR)] _BakedSpecular ("Baked Specular ", Int) = 0
