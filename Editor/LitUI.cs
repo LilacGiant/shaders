@@ -76,7 +76,7 @@ namespace z3y.ShaderEditor
                         Prop("_MetallicMap_UV");
                         if (GetFloatValue("_MetallicMap_UV") != 0) PropTileOffset("_MetallicMap");
                     });
-                    sRGBWarning(GetProperty("_MetallicMap_"));
+                    sRGBWarning(GetProperty("_MetallicMap"));
 
                     Prop("_SmoothnessMap", "_Glossiness");
                     DrawTriangleFoldout("_SmoothnessMap", ()=>
@@ -86,7 +86,7 @@ namespace z3y.ShaderEditor
 
                         Prop("_GlossinessInvert");
                     });
-                    sRGBWarning(GetProperty("_SmoothnessMap_"));
+                    sRGBWarning(GetProperty("_SmoothnessMap"));
 
                     Prop("_OcclusionMap", "_Occlusion");
                     DrawTriangleFoldout("_OcclusionMap", ()=>
@@ -111,16 +111,7 @@ namespace z3y.ShaderEditor
                 
 
                 
-                Prop("_DetailMap");
-                DrawTriangleFoldout("_DetailMap", ()=>
-                {
-                    Prop("_DetailMap_UV");
-                    if(GetFloatValue("_DetailMap_UV") != 0) PropTileOffset("_DetailMap");
-                    
-                    Prop("_DetailAlbedoScale");
-                    Prop("_DetailNormalScale");
-                    Prop("_DetailSmoothnessScale");
-                });
+                
 
                 
                 
@@ -172,6 +163,37 @@ namespace z3y.ShaderEditor
 
 
             }, true);
+
+            DrawFoldout("Details", ()=>
+            {
+
+            Prop("_DetailPacked");
+            if(IfProp("_DetailPacked"))
+            {
+                Prop("_DetailMap");
+            }
+            else
+            {
+                Prop("_DetailAlbedoMap");
+                Prop("_DetailMaskMap");
+                sRGBWarning(GetProperty("_DetailMaskMap"));
+
+                Prop("_DetailNormalMap");
+            }
+            EditorGUILayout.Space();
+
+            Prop("_DetailAlbedoScale");
+            Prop("_DetailNormalScale");
+            Prop("_DetailSmoothnessScale");
+
+            EditorGUILayout.Space();
+
+            Prop("_DetailMaskScale");
+            Prop("_DetailMap_UV");
+            if(GetFloatValue("_DetailMap_UV") != 0) PropTileOffset("_DetailMap");
+                
+
+            });
             
             DrawFoldout("Specular", ()=>
             {

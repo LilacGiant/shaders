@@ -73,11 +73,17 @@
             [HDR] _EmissionColor ("Emission Color", Color) = (0,0,0)
             [Enum(UV 0 Locked, 0, UV 1, 1, UV 2, 2, UV 0 Unlocked, 3)]  _EmissionMap_UV ("UV Type", Int) = 0
 
-        _DetailMap ("Detail Map:Desaturated Albedo(R), Normal Y(G), Smoothness(B), Normal X(A)", 2D) = "linearGrey" {}
+
+        [ToggleUI] _DetailPacked ("Detail Packed", Int) = 0
+            _DetailMap ("Detail Map:Desaturated Albedo(R), Normal Y(G), Smoothness(B), Normal X(A)", 2D) = "linearGrey" {}
+            [Normal] _DetailNormalMap ("Normal Map", 2D) = "bump" {}
+            _DetailAlbedoMap ("Albedo Map", 2D) = "linearGrey" {}
+            _DetailMaskMap ("Smoothness Map", 2D) = "linearGrey" {}
             [Enum(UV 0 Locked, 0, UV 1, 1, UV 2, 2, UV 0 Unlocked, 3)]  _DetailMap_UV ("UV Type", Int) = 3
             _DetailAlbedoScale ("Albedo Scale", Range(0.0, 2.0)) = 0
             _DetailNormalScale ("Normal Scale", Range(0.0, 2.0)) = 0
             _DetailSmoothnessScale ("Smoothness Scale", Range(0.0, 2.0)) = 0
+            _DetailMaskScale ("Base Mask Scale", Range(0, 1)) = 1
 
         [Toggle(PARALLAX)] _EnableParallax ("Parallax", Int) = 0
             _Parallax ("Height Scale", Range (0, 0.2)) = 0.02

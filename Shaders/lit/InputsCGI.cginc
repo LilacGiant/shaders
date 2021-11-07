@@ -43,6 +43,11 @@ uint _EmissionMultBase;
 float3 _EmissionColor;
 
 DECLARE_TEX2D_CUSTOM(_DetailMap);
+DECLARE_TEX2D_CUSTOM(_DetailAlbedoMap);
+DECLARE_TEX2D_CUSTOM(_DetailMaskMap);
+DECLARE_TEX2D_CUSTOM(_DetailNormalMap);
+float _DetailMaskScale;
+float _DetailPacked;
 float _DetailAlbedoScale;
 float _DetailNormalScale;
 float _DetailSmoothnessScale;
@@ -98,6 +103,9 @@ UNITY_INSTANCING_BUFFER_END(Props)
     #define PROP_DETAILMAP
     #define PROP_PARALLAXMAP
     #define PROP_ALEMISSIONMAP
+    #define PROP_DETAILALBEDOMAP
+    #define PROP_DETAILMASKMAP
+    #define PROP_DETAILNORMALMAP
 #endif
 
 #if defined(STOCHASTIC)
@@ -134,6 +142,12 @@ static VertexLightInformation vertexLightInformation;
 
 #ifdef UNITY_PASS_META
     #include "UnityMetaPass.cginc"
+#endif
+
+#if defined(OPTIMIZER_ENABLED)
+    #if (PROP_DETAILPACKED == 0)
+        #undef PROP_DETAILMAP
+    #endif
 #endif
 
 #if defined(PARALLAX)
