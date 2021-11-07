@@ -303,7 +303,7 @@ namespace z3y.ShaderEditor
         }
 
         // On inspector change
-        private void ApplyChanges()
+        private void ApplyChanges(MaterialProperty[] props)
         {
             SetupGIFlags(GetProperty("_EnableEmission").floatValue, material);
             
@@ -326,10 +326,10 @@ namespace z3y.ShaderEditor
             {
                 m_FirstTimeApply = false;
                 SetupFoldoutDictionary(material);
-                SetupPropertiesDictionary(props);
                 isBakeryMaterial = !material.GetTag("OriginalMaterialPath", false, string.Empty).Equals(string.Empty, StringComparison.Ordinal);
 
             }
+            SetupPropertiesDictionary(props);
             
             if(GetProperty("wAg6H2wQzc7UbxaL") != null)
             {
@@ -342,7 +342,7 @@ namespace z3y.ShaderEditor
             ShaderPropertiesGUI(material, props, materialEditor);
 
             if (EditorGUI.EndChangeCheck()) {
-                ApplyChanges();
+                ApplyChanges(props);
             };
         }
 
