@@ -190,7 +190,7 @@ namespace z3y.ShaderEditor
 
             Prop("_DetailMaskScale");
             Prop("_DetailMap_UV");
-            if(GetFloatValue("_DetailMap_UV") != 0) PropTileOffset("_DetailMap");
+            PropTileOffset("_DetailMap");
                 
 
             });

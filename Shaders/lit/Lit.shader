@@ -79,7 +79,7 @@
             [Normal] _DetailNormalMap ("Normal Map", 2D) = "bump" {}
             _DetailAlbedoMap ("Albedo Map", 2D) = "linearGrey" {}
             _DetailMaskMap ("Smoothness Map", 2D) = "linearGrey" {}
-            [Enum(UV 0 Locked, 0, UV 1, 1, UV 2, 2, UV 0 Unlocked, 3)]  _DetailMap_UV ("UV Type", Int) = 3
+            [Enum(UV 0, 3, UV 1, 1, UV 2, 2)]  _DetailMap_UV ("UV Type", Int) = 3
             _DetailAlbedoScale ("Albedo Scale", Range(0.0, 2.0)) = 0
             _DetailNormalScale ("Normal Scale", Range(0.0, 2.0)) = 0
             _DetailSmoothnessScale ("Smoothness Scale", Range(0.0, 2.0)) = 0
