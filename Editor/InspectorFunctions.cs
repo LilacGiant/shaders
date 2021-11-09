@@ -111,7 +111,7 @@ namespace z3y.ShaderEditorFunctions
 		public static void sRGBWarning(MaterialProperty tex){
             if(tex is null) return;
 			if (tex.textureValue){
-				string sRGBWarning = "This texture is marked as sRGB, but should not contain color information.";
+				string sRGBWarning = "This texture is marked as sRGB, but should be linear.";
 				string texPath = AssetDatabase.GetAssetPath(tex.textureValue);
 				TextureImporter texImporter;
 				var importer = TextureImporter.GetAtPath(texPath) as TextureImporter;

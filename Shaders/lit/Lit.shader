@@ -135,6 +135,7 @@
         [ToggleUI] _LodCrossFade ("Dithered LOD Crossfade", Float) = 0
 
         // unlocked properties
+        _MainTex_STAnimated("", Float) = 1
         _MetallicAnimated("", Float) = 1
         _GlossinessAnimated("", Float) = 1
         _OcclusionAnimated("", Float) = 1
