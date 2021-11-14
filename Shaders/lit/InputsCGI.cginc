@@ -1,11 +1,10 @@
-#define DECLARE_TEX2D_CUSTOM_SAMPLER(tex) SamplerState sampler##tex; Texture2D tex; uint tex##_UV; float4 tex##_ST
-#define DECLARE_TEX2D_CUSTOM(tex)                                    Texture2D tex; uint tex##_UV; float4 tex##_ST
+#define DECLARE_TEX2D_CUSTOM_SAMPLER(tex) SamplerState sampler##tex; Texture2D tex; uint tex##_UV; float4 tex##_ST; float4 tex##_TexelSize
+#define DECLARE_TEX2D_CUSTOM(tex)                                    Texture2D tex; uint tex##_UV; float4 tex##_ST; float4 tex##_TexelSize
 static SamplerState defaultSampler;
 
 // CBUFFER_START(UnityPerMaterial)
 
 DECLARE_TEX2D_CUSTOM_SAMPLER(_MainTex);
-float4 _MainTex_TexelSize;
 float _MipScale;
 float4 _Color;
 float4 _Stochastic_ST;

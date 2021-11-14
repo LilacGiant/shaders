@@ -192,6 +192,7 @@ float4 frag (v2f i, uint facing : SV_IsFrontFace) : SV_Target
     float4 normalMap = float4(0.5, 0.5, 1, 1);
 
     #if defined(PROP_BUMPMAP) && !defined(TEXTUREARRAYBUMP)
+        if(_BumpMap_TexelSize.x != 1)
         normalMap = SampleTexture(_BumpMap, _BumpMap_ST, sampler_BumpMap, _BumpMap_UV);
         #ifndef CALC_TANGENT_BITANGENT
         #define CALC_TANGENT_BITANGENT

@@ -262,6 +262,7 @@ namespace z3y.ShaderEditor
             
             DrawFoldout("Advanced", ()=>
             {
+                Prop("_UnlockedModePreset");
                 EditorGUILayout.LabelField("Rendering Options", EditorStyles.boldLabel);
                 DrawTriangleFoldout("Rendering Options", () => 
                 {
@@ -330,6 +331,9 @@ namespace z3y.ShaderEditor
             SetupGIFlags(GetProperty("_EnableEmission").floatValue, material);
             
             if(GetProperty("wAg6H2wQzc7UbxaL").floatValue != 0) return;
+
+            if(!IfProp("_UnlockedModePreset")) SetupMaterialWithBlendMode(material, (int)GetProperty("_Mode").floatValue);
+
         }
 
         MaterialEditor materialEditor;
@@ -348,7 +352,9 @@ namespace z3y.ShaderEditor
             {
                 m_FirstTimeApply = false;
                 SetupFoldoutDictionary(material);
+                SetupPropertiesDictionary(props);
                 isBakeryMaterial = !material.GetTag("OriginalMaterialPath", false, string.Empty).Equals(string.Empty, StringComparison.Ordinal);
+                if(!IfProp("_UnlockedModePreset")) SetupMaterialWithBlendMode(material, (int)GetProperty("_Mode").floatValue);
 
             }
             SetupPropertiesDictionary(props);

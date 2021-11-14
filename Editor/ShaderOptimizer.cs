@@ -1250,6 +1250,11 @@ namespace z3y
 
         public static bool Unlock (Material material)
         {
+            if(!material.shader.name.StartsWith("Hidden/"))
+            {
+                material.SetFloat(ShaderOptimizerEnabled, 0);
+                return true;
+            }
             string originalShaderName = material.GetTag(OriginalShaderTag, false, string.Empty);
 
             if (originalShaderName.Equals(string.Empty))
