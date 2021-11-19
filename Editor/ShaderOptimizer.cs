@@ -121,7 +121,6 @@ namespace z3y
 
 
         private static readonly bool ReplaceAnimatedParameters = false;
-        private static readonly bool TexelSizeCheckEnabled = true;
         
         public static void LockMaterial(Material mat, bool applyLater, Material sharedMaterial)
         {
@@ -143,24 +142,6 @@ namespace z3y
             }
         }
 
-        private static readonly string[] PropertiesToSkip = {
-            ShaderOptimizerEnabled,
-            "_BlendOp",
-            "_BlendOpAlpha",
-            "_SrcBlend",
-            "_DstBlend",
-            "_ZWrite",
-            "_ZTest",
-            "_Cull",
-            "_MainTex"
-        };
-
-        public static readonly string[] TexelSizeCheck = {
-            "_RNM0",
-            "_RNM1",
-            "_RNM2"
-        };
-        
         [MenuItem("Tools/Shader Optimizer/Lock Materials In Scene")]
         public static void LockAllMaterials()
         {
@@ -185,12 +166,6 @@ namespace z3y
                 for(int l=0; l<propCount; l++)
                 {
                     string propName = ShaderUtil.GetPropertyName(mats[i].shader, l);
-                    
-                    if(PropertiesToSkip.Contains(propName))
-                    {
-                        materialPropertyValues.Append(propName);
-                        continue;
-                    }
 
                     bool isAnimated = !mats[i].GetTag(propName, false).Equals(string.Empty, StringComparison.Ordinal);
 
@@ -222,12 +197,8 @@ namespace z3y
                             materialPropertyValues.Append(t is null ? "false" : "true");
                             materialPropertyValues.Append(mats[i].GetTextureOffset(propName));
                             materialPropertyValues.Append(mats[i].GetTextureScale(propName));
-
-                            if(TexelSizeCheckEnabled)
-                            {
-                                if (t != null && TexelSizeCheck.Contains(propName)) texelSize = new Vector4(1.0f / t.width, 1.0f / t.height, t.width, t.height);
-                                materialPropertyValues.Append(texelSize);
-                            }
+                            if(t != null) texelSize = new Vector4(1.0f / t.width, 1.0f / t.height, t.width, t.height);
+                            materialPropertyValues.Append(texelSize);
                             break;
 
                         case(ShaderUtil.ShaderPropertyType.Color):
@@ -270,7 +241,7 @@ namespace z3y
             }
             EditorUtility.ClearProgressBar();
 
-            Debug.Log($"[<Color=fuchsia>ShaderOptimizer</Color>] Locked <b>{mats.Length}</b> Materials. Generated <b>{mats.Length-sharedCount}</b> unique shaders. <b>{sharedCount}</b> materials sharing same shader.");
+            Debug.Log($"[<Color=fuchsia>ShaderOptimizer</Color>] Locked <b>{mats.Length}</b> Materials. Generated <b>{mats.Length-sharedCount}</b> shaders.");
             
         }
 
@@ -569,7 +540,8 @@ namespace z3y
             "fixed4",
             "int",
             "uint",
-            "double"
+            "double",
+            "bool"
         };
 
         public enum PropertyType
@@ -736,21 +708,20 @@ namespace z3y
                             ST.value = new Vector4(scale.x, scale.y, offset.x, offset.y);
                             constantProps.Add(ST);
                         }
-                        if(TexelSizeCheckEnabled)
+                        
+                        animatedProp = Array.Find(props, x => x.name == prop.name + "_TexelSize" + AnimatedPropertySuffix);
+                        if (!(animatedProp != null && animatedProp.floatValue == 1))
                         {
-                            animatedProp = Array.Find(props, x => x.name == prop.name + "_TexelSize" + AnimatedPropertySuffix);
-                            if (!(animatedProp != null && animatedProp.floatValue == 1))
-                            {
-                                PropertyData TexelSize = new PropertyData();
-                                TexelSize.type = PropertyType.Vector;
-                                TexelSize.name = prop.name + "_TexelSize";
-                                Texture t = prop.textureValue;
-                                if (t != null)
-                                    TexelSize.value = new Vector4(1.0f / t.width, 1.0f / t.height, t.width, t.height);
-                                else TexelSize.value = new Vector4(1.0f, 1.0f, 1.0f, 1.0f);
-                                constantProps.Add(TexelSize);
-                            }
+                            PropertyData TexelSize = new PropertyData();
+                            TexelSize.type = PropertyType.Vector;
+                            TexelSize.name = prop.name + "_TexelSize";
+                            Texture t = prop.textureValue;
+                            if (t != null)
+                                TexelSize.value = new Vector4(1.0f / t.width, 1.0f / t.height, t.width, t.height);
+                            else TexelSize.value = new Vector4(1.0f, 1.0f, 1.0f, 1.0f);
+                            constantProps.Add(TexelSize);
                         }
+                        
                         break;
                 }
             }
@@ -974,33 +945,7 @@ namespace z3y
             {
                 string lineParsed = fileLines[i].TrimStart();
 
-                if (lineParsed.StartsWith("//#if") && mat != null)
-                {
-                    string[] materialProperties = Regex.Split(lineParsed.Replace("//#if", ""), ",");
-                    try
-                    {
-                        bool all = true;
-                        foreach (var x in materialProperties)
-                        {
-                            if (mat.GetFloat(x) != 0)
-                            {
-                                all = false;
-                                break;
-                            }
-                        }
-                        if(all)
-                        {
-                            i++;
-                            fileLines[i] = fileLines[i].Insert(0, "//");
-                        }
-                    }
-                    catch
-                    {
-                        Debug.LogError($"Property at line {i} not found on {mat}");
-                    }
-                }
-
-                else if(lineParsed.StartsWith("//CommentIfZero_") && mat != null)
+                if(lineParsed.StartsWith("//CommentIfZero_") && mat != null)
                 {
                     string[] propertyName = Regex.Split(lineParsed, "_");
   

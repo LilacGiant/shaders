@@ -37,11 +37,8 @@ namespace z3y.ShaderEditor
                     }
                 }
 
-                if(GetFloatValue("_Mode") == 1 || GetFloatValue("_Mode") == 4)
-                {
-                    Prop("_Cutoff");
-                    Prop("_MipScale");
-                }
+                if(GetFloatValue("_Mode") == 1) Prop("_Cutoff");
+
                 EditorGUILayout.Space();
 
                 Prop(IfProp("_EnableTextureArray") ? "_MainTexArray" : "_MainTex", "_Color");
@@ -59,7 +56,7 @@ namespace z3y.ShaderEditor
                     Prop("_Glossiness");
                     Prop("_Occlusion");
                     
-                    Prop(IfProp("_EnableTextureArrayMask") && IfProp("_EnableTextureArray") ? "_MetallicGlossMapArray" : "_MetallicGlossMap");
+                    Prop(IfProp("_EnableTextureArray") && IfProp("_EnableTextureArray") ? "_MetallicGlossMapArray" : "_MetallicGlossMap");
                     DrawTriangleFoldout("_MetallicGlossMap", ()=>
                     {
                         Prop("_MetallicGlossMap_UV");
@@ -98,7 +95,7 @@ namespace z3y.ShaderEditor
                 }
 
 
-                if(!IfProp("_EnableTextureArrayBump") || !IfProp("_EnableTextureArray")) Prop("_BumpMap", "_BumpScale");
+                if(!IfProp("_EnableTextureArray") || !IfProp("_EnableTextureArray")) Prop("_BumpMap", "_BumpScale");
                 else Prop("_BumpMapArray", "_BumpScale");
                 DrawTriangleFoldout("_BumpMap", ()=>
                 {
@@ -262,7 +259,6 @@ namespace z3y.ShaderEditor
             
             DrawFoldout("Advanced", ()=>
             {
-                Prop("_UnlockedModePreset");
                 EditorGUILayout.LabelField("Rendering Options", EditorStyles.boldLabel);
                 DrawTriangleFoldout("Rendering Options", () => 
                 {
@@ -280,8 +276,6 @@ namespace z3y.ShaderEditor
                 if(IfProp("_EnableTextureArray"))
                 {                    
                     Prop("_EnableTextureArrayInstancing");
-                    Prop("_EnableTextureArrayMask");
-                    Prop("_EnableTextureArrayBump");
                 }
                 EditorGUILayout.Space();
 
@@ -316,12 +310,6 @@ namespace z3y.ShaderEditor
                 EditorGUILayout.Space();
                 DrawAnimatedPropertiesList(isLocked, props, material);
             });
-
-            
-
-            
-
-
             
         }
 
@@ -331,9 +319,6 @@ namespace z3y.ShaderEditor
             SetupGIFlags(GetProperty("_EnableEmission").floatValue, material);
             
             if(GetProperty("wAg6H2wQzc7UbxaL").floatValue != 0) return;
-
-            if(!IfProp("_UnlockedModePreset")) SetupMaterialWithBlendMode(material, (int)GetProperty("_Mode").floatValue);
-
         }
 
         MaterialEditor materialEditor;
@@ -354,8 +339,6 @@ namespace z3y.ShaderEditor
                 SetupFoldoutDictionary(material);
                 SetupPropertiesDictionary(props);
                 isBakeryMaterial = !material.GetTag("OriginalMaterialPath", false, string.Empty).Equals(string.Empty, StringComparison.Ordinal);
-                if(!IfProp("_UnlockedModePreset")) SetupMaterialWithBlendMode(material, (int)GetProperty("_Mode").floatValue);
-
             }
             SetupPropertiesDictionary(props);
             

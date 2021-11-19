@@ -1,7 +1,7 @@
 float4 frag (v2f i, uint facing : SV_IsFrontFace) : SV_Target
 {
-    input = i;
     UNITY_SETUP_INSTANCE_ID(i)
+    input = i;
 
     #if defined(LOD_FADE_CROSSFADE)
 		UnityApplyDitherCrossFade(i.pos);
@@ -11,67 +11,28 @@ float4 frag (v2f i, uint facing : SV_IsFrontFace) : SV_Target
         parallaxOffset = ParallaxOffset(i.parallaxViewDir);
     #endif
 
+
+    SurfaceData surf;
+    InitializeSurfaceData(surf);
+
     #if defined(TEXTUREARRAY)
         defaultSampler = sampler_MainTexArray;
-        defaultTexelSize = _MainTexArray_TexelSize;
         #ifdef TEXTUREARRAYINSTANCED
             textureIndex = UNITY_ACCESS_INSTANCED_PROP(Props, _TextureIndex);
         #else
             textureIndex = i.coord1.z;
         #endif
-        float4 mainTexture = SampleTextureArray(_MainTexArray, _MainTex_ST, _MainTex_UV);
+        float4 mainTexture = SampleTextureArray(_MainTexArray, defaultSampler, _MainTex_ST, _MainTex_UV);
     #else
         defaultSampler = sampler_MainTex;
-        defaultTexelSize = _MainTex_TexelSize;
         float4 mainTexture = SampleTexture(_MainTex, _MainTex_ST, defaultSampler, _MainTex_UV);
     #endif
 
     mainTexture *= _Color;
-    float alpha = mainTexture.a;
-
-#if defined(UNITY_PASS_SHADOWCASTER)
-
-    #if defined(_MODE_CUTOUT)
-    if(alpha < _Cutoff) discard;
-    #endif
-
-    #if defined (_MODE_FADE) || defined (_MODE_TRANSPARENT)
-    if(alpha < 0.5) discard;
-    #endif
-
-    SHADOW_CASTER_FRAGMENT(i);
-#else
-
-    #if defined (_MODE_CUTOUT)
-        #ifndef STOCHASTIC
-        alpha *= 1 + max(0, CalculateMipLevel(GetMainTexUV(_MainTex_UV) * defaultTexelSize.zw)) * _MipScale;
-        #endif
-    alpha = (alpha - _Cutoff) / max(fwidth(alpha), 0.0001) + 0.5;
-    #endif
-
-    float3 emission = 0;
-    float perceptualRoughness = 0.5;
-    float metallic = 0;
-    float occlusion = 1;
-    float3 indirectDiffuse = 1;
-    float3 pixelLight = 0;
-    float3 vertexLight = 0;
-    float3 indirectSpecular = 0;
-    float3 directSpecular = 0;
-    float3 vertexLightColor = 0;
-
-
-    float3 worldNormal = i.worldNormal;
-    float3 bitangent = i.bitangent;
-    float3 tangent = i.tangent;
-
-    if(!facing)
-    {
-        worldNormal *= -1;
-        bitangent *= -1;
-        tangent *= -1;
-    }
     
+    surf.albedo = mainTexture.rgb;
+    surf.alpha = mainTexture.a;
+
 
     float4 maskMap = 1;
     float metallicMap = 1;
@@ -80,26 +41,20 @@ float4 frag (v2f i, uint facing : SV_IsFrontFace) : SV_Target
 
     #ifdef _WORKFLOW_UNPACKED
 
-        #ifdef PROP_METALLICMAP
-            metallicMap = SampleTexture(_MetallicMap, _MetallicMap_ST, _MetallicMap_UV);
-        #endif
-
-        #ifdef PROP_SMOOTHNESSMAP
+        if(_MetallicMap_TexelSize.x != 1) metallicMap = SampleTexture(_MetallicMap, _MetallicMap_ST, _MetallicMap_UV);
+        if(_SmoothnessMap_TexelSize.x != 1) 
+        {
             smoothnessMap = SampleTexture(_SmoothnessMap, _SmoothnessMap_ST, _SmoothnessMap_UV);
             smoothnessMap = _GlossinessInvert ? 1-smoothnessMap : smoothnessMap;
-        #endif
-
-        #ifdef PROP_OCCLUSIONMAP
-            occlusionMap = SampleTexture(_OcclusionMap, _OcclusionMap_ST, _OcclusionMap_UV);
-        #endif
+        }
+        if(_OcclusionMap_TexelSize.x != 1) occlusionMap = SampleTexture(_OcclusionMap, _OcclusionMap_ST, _OcclusionMap_UV);
 
     #else
-        #if defined(PROP_METALLICGLOSSMAP) && !defined(TEXTUREARRAYMASK)
-            maskMap = SampleTexture(_MetallicGlossMap, _MetallicGlossMap_ST, _MetallicGlossMap_UV);
-        #endif
 
-        #if defined(TEXTUREARRAYMASK)
-            maskMap = SampleTextureArray(_MetallicGlossMapArray, _MetallicGlossMap_ST, _MetallicGlossMap_UV);
+        #if defined(TEXTUREARRAY)
+            if(_MetallicGlossMapArray_TexelSize.x != 1) maskMap = SampleTextureArray(_MetallicGlossMapArray, defaultSampler, _MetallicGlossMap_ST, _MetallicGlossMap_UV);
+        #else
+            if(_MetallicGlossMap_TexelSize.x != 1) maskMap = SampleTexture(_MetallicGlossMap, _MetallicGlossMap_ST, _MetallicGlossMap_UV);
         #endif
         
         metallicMap = maskMap.r;
@@ -107,21 +62,27 @@ float4 frag (v2f i, uint facing : SV_IsFrontFace) : SV_Target
         occlusionMap = maskMap.g;
     #endif
 
-    float smoothness = _Glossiness * smoothnessMap;
-    perceptualRoughness = 1-smoothness;
-    metallic = metallicMap * _Metallic * _Metallic;
-    occlusion = lerp(1,occlusionMap , _Occlusion);
+    surf.perceptualRoughness = 1 - (_Glossiness * smoothnessMap);
+    surf.metallic = metallicMap * _Metallic * _Metallic;
+    surf.occlusion = lerp(1, occlusionMap, _Occlusion);
+
+    float4 normalMap = float4(0.5, 0.5, 1, 1);
+    #if defined(TEXTUREARRAY)
+        if(_BumpMapArray_TexelSize.x != 1) normalMap = SampleTextureArray(_BumpMapArray, sampler_BumpMapArray, _BumpMap_ST, _BumpMap_UV);
+    #else
+        if(_BumpMap_TexelSize.x != 1) normalMap = SampleTexture(_BumpMap, _BumpMap_ST, sampler_BumpMap, _BumpMap_UV);
+    #endif
+    if(!_HemiOctahedron) surf.tangentNormal = UnpackScaleNormal(normalMap, _BumpScale);
+    else surf.tangentNormal = UnpackScaleNormalHemiOctahedron(normalMap, _BumpScale);
+
     float4 detailNormalMap = float4(0.5, 0.5, 1, 1);
-
-
     #if defined(PROP_DETAILMAP) || defined(PROP_DETAILALBEDOMAP) || defined(PROP_DETAILNORMALMAP) || defined(PROP_DETAILMASKMAP)
 
         float detailMask = lerp(1, maskMap.a, _DetailMaskScale);
         float4 detailMap = 0.5;
         float3 detailAlbedo = 0;
         float detailSmoothness = 0;
-
-        UNITY_BRANCH
+        
         if(_DetailPacked)
         {
             #if defined(PROP_DETAILMAP)
@@ -129,9 +90,6 @@ float4 frag (v2f i, uint facing : SV_IsFrontFace) : SV_Target
                 detailAlbedo = detailMap.r * 2.0 - 1.0;
                 detailSmoothness = (detailMap.b * 2.0 - 1.0);
                 detailNormalMap = float4(detailMap.a, detailMap.g, 1, 1);
-                #ifndef CALC_TANGENT_BITANGENT
-                #define CALC_TANGENT_BITANGENT
-                #endif
             #endif
         }
         else
@@ -142,9 +100,6 @@ float4 frag (v2f i, uint facing : SV_IsFrontFace) : SV_Target
 
             #if defined(PROP_DETAILNORMALMAP)
                 detailNormalMap = SampleTexture(_DetailNormalMap, _DetailMap_ST, _DetailMap_UV);
-                #ifndef CALC_TANGENT_BITANGENT
-                #define CALC_TANGENT_BITANGENT
-                #endif
             #endif
 
             #if defined(PROP_DETAILMASKMAP)
@@ -160,123 +115,106 @@ float4 frag (v2f i, uint facing : SV_IsFrontFace) : SV_Target
             // For base color we interpolate in sRGB space (approximate here as square) as it get a nicer perceptual gradient
 
             float3 albedoDetailSpeed = saturate(abs(detailAlbedo) * _DetailAlbedoScale);
-            float3 baseColorOverlay = lerp(sqrt(mainTexture.rgb), (detailAlbedo < 0.0) ? float3(0.0, 0.0, 0.0) : float3(1.0, 1.0, 1.0), albedoDetailSpeed * albedoDetailSpeed);
+            float3 baseColorOverlay = lerp(sqrt(surf.albedo.rgb), (detailAlbedo < 0.0) ? float3(0.0, 0.0, 0.0) : float3(1.0, 1.0, 1.0), albedoDetailSpeed * albedoDetailSpeed);
             baseColorOverlay *= baseColorOverlay;							   
             // Lerp with details mask
-            mainTexture.rgb = lerp(mainTexture.rgb, saturate(baseColorOverlay), detailMask);
+            surf.albedo.rgb = lerp(surf.albedo.rgb, saturate(baseColorOverlay), detailMask);
         #endif
 
         #if defined(PROP_DETAILMAP) || defined(PROP_DETAILMASKMAP)
-            float perceptualSmoothness = (1 - perceptualRoughness);
+            float perceptualSmoothness = (1 - surf.perceptualRoughness);
             // See comment for baseColorOverlay
             float smoothnessDetailSpeed = saturate(abs(detailSmoothness) * _DetailSmoothnessScale);
             float smoothnessOverlay = lerp(perceptualSmoothness, (detailSmoothness < 0.0) ? 0.0 : 1.0, smoothnessDetailSpeed);
             // Lerp with details mask
             perceptualSmoothness = lerp(perceptualSmoothness, saturate(smoothnessOverlay), detailMask);
 
-            perceptualRoughness = (1 - perceptualSmoothness);
+            surf.perceptualRoughness = (1 - perceptualSmoothness);
         #endif
-        
-    #endif
-
-    
-    mainTexture.rgb = lerp(dot(mainTexture.rgb, grayscaleVec), mainTexture.rgb, _Saturation + 1);
-
-    UNITY_BRANCH
-    if(_GSAA)
-    {
-        if(!_GSAANormal)
-        perceptualRoughness = GSAA_Filament(worldNormal, perceptualRoughness);
-    }
-
-    float4 normalMap = float4(0.5, 0.5, 1, 1);
-
-    #if defined(PROP_BUMPMAP) && !defined(TEXTUREARRAYBUMP)
-        if(_BumpMap_TexelSize.x != 1)
-        normalMap = SampleTexture(_BumpMap, _BumpMap_ST, sampler_BumpMap, _BumpMap_UV);
-        #ifndef CALC_TANGENT_BITANGENT
-        #define CALC_TANGENT_BITANGENT
-        #endif
-    #endif
-
-    #if defined(TEXTUREARRAYBUMP)
-        normalMap = SampleTextureArray(_BumpMapArray, _BumpMap_ST, _BumpMap_UV);
-        #ifndef CALC_TANGENT_BITANGENT
-        #define CALC_TANGENT_BITANGENT
-        #endif
-    #endif
-    
-
-    #if defined(CALC_TANGENT_BITANGENT) && defined(NEED_TANGENT_BITANGENT)
-        float3 tangentNormal;
-        if(!_HemiOctahedron) tangentNormal = UnpackScaleNormal(normalMap, _BumpScale);
-        else
-        {
-            half2 f = normalMap.ag * 2 - 1;
-            // https://twitter.com/Stubbesaurus/status/937994790553227264
-            normalMap.xyz = float3(f.x, f.y, 1 - abs(f.x) - abs(f.y));
-            float t = saturate(-normalMap.z);
-            normalMap.xy += normalMap.xy >= 0.0 ? -t : t;
-            normalMap.xy *= _BumpScale;
-            tangentNormal = normalize(normalMap);
-        }
 
         #if defined(PROP_DETAILMAP) || defined(PROP_DETAILNORMALMAP)
             detailNormalMap.g = 1-detailNormalMap.g;
             float3 detailNormal = UnpackScaleNormal(detailNormalMap, _DetailNormalScale);
-            tangentNormal = BlendNormals(tangentNormal, detailNormal);
+            surf.tangentNormal = BlendNormals(surf.tangentNormal, detailNormal);
+        #endif
+        
+    #endif
+    
+    surf.albedo.rgb = lerp(dot(surf.albedo.rgb, grayscaleVec), surf.albedo.rgb, _Saturation + 1);
+
+    #if defined(EMISSION)
+        float3 emissionMap = 1;
+        if(_EmissionMap_TexelSize.x != 1) emissionMap = SampleTexture(_EmissionMap, _EmissionMap_ST, _EmissionMap_UV).rgb;
+
+        if(_EmissionMultBase) emissionMap *= surf.albedo.rgb;
+        #ifdef ENABLE_AUDIOLINK
+            ApplyAudioLinkEmission(emissionMap);
         #endif
 
-        tangentNormal.g *= _NormalMapOrientation ? 1 : -1;
-
-        float3 calcedNormal = normalize
-        (
-            tangentNormal.x * tangent +
-            tangentNormal.y * bitangent +
-            tangentNormal.z * worldNormal
-        );
-
-        worldNormal = calcedNormal;
-        tangent = normalize(cross(worldNormal, bitangent));
-        bitangent = normalize(cross(worldNormal, tangent));
-
-        
-    #else
-        worldNormal = normalize(worldNormal);
-        tangent = normalize(tangent);
-        bitangent = normalize(bitangent);
+        surf.emission = emissionMap * pow(_EmissionColor, 2.2);
     #endif
 
-    UNITY_BRANCH
-    if(_GSAA)
+
+#if defined(UNITY_PASS_SHADOWCASTER)
+
+    #if defined(_MODE_CUTOUT)
+        if(surf.alpha < _Cutoff) discard;
+    #endif
+
+    #if defined (_MODE_FADE) || defined (_MODE_TRANSPARENT)
+        if(surf.alpha < 0.5) discard;
+    #endif
+
+    SHADOW_CASTER_FRAGMENT(i);
+#else
+
+    #if defined (_MODE_CUTOUT)
+        if(_AlphaToMask) surf.alpha = (surf.alpha - _Cutoff) / max(fwidth(surf.alpha), 0.0001) + 0.5;
+        else if(surf.alpha < _Cutoff) discard;
+    #endif
+
+    float3 worldNormal = i.worldNormal;
+    float3 bitangent = i.bitangent;
+    float3 tangent = i.tangent;
+
+    if(!facing)
     {
-        if(_GSAANormal)
-        perceptualRoughness = GSAA_Filament(worldNormal, perceptualRoughness);
+        worldNormal *= -1;
+        bitangent *= -1;
+        tangent *= -1;
     }
+
+    if(_GSAA && !_GSAANormal) surf.perceptualRoughness = GSAA_Filament(worldNormal, surf.perceptualRoughness);
+
+    surf.tangentNormal.g *= _NormalMapOrientation ? 1 : -1; // still need to figure out why its inverted by default
+    worldNormal = normalize(surf.tangentNormal.x * tangent + surf.tangentNormal.y * bitangent + surf.tangentNormal.z * worldNormal);
+    tangent = normalize(cross(worldNormal, bitangent));
+    bitangent = normalize(cross(worldNormal, tangent));
+    
+    if(_GSAA && _GSAANormal) surf.perceptualRoughness = GSAA_Filament(worldNormal, surf.perceptualRoughness);
+
 
     float3 viewDir = normalize(_WorldSpaceCameraPos - i.worldPos.xyz);
     float NoV = abs(dot(worldNormal, viewDir)) + 1e-5;
 
+    float3 pixelLight = 0;
     #ifdef USING_LIGHT_MULTI_COMPILE
         bool lightExists = any(_WorldSpaceLightPos0.xyz);
         float3 lightDirection = Unity_SafeNormalize(UnityWorldSpaceLightDir(i.worldPos.xyz));
         float3 lightHalfVector = Unity_SafeNormalize(lightDirection + viewDir);
         float lightNoL = saturate(dot(worldNormal, lightDirection));
         float lightLoH = saturate(dot(lightDirection, lightHalfVector));
-        LIGHT_ATTENUATION_NO_SHADOW_MUL(lightAttenNoShadows, i, i.worldPos.xyz);
-        float3 lightAttenuation = lightAttenNoShadows * shadow;
-        #ifndef FLATSHADING 
-        pixelLight = (lightNoL * lightAttenuation * _LightColor0.rgb) * Fd_Burley(perceptualRoughness, NoV, lightNoL, lightLoH);
-        #else
-        pixelLight = lightAttenuation * saturate(_LightColor0.rgb);
-        #endif
+        UNITY_LIGHT_ATTENUATION(lightAttenuation, i, i.worldPos.xyz);
+        pixelLight = (lightNoL * lightAttenuation * _LightColor0.rgb) * Fd_Burley(surf.perceptualRoughness, NoV, lightNoL, lightLoH);
     #endif
 
+    float3 vertexLight = 0;
+    float3 vertexLightColor = 0;
     #if defined(VERTEXLIGHT_ON) && defined(UNITY_PASS_FORWARDBASE)
         initVertexLights(i.worldPos, worldNormal, vertexLight, vertexLightColor);
     #endif
 
-    
+    float3 indirectDiffuse = 1;
     #if defined(LIGHTMAP_ON)
 
         float2 lightmapUV = i.coord0.zw * unity_LightmapST.xy + unity_LightmapST.zw;
@@ -309,11 +247,7 @@ float4 frag (v2f i, uint facing : SV_IsFrontFace) : SV_Target
             indirectDiffuse.b = shEvaluateDiffuseL1Geomerics_local(L0.b, unity_SHAb.xyz, worldNormal);
             indirectDiffuse = max(0, indirectDiffuse);
         #else
-            #ifndef FLATSHADING
             indirectDiffuse = max(0, ShadeSH9(float4(worldNormal, 1)));
-            #else
-            indirectDiffuse = max(0, ShadeSH9(float4(0,0,0, 1)));
-            #endif
         #endif
     #endif
 
@@ -322,8 +256,9 @@ float4 frag (v2f i, uint facing : SV_IsFrontFace) : SV_Target
     #endif
 
 
-
-    float3 f0 = 0.16 * _Reflectance * _Reflectance * (1 - metallic) + mainTexture.rgb * metallic;
+    float3 indirectSpecular = 0;
+    float3 directSpecular = 0;
+    float3 f0 = 0.16 * _Reflectance * _Reflectance * (1 - surf.metallic) + surf.albedo.rgb * surf.metallic;
     float3 fresnel = lerp(f0, F_Schlick(NoV, f0), _FresnelIntensity) * _FresnelColor;
     fresnel *= saturate(pow(length(indirectDiffuse), _SpecularOcclusion));
 
@@ -344,18 +279,18 @@ float4 frag (v2f i, uint facing : SV_IsFrontFace) : SV_Target
             #ifndef ANISOTROPY
                 float3 reflDir = reflect(-viewDir, worldNormal);
             #else
-                float3 reflDir = getAnisotropicReflectionVector(viewDir, anisotropicB, anisotropicT, worldNormal, perceptualRoughness);
+                float3 reflDir = getAnisotropicReflectionVector(viewDir, anisotropicB, anisotropicT, worldNormal, surf.perceptualRoughness);
             #endif
 
             Unity_GlossyEnvironmentData envData;
-            envData.roughness = perceptualRoughness;
+            envData.roughness = surf.perceptualRoughness;
             envData.reflUVW = getBoxProjection(reflDir, i.worldPos.xyz, unity_SpecCube0_ProbePosition, unity_SpecCube0_BoxMin.xyz, unity_SpecCube0_BoxMax.xyz);
 
             float3 probe0 = Unity_GlossyEnvironment(UNITY_PASS_TEXCUBE(unity_SpecCube0), unity_SpecCube0_HDR, envData);
             indirectSpecular = probe0;
 
             #if defined(UNITY_SPECCUBE_BLENDING)
-                UNITY_BRANCH
+                
                 if (unity_SpecCube0_BoxMin.w < 0.99999)
                 {
                     envData.reflUVW = getBoxProjection(reflDir, i.worldPos.xyz, unity_SpecCube1_ProbePosition, unity_SpecCube1_BoxMin.xyz, unity_SpecCube1_BoxMax.xyz);
@@ -365,14 +300,14 @@ float4 frag (v2f i, uint facing : SV_IsFrontFace) : SV_Target
             #endif
 
             float horizon = min(1 + dot(reflDir, worldNormal), 1);
-            indirectSpecular = indirectSpecular * lerp(fresnel, f0, perceptualRoughness) * horizon * horizon;
+            indirectSpecular = indirectSpecular * lerp(fresnel, f0, surf.perceptualRoughness) * horizon * horizon;
 
         #endif
 
-        indirectSpecular *= computeSpecularAO(NoV, occlusion, perceptualRoughness * perceptualRoughness);
+        indirectSpecular *= computeSpecularAO(NoV, surf.occlusion, surf.perceptualRoughness * surf.perceptualRoughness);
     #endif
 
-    float clampedRoughness = max(perceptualRoughness * perceptualRoughness, 0.002);
+    float clampedRoughness = max(surf.perceptualRoughness * surf.perceptualRoughness, 0.002);
 
     #if defined(SPECULAR_HIGHLIGHTS)
     {
@@ -441,7 +376,7 @@ float4 frag (v2f i, uint facing : SV_IsFrontFace) : SV_Target
         #endif
 
         float3 prevSpec = indirectSpecular;
-        BakeryRNM(indirectDiffuse, indirectSpecular, lightmapUV, tangentNormal, perceptualRoughness, eyeVecT);
+        BakeryRNM(indirectDiffuse, indirectSpecular, lightmapUV, tangentNormal, surf.perceptualRoughness, eyeVecT);
         indirectSpecular *= fresnel;
         indirectSpecular += prevSpec;
     }
@@ -451,48 +386,32 @@ float4 frag (v2f i, uint facing : SV_IsFrontFace) : SV_Target
     if (bakeryLightmapMode == BAKERYMODE_SH)
     {
         float3 prevSpec = indirectSpecular;
-        BakerySH(indirectDiffuse, indirectSpecular, lightmapUV, worldNormal, -viewDir, perceptualRoughness);
+        BakerySH(indirectDiffuse, indirectSpecular, lightmapUV, worldNormal, -viewDir, surf.perceptualRoughness);
         indirectSpecular *= fresnel;
         indirectSpecular += prevSpec;
     }
     #endif
 
 
-
-
-
-
-    #if defined(EMISSION)
-        float3 emissionMap = 1;
-        #ifdef PROP_EMISSIONMAP
-        emissionMap = SampleTexture(_EmissionMap, _EmissionMap_ST, _EmissionMap_UV).rgb;
-        #endif
-        if(_EmissionMultBase) emissionMap *= mainTexture.rgb;
-        #ifdef ENABLE_AUDIOLINK
-            ApplyAudioLinkEmission(emissionMap);
-        #endif
-        emission = emissionMap * pow(_EmissionColor, 2.2);
-    #endif
-
     
     #if defined(_MODE_TRANSPARENT)
-        mainTexture.rgb *= alpha;
-        alpha = lerp(alpha, 1, metallic);
+        surf.albedo.rgb *= surf.alpha;
+        surf.alpha = lerp(surf.alpha, 1, surf.metallic);
     #endif
 
-    float4 finalColor = float4(mainTexture.rgb * (1 - metallic) * (indirectDiffuse * occlusion + (pixelLight + vertexLight)) + indirectSpecular + directSpecular + emission, alpha);
+    float4 finalColor = float4(surf.albedo.rgb * (1 - surf.metallic) * (indirectDiffuse * surf.occlusion + (pixelLight + vertexLight)) + indirectSpecular + directSpecular + surf.emission, surf.alpha);
 
     #if defined (_MODE_FADE) && defined(UNITY_PASS_FORWARDADD)
-        finalColor.rgb *= alpha;
+        finalColor.rgb *= surf.alpha;
     #endif
 
     #ifdef UNITY_PASS_META
         UnityMetaInput metaInput;
         UNITY_INITIALIZE_OUTPUT(UnityMetaInput, metaInput);
-        metaInput.Emission = emission;
-        metaInput.Albedo = mainTexture.rgb;
+        metaInput.Emission = surf.emission;
+        metaInput.Albedo = surf.albedo.rgb;
 
-        return float4(UnityMetaFragment(metaInput).rgb, alpha);
+        return float4(UnityMetaFragment(metaInput).rgb, surf.alpha);
     #endif
 
     #ifdef FOG

@@ -7,7 +7,6 @@
         [Toggle(_WORKFLOW_UNPACKED)] _Workflow ("Unpacked Mask", Int) = 0
         [KeywordEnum(Opaque, Cutout, Fade, Transparent)] _Mode ("Rendering Mode", Int) = 0
         _Cutoff ("Alpha Cuttoff", Range(0, 1)) = 0.5
-        _MipScale ("Mip Scale", Range(0, 1)) = 0.25
 
 
         [Toggle(TEXTUREARRAY)] _EnableTextureArray ("Texture Arrays", Float) = 0
@@ -28,7 +27,6 @@
         _Occlusion ("Occlusion", Range(0,1)) = 0
 
         _MetallicGlossMap ("Mask Map:Metallic(R), Occlusion(G), Detail Mask(B), Smoothness(A)", 2D) = "white" {}
-        [Toggle(TEXTUREARRAYMASK)] _EnableTextureArrayMask ("Mask Map Array", Float) = 0
         _MetallicGlossMapArray ("Mask Map Array:Metallic(R), Occlusion(G), Detail Mask(B), Smoothness(A)", 2DArray) = "white" {}
             [Enum(UV 0 Locked, 0, UV 1, 1, UV 2, 2, UV 0 Unlocked, 3)] _MetallicGlossMap_UV ("UV Type", Int) = 0
 
@@ -45,7 +43,6 @@
 
         [Normal] _BumpMap ("Normal Map", 2D) = "bump" {}
         _BumpMapArray ("Normal Map Array", 2DArray) = "bump" {}
-            [Toggle(TEXTUREARRAYBUMP)] _EnableTextureArrayBump ("Normal Map Array", Float) = 0
             _BumpScale ("Bump Scale", Range(0,10)) = 1
             [Enum(OpenGL, 0, Direct3D, 1)] _NormalMapOrientation ("Orientation", Int) = 0
             [Enum(UV 0 Locked, 0, UV 1, 1, UV 2, 2, UV 0 Unlocked, 3)] _BumpMap_UV ("UV Type", Int) = 0
@@ -93,9 +90,6 @@
             _ParallaxOffset ("Parallax Offset", Range(-1, 1)) = 0
 
 
-        [Toggle(STOCHASTIC)] _EnableStochastic ("Stochastic", Int) = 0
-        _Stochastic ("tile offset", 2D) = "white" {}
-
         [Toggle(NONLINEAR_LIGHTPROBESH)] _NonLinearLightProbeSH ("Non-linear Light Probe SH", Int) = 0
         [Toggle(BAKEDSPECULAR)] _BakedSpecular ("Baked Specular ", Int) = 0
 
@@ -135,17 +129,8 @@
 
         // optimizer toggles
         [ToggleUI] VertexLights ("Allow Vertex Lights", Float) = 0
-        [ToggleUI] _AudioLinkLocalTexture ("LocalTexture", Float) = 1
+        // [ToggleUI] _AudioLinkLocalTexture ("LocalTexture", Float) = 1
         [ToggleUI] _LodCrossFade ("Dithered LOD Crossfade", Float) = 0
-
-        // unlocked properties
-        _MainTex_STAnimated("", Float) = 1
-        _MetallicAnimated("", Float) = 1
-        _GlossinessAnimated("", Float) = 1
-        _OcclusionAnimated("", Float) = 1
-        _BumpScaleAnimated("", Float) = 1
-        _ColorAnimated("", Float) = 1
-
     }
     
 
@@ -155,7 +140,7 @@
         #pragma target 5.0
         #pragma vertex vert
         #pragma fragment frag
-        #pragma exclude_renderers gles3
+        #pragma exclude_renderers gles3 gles
         #pragma fragmentoption ARB_precision_hint_fastest
         
         #pragma shader_feature_local _ _MODE_CUTOUT _MODE_FADE _MODE_TRANSPARENT
@@ -168,11 +153,8 @@
         #pragma shader_feature_local NONLINEAR_LIGHTPROBESH
         #pragma shader_feature_local BAKEDSPECULAR
         #pragma shader_feature_local ANISOTROPY
-        #pragma shader_feature_local STOCHASTIC
         #pragma shader_feature_local TEXTUREARRAYINSTANCED
         #pragma shader_feature_local TEXTUREARRAY
-        #pragma shader_feature_local TEXTUREARRAYMASK
-        #pragma shader_feature_local TEXTUREARRAYBUMP
         #pragma shader_feature_local BAKERY_SH
         #pragma shader_feature_local BAKERY_RNM
         #pragma shader_feature_local ENABLE_AUDIOLINK
@@ -201,11 +183,6 @@
             //CommentIfZero_VertexLights
             #pragma multi_compile _ VERTEXLIGHT_ON
             //CommentIfZero_VertexLights
-
-
-            #define NEED_TANGENT_BITANGENT
-            #define NEED_WORLD_POS
-            #define NEED_WORLD_NORMAL
 
             #include "PassCGI.cginc"
             ENDCG
@@ -236,11 +213,6 @@
             #undef BAKEDSPECULAR
             #undef BAKERY_SH
             #undef BAKERY_RNM
-
-
-            #define NEED_TANGENT_BITANGENT
-            #define NEED_WORLD_POS
-            #define NEED_WORLD_NORMAL
             
             #include "PassCGI.cginc"
             ENDCG
@@ -303,9 +275,7 @@
             #undef BAKERY_SH
             #undef BAKERY_RNM
 
-            #define NEED_TANGENT_BITANGENT
-            #define NEED_WORLD_POS
-            #define NEED_WORLD_NORMAL
+            
 
             #include "PassCGI.cginc"
             ENDCG

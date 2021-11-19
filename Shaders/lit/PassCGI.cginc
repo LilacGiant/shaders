@@ -12,10 +12,7 @@ struct appdata
     float3 normal : NORMAL;
     float3 uv0 : TEXCOORD0;
     float2 uv1 : TEXCOORD1;
-
-    #ifdef NEED_UV2
-        float2 uv2 : TEXCOORD2;
-    #endif
+    float2 uv2 : TEXCOORD2;
 
     #ifdef NEED_TANGENT_BITANGENT
         float4 tangent : TANGENT;
@@ -33,10 +30,7 @@ struct v2f
 {
     float4 pos : SV_POSITION;
     float4 coord0 : TEXCOORD0;
-
-    #ifdef NEED_UV2
-        float4 coord1 : TEXCOORD1;
-    #endif
+    float4 coord1 : TEXCOORD1;
 
     #ifdef NEED_TANGENT_BITANGENT
         float3 bitangent : TEXCOORD2;
@@ -97,12 +91,8 @@ v2f vert (appdata v)
 
     o.coord0.xy = v.uv0.xy;
     o.coord0.zw = v.uv1;
-
-    #ifdef NEED_UV2
-        o.coord1.xy = v.uv2;
-        o.coord1.z = v.uv0.z;
-    #endif
-
+    o.coord1.xy = v.uv2;
+    o.coord1.z = v.uv0.z;
 
     #ifdef NEED_WORLD_NORMAL
         o.worldNormal = UnityObjectToWorldNormal(v.normal);
@@ -142,11 +132,14 @@ v2f vert (appdata v)
         o.screenPos = ComputeScreenPos(o.pos);
     #endif
 
-
-
     return o;
 }
 static v2f input;
 
 #include "FunctionsCGI.cginc"
+
+#ifdef ENABLE_AUDIOLINK
+    #include "AudioLink.cginc"
+#endif
+
 #include "CoreCGI.cginc"
