@@ -175,7 +175,7 @@ namespace z3y.ShaderEditorFunctions
 
         static ResetPropertyData resetProperty;
 
-        public static void HandleMouseEvents (MaterialProperty p, Material material)
+        public static void HandleMouseEvents (MaterialProperty p, Material material, MaterialProperty extraProperty = null)
         {
             if(p is null) return;
 
@@ -221,6 +221,7 @@ namespace z3y.ShaderEditorFunctions
             {
                 e.Use();
                 material.SetOverrideTag(animatedName, isAnimated ? "" : "1");
+                material.SetOverrideTag(extraProperty.name + AnimatedPropertySuffix, isAnimated ? "" : "1");
             }
             if(isAnimated)
             {

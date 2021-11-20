@@ -50,11 +50,21 @@ namespace z3y.ShaderEditor
                 });
                 EditorGUILayout.Space();
 
+                
+
                 if (!IfProp("_Workflow"))
                 {
-                    Prop("_Metallic");
-                    Prop("_Glossiness");
-                    Prop("_Occlusion");
+                    if(IfProp("_EnableTextureArray") ? GetProperty("_MetallicGlossMapArray").textureValue is null : GetProperty("_MetallicGlossMap").textureValue is null)
+                    {
+                        Prop("_Metallic");
+                        Prop("_Glossiness");
+                    }
+                    else
+                    {
+                        RangedProp(GetProperty("_GlossinessMin"), GetProperty("_Glossiness"));
+                        RangedProp(GetProperty("_MetallicMin"), GetProperty("_Metallic"));
+                        RangedProp(GetProperty("_OcclusionMin"), GetProperty("_Occlusion"));
+                    }
                     
                     Prop(IfProp("_EnableTextureArray") && IfProp("_EnableTextureArray") ? "_MetallicGlossMapArray" : "_MetallicGlossMap");
                     DrawTriangleFoldout("_MetallicGlossMap", ()=>
@@ -66,7 +76,10 @@ namespace z3y.ShaderEditor
                 }
                 else
                 {
-                    Prop("_MetallicMap", "_Metallic");
+                    if(GetProperty("_MetallicMap").textureValue is null)
+                        Prop("_MetallicMap", "_Metallic");
+                    else
+                        RangedProp(GetProperty("_MetallicMin"), GetProperty("_Metallic"), 0, 1, GetProperty("_MetallicMap"));
                     DrawTriangleFoldout("_MetallicMap", ()=>
                     {
 
@@ -75,7 +88,10 @@ namespace z3y.ShaderEditor
                     });
                     sRGBWarning(GetProperty("_MetallicMap"));
 
-                    Prop("_SmoothnessMap", "_Glossiness");
+                    if(GetProperty("_SmoothnessMap").textureValue is null)
+                        Prop("_SmoothnessMap", "_Glossiness");
+                    else
+                        RangedProp(GetProperty("_GlossinessMin"), GetProperty("_Glossiness"), 0, 1, GetProperty("_SmoothnessMap"));
                     DrawTriangleFoldout("_SmoothnessMap", ()=>
                     {
                         Prop("_SmoothnessMap_UV");
@@ -85,7 +101,10 @@ namespace z3y.ShaderEditor
                     });
                     sRGBWarning(GetProperty("_SmoothnessMap"));
 
-                    Prop("_OcclusionMap", "_Occlusion");
+                    if(GetProperty("_OcclusionMap").textureValue is null)
+                        Prop("_OcclusionMap", "_Occlusion");
+                    else
+                        RangedProp(GetProperty("_OcclusionMin"), GetProperty("_Occlusion"), 0, 1, GetProperty("_OcclusionMap"));
                     DrawTriangleFoldout("_OcclusionMap", ()=>
                     {
                         Prop("_OcclusionMap_UV");
@@ -404,6 +423,34 @@ namespace z3y.ShaderEditor
         private void PropTileOffset(string property) => DrawPropTileOffset(GetProperty(property), isLocked, materialEditor, material);
         public float GetFloatValue(string name) => (float)GetProperty(name)?.floatValue;
         public bool IfProp(string name) => GetProperty(name)?.floatValue == 1;
+
+        private void RangedProp(MaterialProperty min, MaterialProperty max, float minLimit = 0, float maxLimit = 1, MaterialProperty tex = null)
+        {
+            float currentMin = min.floatValue;
+            float currentMax = max.floatValue;
+            EditorGUI.BeginDisabledGroup(isLocked);
+            EditorGUILayout.BeginHorizontal();
+
+            if(tex is null)
+                EditorGUILayout.LabelField(max.displayName);
+            else
+                materialEditor.TexturePropertySingleLine(new GUIContent(tex.displayName), tex);
+
+
+            EditorGUI.indentLevel -= 5;
+            EditorGUI.BeginChangeCheck();
+            EditorGUILayout.MinMaxSlider(ref currentMin,ref currentMax, minLimit, maxLimit);
+            if(EditorGUI.EndChangeCheck())
+            {
+                min.floatValue = currentMin;
+                max.floatValue = currentMax;
+            }
+            EditorGUI.indentLevel += 5;
+            EditorGUILayout.EndHorizontal();
+            EditorGUI.EndDisabledGroup();
+            HandleMouseEvents(max, material, min);
+        }
+
 
         private void SetupPropertiesDictionary(MaterialProperty[] props)
         {

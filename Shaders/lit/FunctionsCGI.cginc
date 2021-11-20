@@ -37,6 +37,11 @@ float4 SampleTextureArray(Texture2DArray tex, SamplerState s, float4 st, int typ
     return tex.Sample(s, float3(GetUVs(st, type), textureIndex));
 }
 
+float RemapMinMax(float value, float remapMin, float remapMax)
+{
+    return value * (remapMax - remapMin) + remapMin;
+}
+
 float3 UnpackScaleNormalHemiOctahedron(float4 normalMap, float bumpScale)
 {
     // https://twitter.com/Stubbesaurus/status/937994790553227264

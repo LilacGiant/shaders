@@ -38,6 +38,7 @@ float4 frag (v2f i, uint facing : SV_IsFrontFace) : SV_Target
     float metallicMap = 1;
     float smoothnessMap = 1;
     float occlusionMap = 1;
+    bool hasOcclusion = 0;
 
     #ifdef _WORKFLOW_UNPACKED
 
@@ -47,14 +48,26 @@ float4 frag (v2f i, uint facing : SV_IsFrontFace) : SV_Target
             smoothnessMap = SampleTexture(_SmoothnessMap, _SmoothnessMap_ST, _SmoothnessMap_UV);
             smoothnessMap = _GlossinessInvert ? 1-smoothnessMap : smoothnessMap;
         }
-        if(_OcclusionMap_TexelSize.x != 1) occlusionMap = SampleTexture(_OcclusionMap, _OcclusionMap_ST, _OcclusionMap_UV);
+        if(_OcclusionMap_TexelSize.x != 1)
+        {
+            occlusionMap = SampleTexture(_OcclusionMap, _OcclusionMap_ST, _OcclusionMap_UV);
+            hasOcclusion = 1;
+        }
 
     #else
 
         #if defined(TEXTUREARRAY)
-            if(_MetallicGlossMapArray_TexelSize.x != 1) maskMap = SampleTextureArray(_MetallicGlossMapArray, defaultSampler, _MetallicGlossMap_ST, _MetallicGlossMap_UV);
+            if(_MetallicGlossMapArray_TexelSize.x != 1)
+            {
+                maskMap = SampleTextureArray(_MetallicGlossMapArray, defaultSampler, _MetallicGlossMap_ST, _MetallicGlossMap_UV);
+                hasOcclusion = 1;
+            }
         #else
-            if(_MetallicGlossMap_TexelSize.x != 1) maskMap = SampleTexture(_MetallicGlossMap, _MetallicGlossMap_ST, _MetallicGlossMap_UV);
+            if(_MetallicGlossMap_TexelSize.x != 1)
+            {
+                maskMap = SampleTexture(_MetallicGlossMap, _MetallicGlossMap_ST, _MetallicGlossMap_UV);
+                hasOcclusion = 1;
+            }
         #endif
         
         metallicMap = maskMap.r;
@@ -62,9 +75,11 @@ float4 frag (v2f i, uint facing : SV_IsFrontFace) : SV_Target
         occlusionMap = maskMap.g;
     #endif
 
-    surf.perceptualRoughness = 1 - (_Glossiness * smoothnessMap);
-    surf.metallic = metallicMap * _Metallic * _Metallic;
-    surf.occlusion = lerp(1, occlusionMap, _Occlusion);
+    surf.perceptualRoughness = 1 - (RemapMinMax(smoothnessMap, _GlossinessMin, _Glossiness));
+    // surf.metallic = metallicMap * _Metallic * _Metallic;
+    surf.metallic = RemapMinMax(metallicMap, _MetallicMin, _Metallic * _Metallic);
+    // surf.occlusion = lerp(1, occlusionMap, _Occlusion);
+    surf.occlusion = hasOcclusion ? RemapMinMax(occlusionMap, _OcclusionMin, _Occlusion) : 1;
 
     float4 normalMap = float4(0.5, 0.5, 1, 1);
     #if defined(TEXTUREARRAY)
