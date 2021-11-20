@@ -221,7 +221,8 @@ namespace z3y.ShaderEditorFunctions
             {
                 e.Use();
                 material.SetOverrideTag(animatedName, isAnimated ? "" : "1");
-                material.SetOverrideTag(extraProperty.name + AnimatedPropertySuffix, isAnimated ? "" : "1");
+                if(extraProperty != null) material.SetOverrideTag(extraProperty.name + AnimatedPropertySuffix, isAnimated ? "" : "1");
+
             }
             if(isAnimated)
             {
