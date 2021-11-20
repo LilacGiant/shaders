@@ -61,8 +61,8 @@ namespace z3y.ShaderEditor
                     }
                     else
                     {
-                        RangedProp(GetProperty("_GlossinessMin"), GetProperty("_Glossiness"));
                         RangedProp(GetProperty("_MetallicMin"), GetProperty("_Metallic"));
+                        RangedProp(GetProperty("_GlossinessMin"), GetProperty("_Glossiness"));
                         RangedProp(GetProperty("_OcclusionMin"), GetProperty("_Occlusion"));
                     }
                     
