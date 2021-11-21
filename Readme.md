@@ -15,7 +15,7 @@ A standard shader replacement for VRChat worlds.
 - Automatic mask map packing and material creation
 - Specular Occlusion
 - Shader Optimizer (with improved speed)
-- Audio Link
+- Audio Link Emission
 
 #### Currently known missing features and bugs:
 - dithered shadow with transparency
