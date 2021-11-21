@@ -57,14 +57,15 @@
 #endif
 
 #if defined(BAKERY_SH) || defined(BAKERY_RNM)
-    #ifdef BAKERY_SH
-    #define BAKERY_SHNONLINEAR
-    #endif
-    #ifdef BAKEDSPECULAR
-    #define _BAKERY_LMSPEC
-    #define BAKERY_LMSPEC
-    #define NEED_PARALLAX_DIR
 
+    #ifdef BAKERY_SH
+        #define BAKERY_SHNONLINEAR
+    #endif
+
+    #ifdef BAKEDSPECULAR
+        #define _BAKERY_LMSPEC
+        #define BAKERY_LMSPEC
+        #define NEED_PARALLAX_DIR
     #endif
 
     #include "Bakery.cginc"

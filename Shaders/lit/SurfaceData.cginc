@@ -10,7 +10,7 @@ struct SurfaceData
     float alpha;
 };
 
-void InitializeSurfaceData(inout SurfaceData surf)
+void InitializeDefaultSurfaceData(inout SurfaceData surf)
 {
     surf.albedo = 1;
     surf.tangentNormal = float3(0,0,1);

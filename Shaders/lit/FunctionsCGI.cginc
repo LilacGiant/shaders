@@ -83,7 +83,7 @@ float Fd_Burley(float roughness, float NoV, float NoL, float LoH)
     return lightScatter * viewScatter;
 }
 
-#include "BakedLight.cginc"
+#include "Bicubic.cginc"
 
 float3 getBoxProjection (float3 direction, float3 position, float4 cubemapPosition, float3 boxMin, float3 boxMax)
 {
@@ -134,6 +134,12 @@ float V_SmithGGXCorrelated_Anisotropic(float at, float ab, float ToV, float BoV,
     float lambdaL = NoV * length(float3(at * ToL, ab * BoL, NoL));
     float v = 0.5 / (lambdaV + lambdaL);
     return saturate(v);
+}
+
+float V_Kelemen(float LoH)
+{
+    // Kelemen 2001, "A Microfacet Based Coupled Specular-Matte BRDF Model with Importance Sampling"
+    return saturate(0.25 / (LoH * LoH));
 }
 
 float GSAA_Filament(float3 worldNormal, float perceptualRoughness)
@@ -226,4 +232,3 @@ float3 getRealtimeLightmap(float2 uv, float3 worldNormal, float2 parallaxOffset)
 }
 #endif
 
-#include "VertexLights.cginc"

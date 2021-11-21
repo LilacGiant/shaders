@@ -130,8 +130,8 @@ namespace z3y.MaterialCreator
                 else
                 {
                     ChannelTexture redChannel = new ChannelTexture("Red", 0);
-                    ChannelTexture greenChannel = new ChannelTexture("Green", 0);
-                    ChannelTexture blueChannel = new ChannelTexture("Blue", 0);
+                    ChannelTexture greenChannel = new ChannelTexture("Green", 1);
+                    ChannelTexture blueChannel = new ChannelTexture("Blue", 1);
                     ChannelTexture alphaChannel = new ChannelTexture("Alpha", 0);
 
                     if(mask.metallic != null)
@@ -297,7 +297,7 @@ namespace z3y.MaterialCreator
                 return path.Substring(0, path.LastIndexOf('/'));
             }
 
-            private static TexEncoding encoding = TexEncoding.SaveAsPNG;
+            // private static TexEncoding encoding = TexEncoding.SaveAsPNG;
             public enum TexEncoding
             {
                 SaveAsPNG,

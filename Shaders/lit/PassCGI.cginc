@@ -137,6 +137,8 @@ v2f vert (appdata v)
 static v2f input;
 
 #include "FunctionsCGI.cginc"
+#include "VertexLights.cginc"
+#include "LitSurfaceData.cginc"
 
 #ifdef ENABLE_AUDIOLINK
     #include "AudioLink.cginc"
