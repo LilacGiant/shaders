@@ -96,9 +96,18 @@ namespace z3y.ShaderGenerator
                         propDefines.Append($"#define {mp.name} float4{mp.vectorValue}");
                         break;
                     case MaterialProperty.PropType.Color:
-                        string value = mp.colorValue.ToString();
-                        value = value.Remove(0, 4);
-                        propDefines.Append($"#define {mp.name} float4{value}");
+                        Color value;
+
+                        if ((mp.flags & MaterialProperty.PropFlags.HDR) != 0)
+                        {
+                            if ((mp.flags & MaterialProperty.PropFlags.Gamma) != 0) value = mp.colorValue.linear;
+                            else value = mp.colorValue;
+                        }
+                        else if ((mp.flags & MaterialProperty.PropFlags.Gamma) != 0) value = mp.colorValue;
+                        else value = mp.colorValue.linear;
+
+                        string colorValue = value.ToString().Remove(0,4);
+                        propDefines.Append($"#define {mp.name} float4{colorValue}");
                         break;
                     case MaterialProperty.PropType.Texture:
                         if(mp.textureValue != null)
