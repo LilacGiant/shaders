@@ -18,17 +18,50 @@ namespace z3y.ShaderGenerator
         private static readonly string OriginalShaderTag = "OriginalShaderTag";
 
 
-        [MenuItem("Tools/Shader Generator/Generate")]
+        [MenuItem("Tools/Shader Generator/Lock")]
         public static void GenerateShader()
         {
             Material[] mats = GetMaterialsUsingGenerator();
 
+            int sharedCount = 0;
+
+            float progress = mats.Length;
             for (int i = 0; i < mats.Length; i++)
             {
-                // Debug.Log(mats[i].name);
+                EditorUtility.DisplayCancelableProgressBar("Generating Shaders", mats[i].name, i/progress);
+                AssetDatabase.StartAssetEditing();
                 LockMaterial(mats[i]);
+                EditorUtility.ClearProgressBar();
+                AssetDatabase.StopAssetEditing();
+                AssetDatabase.Refresh();
+
             }
 
+            for (int i = 0; i < mats.Length; i++)
+            {
+                EditorUtility.DisplayCancelableProgressBar("Replacing Shaders", mats[i].name, i/progress);
+
+                LockApplyShader(mats[i]);
+                mats[i].SetFloat(GeneratorKey,1);
+                EditorUtility.ClearProgressBar();
+
+                
+            }
+
+            Debug.Log($"[<Color=fuchsia>ShaderOptimizer</Color>] Locked <b>{mats.Length}</b> Materials. Generated <b>{mats.Length-sharedCount}</b> shaders.");
+
+        }
+
+        [MenuItem("Tools/Shader Generator/Unlock Materials")]
+        public static void UnlockAllMaterials()
+        {
+            Material[] mats = GetMaterialsUsingGenerator(true);
+
+            foreach (Material m in mats)
+            {
+                Unlock(m);
+                m.SetFloat(GeneratorKey, 0);
+            }
         }
 
         public static void LockMaterial(Material m)
@@ -42,7 +75,7 @@ namespace z3y.ShaderGenerator
 
             StringBuilder propDefines = new StringBuilder("#define OPTIMIZER_ENABLED");
             propDefines.Append(Environment.NewLine);
-            propDefines.Append("#define NEW_OPTIMIZER_ENABLED");
+            propDefines.Append("#define PROPERTIES_DEFINED");
             propDefines.Append(Environment.NewLine);
 
 
@@ -90,6 +123,8 @@ namespace z3y.ShaderGenerator
             }
 
             string[] shaderKeywords = m.shaderKeywords;
+            string materialGUID = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(m));
+
 
             string shaderFile;
             StreamReader sr = new StreamReader(shaderPath);
@@ -105,7 +140,11 @@ namespace z3y.ShaderGenerator
                 string currentLine = fileLines[i];
                 string trimmedLine = fileLines[i].TrimStart();
 
-                if(trimmedLine.StartsWith("#pragma shader_feature_local", StringComparison.Ordinal))
+                if(trimmedLine.StartsWith("Shader", StringComparison.Ordinal))
+                {
+                    currentLine = $"Shader \"Hidden/Locked/{shader.name}/{materialGUID}\"";
+                }
+                else if(trimmedLine.StartsWith("#pragma shader_feature_local", StringComparison.Ordinal))
                 {
                     string[] lineFeatures = trimmedLine.Replace("#pragma shader_feature_local", string.Empty).Split(null);
 
@@ -145,15 +184,85 @@ namespace z3y.ShaderGenerator
 
             string oldShaderFileName = Regex.Split(shaderPath, "/").Last();
 
-            string materialGUID = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(m));
             string newShaderPath = shaderPath.Replace(oldShaderFileName, string.Empty) + "Generated_" + materialGUID + oldShaderFileName;
             Debug.Log(newShaderPath);
 
             StreamWriter sw = new StreamWriter(newShaderPath);
             sw.Write(newShader);
             sw.Close();
-            AssetDatabase.Refresh();
 
+            ReplaceStruct replaceStruct = new ReplaceStruct();
+
+            replaceStruct.Material = m;
+            replaceStruct.Shader = shader;
+            replaceStruct.SmallGuid = materialGUID;
+            replaceStruct.NewShaderPath = newShaderPath;
+            ReplaceStructs.Add(m, replaceStruct);
+        }
+
+        public static void Unlock (Material material)
+        {
+            if(!material.shader.name.StartsWith("Hidden/"))
+            {
+                material.SetFloat(GeneratorKey, 0);
+                return;
+            }
+            string originalShaderName = material.GetTag(OriginalShaderTag, false, string.Empty);
+
+            Shader orignalShader = Shader.Find(originalShaderName);
+            if (orignalShader is null)
+            {
+                Debug.LogError("[Shader Optimizer] Original shader " + originalShaderName + " not found");
+                return;
+            }
+
+            string renderType = material.GetTag("RenderType", false, string.Empty);
+            int renderQueue = material.renderQueue;
+            material.shader = orignalShader;
+            material.SetOverrideTag("RenderType", renderType);
+            material.renderQueue = renderQueue;
+        }
+
+        private static readonly Dictionary<Material, ReplaceStruct> ReplaceStructs = new Dictionary<Material, ReplaceStruct>();
+
+        private struct ReplaceStruct
+        {
+            public Material Material;
+            public Shader Shader;
+            public string SmallGuid;
+            public string NewShaderPath;
+        }
+
+        private static void LockApplyShader(Material material)
+        {
+            if (ReplaceStructs.ContainsKey(material) == false) return;
+            ReplaceStruct applyStruct = ReplaceStructs[material];
+            ReplaceStructs.Remove(material);
+
+            ReplaceShader(applyStruct);
+        }
+
+        private static bool ReplaceShader(ReplaceStruct replaceStruct)
+        {
+            replaceStruct.Material.SetOverrideTag(OriginalShaderTag, replaceStruct.Shader.name);
+            replaceStruct.Material.SetOverrideTag("OptimizedShaderFolder", replaceStruct.SmallGuid);
+
+            string renderType = replaceStruct.Material.GetTag("RenderType", false, string.Empty);
+            int renderQueue = replaceStruct.Material.renderQueue;
+
+            Shader newShader = AssetDatabase.LoadAssetAtPath<Shader>(replaceStruct.NewShaderPath);
+            
+            replaceStruct.Material.shader = newShader;
+            replaceStruct.Material.SetOverrideTag("RenderType", renderType);
+            replaceStruct.Material.renderQueue = renderQueue;
+
+            // Remove ALL keywords
+
+            foreach (string keyword in replaceStruct.Material.shaderKeywords)
+                replaceStruct.Material.DisableKeyword(keyword);
+
+
+            return true;
         }
 
         public static bool HasGeneratorKey(Shader shader)
