@@ -37,12 +37,6 @@
     #include "UnityMetaPass.cginc"
 #endif
 
-#if defined(OPTIMIZER_ENABLED)
-    #if (PROP_DETAILPACKED == 0)
-        #undef PROP_DETAILMAP
-    #endif
-#endif
-
 #if defined(PARALLAX)
     #define NEED_PARALLAX_DIR
 #endif

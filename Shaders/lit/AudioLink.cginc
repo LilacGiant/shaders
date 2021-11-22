@@ -63,7 +63,9 @@
 #define glsl_mod(x,y) (((x)-(y)*floor((x)/(y))))
 #endif
 
+#ifndef PROPERTIES_DEFINED
 uniform float4               _AudioTexture_TexelSize;
+#endif
 
 #ifdef SHADER_TARGET_SURFACE_ANALYSIS
 #define AUDIOLINK_STANDARD_INDEXING
@@ -207,9 +209,11 @@ float AudioLinkGetAmplitudeAtNote(float octave, float note)
 
 // ---------------
 
+#ifndef PROPERTIES_DEFINED
 uniform float _ALEmissionBand;
 uniform float _ALEmissionType;
 uniform float _ALSmoothing;
+#endif
 UNITY_DECLARE_TEX2D(_ALEmissionMap);
 
 void ApplyAudioLinkEmission(inout float3 emissionMap)

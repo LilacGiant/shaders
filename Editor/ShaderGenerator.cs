@@ -26,16 +26,17 @@ namespace z3y.ShaderGenerator
             int sharedCount = 0;
 
             float progress = mats.Length;
+            AssetDatabase.StartAssetEditing();
             for (int i = 0; i < mats.Length; i++)
             {
                 EditorUtility.DisplayCancelableProgressBar("Generating Shaders", mats[i].name, i/progress);
-                AssetDatabase.StartAssetEditing();
                 LockMaterial(mats[i]);
-                EditorUtility.ClearProgressBar();
-                AssetDatabase.StopAssetEditing();
-                AssetDatabase.Refresh();
 
             }
+
+            EditorUtility.ClearProgressBar();
+            AssetDatabase.StopAssetEditing();
+            AssetDatabase.Refresh();
 
             for (int i = 0; i < mats.Length; i++)
             {
@@ -43,10 +44,11 @@ namespace z3y.ShaderGenerator
 
                 LockApplyShader(mats[i]);
                 mats[i].SetFloat(GeneratorKey,1);
-                EditorUtility.ClearProgressBar();
 
                 
             }
+            
+            EditorUtility.ClearProgressBar();
 
             Debug.Log($"[<Color=fuchsia>ShaderOptimizer</Color>] Locked <b>{mats.Length}</b> Materials. Generated <b>{mats.Length-sharedCount}</b> shaders.");
 

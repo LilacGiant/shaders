@@ -194,7 +194,10 @@ float BakeryBicubic_h1(float a)
 
 #if defined(BAKERY_RNM) || defined(BAKERY_SH)
 sampler2D _RNM0, _RNM1, _RNM2;
+#ifndef PROPERTIES_DEFINED
+
 float4 _RNM0_TexelSize;
+#endif
 #endif
 
 #ifdef BAKERY_VOLUME

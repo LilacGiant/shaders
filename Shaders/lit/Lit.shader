@@ -2,7 +2,7 @@
 {
     Properties
     {
-        wAg6H2wQzc7UbxaL ("Is Locked", Int) = 0
+        zzuvLsxpagBqqELE ("Is Locked", Int) = 0
 
         [Toggle(_WORKFLOW_UNPACKED)] _Workflow ("Unpacked Mask", Int) = 0
         [KeywordEnum(Opaque, Cutout, Fade, Transparent)] _Mode ("Rendering Mode", Int) = 0
