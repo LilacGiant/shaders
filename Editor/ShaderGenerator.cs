@@ -42,6 +42,8 @@ namespace z3y.ShaderGenerator
 
             StringBuilder propDefines = new StringBuilder("#define OPTIMIZER_ENABLED");
             propDefines.Append(Environment.NewLine);
+            propDefines.Append("#define NEW_OPTIMIZER_ENABLED");
+            propDefines.Append(Environment.NewLine);
 
 
             for (int i = 1; i < propertyCount; i++)
@@ -107,22 +109,29 @@ namespace z3y.ShaderGenerator
                 {
                     string[] lineFeatures = trimmedLine.Replace("#pragma shader_feature_local", string.Empty).Split(null);
 
+                    string lineFeature = string.Empty;
                     foreach (var feature in lineFeatures)
                     {
                         if(feature == string.Empty) continue;
 
-                        Debug.Log(feature);
                         if(shaderKeywords.Contains(feature))
                         {
-                            currentLine = "#define " + feature;
+                            lineFeature = feature;
                         }
-                        else
-                        {
-                            currentLine = "//" + currentLine;
-                        }
-                        
                     }
 
+                    currentLine = lineFeature.Equals(string.Empty) ? "//" + currentLine : "#define " + lineFeature;
+
+                }
+                else if(trimmedLine.StartsWith("SubShader", StringComparison.Ordinal))
+                {
+                    newShader.Append(Environment.NewLine);
+                    newShader.Append("CGINCLUDE");
+                    newShader.Append(Environment.NewLine);
+                    newShader.Append(propDefines);
+                    newShader.Append("ENDCG");
+                    newShader.Append(Environment.NewLine);
+                    newShader.Append(Environment.NewLine);   
                 }
 
                 newShader.Append(currentLine);
@@ -131,6 +140,20 @@ namespace z3y.ShaderGenerator
 
             // Debug.Log(propDefines);
             Debug.Log(newShader);
+            Debug.Log(shaderPath);
+
+
+            string oldShaderFileName = Regex.Split(shaderPath, "/").Last();
+
+            string materialGUID = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(m));
+            string newShaderPath = shaderPath.Replace(oldShaderFileName, string.Empty) + "Generated_" + materialGUID + oldShaderFileName;
+            Debug.Log(newShaderPath);
+
+            StreamWriter sw = new StreamWriter(newShaderPath);
+            sw.Write(newShader);
+            sw.Close();
+            AssetDatabase.Refresh();
+
         }
 
         public static bool HasGeneratorKey(Shader shader)
