@@ -1,6 +1,6 @@
 ﻿// supports lightmap, directional light, light probes, fog, emission
 
-Shader "z3y/other/simple lit"
+Shader "Hidden/z3y/lit fallback"
 {
     Properties
     {
@@ -37,7 +37,7 @@ Shader "z3y/other/simple lit"
             // #pragma skip_variants DIRLIGHTMAP_COMBINED DYNAMICLIGHTMAP_ON SHADOWS_SCREEN SHADOWS_SHADOWMASK LIGHTMAP_SHADOW_MIXING VERTEXLIGHT_ON
             #pragma fragmentoption ARB_precision_hint_fastest
 
-            #pragma shader_feature_local EMISSION
+            #pragma shader_feature_local_fragment EMISSION
             #pragma shader_feature_local TEXTUREARRAY
             #pragma shader_feature_local TEXTUREARRAYINSTANCED
 
@@ -234,6 +234,5 @@ Shader "z3y/other/simple lit"
         }
         
     }
-    CustomEditor "z3y.ShaderEditor.SimpleLitGUI"
     FallBack "VRChat/Mobile/Lightmapped"
 }

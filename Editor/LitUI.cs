@@ -347,10 +347,13 @@ namespace z3y.ShaderEditor
         public bool isBakeryMaterial;
         Material material = null;
 
+        MaterialProperty[] allProps = null;
+
         public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] props)
         {
             this.materialEditor = materialEditor;
             material = materialEditor.target as Material;
+            allProps = props;
 
             if (m_FirstTimeApply)
             {
@@ -464,7 +467,8 @@ namespace z3y.ShaderEditor
 
         private MaterialProperty GetProperty(string name)
         {
-            data[material].MaterialProperties.TryGetValue(name, out MaterialProperty p);
+            MaterialProperty p = System.Array.Find(allProps, x => x.name == name);
+            // data[material].MaterialProperties.TryGetValue(name, out MaterialProperty p);
             return p;
         }
 

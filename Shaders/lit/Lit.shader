@@ -145,7 +145,7 @@
         #pragma fragment frag
         #pragma exclude_renderers gles3 gles
         #pragma fragmentoption ARB_precision_hint_fastest
-        
+              
         #pragma shader_feature_local _ _MODE_CUTOUT _MODE_FADE _MODE_TRANSPARENT
         #pragma shader_feature_local _WORKFLOW_UNPACKED
         #pragma shader_feature_local BICUBIC_LIGHTMAP
@@ -218,6 +218,7 @@
             #undef BAKERY_RNM
             
             #include "PassCGI.cginc"
+
             ENDCG
         }
 
@@ -285,5 +286,5 @@
         }
     }
     CustomEditor "z3y.ShaderEditor.LitUI"
-    FallBack "z3y/other/simple lit"
+    FallBack "Hidden/z3y/lit fallback"
 }
