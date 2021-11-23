@@ -6,27 +6,37 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using UnityEditor;
+using UnityEditor.Build;
 using UnityEngine;
+using Object = UnityEngine.Object;
 using UnityEngine.SceneManagement;
+using UnityEditor.Rendering;
+
+#if VRC_SDK_VRCSDK3
+#endif
+#if VRC_SDK_VRCSDK2
+using VRCSDK2;
+#endif
+#if VRC_SDK_VRCSDK2 || VRC_SDK_VRCSDK3
+using VRC.SDKBase.Editor.BuildPipeline;
+#endif
 
 namespace z3y.Shaders
 {
 
     public class Optimizer
     {
-        public static readonly string GeneratorKey = "zzuvLsxpagBqqELE";
+        public static readonly string lockKey = "zzuvLsxpagBqqELE";
         private static readonly string OriginalShaderTag = "OriginalShaderTag";
         private static readonly string AnimatedPropertySuffix = "Animated";
 
 
         private static Dictionary<Material, ReplaceStruct> ReplaceDictionary = new Dictionary<Material, ReplaceStruct>();
 
-        [MenuItem("Tools/Shader Generator/Lock")]
+        [MenuItem("Tools/Shader Optimizer/Lock")]
         public static void LockAllMaterials()
         {
             Material[] mats = GetMaterialsUsingGenerator();
-
-            int sharedCount = 0;
 
             float progress = mats.Length;
             AssetDatabase.StartAssetEditing();
@@ -47,22 +57,22 @@ namespace z3y.Shaders
                 EditorUtility.DisplayCancelableProgressBar("Replacing Shaders", mats[i].name, i/progress);
 
                 LockApplyShader(mats[i]);
-                mats[i].SetFloat(GeneratorKey,1);
+                mats[i].SetFloat(lockKey,1);
             }
             AssetDatabase.StopAssetEditing();
             EditorUtility.ClearProgressBar();
 
-            Debug.Log($"[<Color=fuchsia>ShaderOptimizer</Color>] Locked <b>{mats.Length}</b> Materials. Generated <b>{mats.Length-sharedCount}</b> shaders.");
+            Debug.Log($"[<Color=fuchsia>ShaderOptimizer</Color>] Locked <b>{mats.Length}</b> Materials.");
 
         }
 
         public static void LockMaterial(Material m)
         {
             Lock(m, false);
-            m.SetFloat(GeneratorKey,1);
+            m.SetFloat(lockKey,1);
         }
 
-        [MenuItem("Tools/Shader Generator/Unlock Materials")]
+        [MenuItem("Tools/Shader Optimizer/Unlock Materials")]
         public static void UnlockAllMaterials()
         {
             Material[] mats = GetMaterialsUsingGenerator(true);
@@ -70,7 +80,7 @@ namespace z3y.Shaders
             foreach (Material m in mats)
             {
                 Unlock(m);
-                m.SetFloat(GeneratorKey, 0);
+                m.SetFloat(lockKey, 0);
             }
         }
 
@@ -268,7 +278,7 @@ namespace z3y.Shaders
         {
             if(!material.shader.name.StartsWith("Hidden/"))
             {
-                material.SetFloat(GeneratorKey, 0);
+                material.SetFloat(lockKey, 0);
                 return;
             }
             string originalShaderName = material.GetTag(OriginalShaderTag, false, string.Empty);
@@ -329,12 +339,12 @@ namespace z3y.Shaders
         }
 
 
-        public static bool HasGeneratorKey(Shader shader)
+        public static bool HaslockKey(Shader shader)
         {
             bool a = false;
             try 
             {
-                a = ShaderUtil.GetPropertyName(shader, 0) == GeneratorKey;
+                a = ShaderUtil.GetPropertyName(shader, 0) == lockKey;
             }
             catch { }
             return a;
@@ -368,8 +378,8 @@ namespace z3y.Shaders
                 if(mat is null) continue;
                 if(!mat.shader.name.Equals("Hidden/InternalErrorShader"))
                 {
-                    if(!materials.Contains(mat) && HasGeneratorKey(mat.shader))
-                        if(mat.GetFloat(GeneratorKey) == (isLocked ? 1 : 0))
+                    if(!materials.Contains(mat) && HaslockKey(mat.shader))
+                        if(mat.GetFloat(lockKey) == (isLocked ? 1 : 0))
                             materials.Add(mat);
                 }
                 else
@@ -384,5 +394,45 @@ namespace z3y.Shaders
         }
     }
 
+    
+
+#if VRC_SDK_VRCSDK2 || VRC_SDK_VRCSDK3
+    public class LockAllMaterialsOnVRCWorldUpload : IVRCSDKBuildRequestedCallback
+    {
+        public int callbackOrder => 69;
+
+        bool IVRCSDKBuildRequestedCallback.OnBuildRequested(VRCSDKRequestedBuildType requestedBuildType)
+        {
+            #if !UNITY_ANDROID
+                ShaderOptimizer.LockAllMaterials();
+            #endif
+            return true;
+        }
+    }
+#endif
+
+    public class StripUnlocked : IPreprocessShaders
+    {
+        public int callbackOrder => 69;
+
+        public void OnProcessShader(Shader shader, ShaderSnippetData snippet, IList<ShaderCompilerData> data)
+        {
+            bool shouldStrip = Optimizer.HaslockKey(shader) && !shader.name.StartsWith("Hidden/Locked/");
+
+            for (int i = data.Count - 1; i >= 0; --i)
+            {
+                if (shouldStrip) data.RemoveAt(i);
+            }
+        }
+    }
+
+    public class UnlockOnPlatformChange : IActiveBuildTargetChanged
+    {
+        public int callbackOrder { get { return 69; } }
+        public void OnActiveBuildTargetChanged(BuildTarget previousTarget, BuildTarget newTarget)
+        {
+            Optimizer.UnlockAllMaterials();
+        }
+    }
     
 }
