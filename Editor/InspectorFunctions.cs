@@ -4,6 +4,7 @@ using UnityEngine;
 using System.IO;
 using System;
 using System.Linq;
+using z3y.Shaders;
 
 namespace z3y.ShaderEditorFunctions
 {
@@ -312,7 +313,7 @@ namespace z3y.ShaderEditorFunctions
             return foldoutName;
         }
 
-        public static void ShaderOptimizerButton(MaterialProperty shaderOptimizer, MaterialEditor materialEditor)
+        public static void ShaderOptimizerButton(MaterialProperty shaderOptimizer, MaterialEditor materialEditor, Material mat)
         {
             if (materialEditor.targets.Length == 1)
             {
@@ -328,18 +329,11 @@ namespace z3y.ShaderEditorFunctions
                     shaderOptimizer.floatValue = shaderOptimizer.floatValue == 1 ? 0 : 1;
                     if (shaderOptimizer.floatValue == 1)
                     {
-                        foreach (Material m in materialEditor.targets)
-                        {
-                            MaterialProperty[] props = MaterialEditor.GetMaterialProperties(new UnityEngine.Object[] { m });
-                            if (!ShaderOptimizer.Lock(m, props))
-                                m.SetFloat(shaderOptimizer.name, 0);
-                        }
+                        Shaders.Optimizer.LockMaterial(mat);
                     }
                     else
                     {
-                        foreach (Material m in materialEditor.targets)
-                            if (!ShaderOptimizer.Unlock(m))
-                                m.SetFloat(shaderOptimizer.name, 1);
+                        Shaders.Optimizer.Unlock(mat);
                     }
                 }
                 EditorGUILayout.Space(4);

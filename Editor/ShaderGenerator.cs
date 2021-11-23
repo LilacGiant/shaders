@@ -9,17 +9,18 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-namespace z3y.ShaderGenerator
+namespace z3y.Shaders
 {
 
-    public class ShaderGenerator
+    public class Optimizer
     {
-        private static readonly string GeneratorKey = "zzuvLsxpagBqqELE";
+        public static readonly string GeneratorKey = "zzuvLsxpagBqqELE";
         private static readonly string OriginalShaderTag = "OriginalShaderTag";
 
+        private static Dictionary<Material, ReplaceStruct> ReplaceDictionary = new Dictionary<Material, ReplaceStruct>();
 
         [MenuItem("Tools/Shader Generator/Lock")]
-        public static void GenerateShader()
+        public static void LockAllMaterials()
         {
             Material[] mats = GetMaterialsUsingGenerator();
 
@@ -30,7 +31,7 @@ namespace z3y.ShaderGenerator
             for (int i = 0; i < mats.Length; i++)
             {
                 EditorUtility.DisplayCancelableProgressBar("Generating Shaders", mats[i].name, i/progress);
-                LockMaterial(mats[i]);
+                Lock(mats[i]);
 
             }
 
@@ -38,20 +39,25 @@ namespace z3y.ShaderGenerator
             AssetDatabase.StopAssetEditing();
             AssetDatabase.Refresh();
 
+            AssetDatabase.StartAssetEditing();
             for (int i = 0; i < mats.Length; i++)
             {
                 EditorUtility.DisplayCancelableProgressBar("Replacing Shaders", mats[i].name, i/progress);
 
                 LockApplyShader(mats[i]);
                 mats[i].SetFloat(GeneratorKey,1);
-
-                
             }
-            
+            AssetDatabase.StopAssetEditing();
             EditorUtility.ClearProgressBar();
 
             Debug.Log($"[<Color=fuchsia>ShaderOptimizer</Color>] Locked <b>{mats.Length}</b> Materials. Generated <b>{mats.Length-sharedCount}</b> shaders.");
 
+        }
+
+        public static void LockMaterial(Material m)
+        {
+            Lock(m, false);
+            m.SetFloat(GeneratorKey,1);
         }
 
         [MenuItem("Tools/Shader Generator/Unlock Materials")]
@@ -66,7 +72,7 @@ namespace z3y.ShaderGenerator
             }
         }
 
-        public static void LockMaterial(Material m)
+        public static void Lock(Material m, bool replaceLater = true)
         {
             Shader shader = m.shader;
             string shaderPath = AssetDatabase.GetAssetPath(shader);
@@ -144,6 +150,8 @@ namespace z3y.ShaderGenerator
 
             string[] fileLines = Regex.Split(shaderFile, "\r\n|\r|\n");
 
+            fileLines[0] = $"Shader \"Hidden/Locked/{shader.name}/{materialGUID}\"";
+            
             StringBuilder newShader = new StringBuilder();
 
             for (int i = 0; i < fileLines.Length; i++)
@@ -151,11 +159,8 @@ namespace z3y.ShaderGenerator
                 string currentLine = fileLines[i];
                 string trimmedLine = fileLines[i].TrimStart();
 
-                if(trimmedLine.StartsWith("Shader", StringComparison.Ordinal))
-                {
-                    currentLine = $"Shader \"Hidden/Locked/{shader.name}/{materialGUID}\"";
-                }
-                else if(trimmedLine.StartsWith("#pragma shader_feature_local", StringComparison.Ordinal))
+                
+                if(trimmedLine.StartsWith("#pragma shader_feature_local", StringComparison.Ordinal))
                 {
                     string[] lineFeatures = trimmedLine.Replace("#pragma shader_feature_local", string.Empty).Split(null);
 
@@ -188,15 +193,10 @@ namespace z3y.ShaderGenerator
                 newShader.Append(Environment.NewLine);
             }
 
-            // Debug.Log(propDefines);
-            Debug.Log(newShader);
-            Debug.Log(shaderPath);
-
 
             string oldShaderFileName = Regex.Split(shaderPath, "/").Last();
 
-            string newShaderPath = shaderPath.Replace(oldShaderFileName, string.Empty) + "Generated_" + materialGUID + oldShaderFileName;
-            Debug.Log(newShaderPath);
+            string newShaderPath = shaderPath.Replace(oldShaderFileName, string.Empty) + "Generated_" + materialGUID + "_" + oldShaderFileName;
 
             StreamWriter sw = new StreamWriter(newShaderPath);
             sw.Write(newShader);
@@ -208,7 +208,15 @@ namespace z3y.ShaderGenerator
             replaceStruct.Shader = shader;
             replaceStruct.SmallGuid = materialGUID;
             replaceStruct.NewShaderPath = newShaderPath;
-            ReplaceStructs.Add(m, replaceStruct);
+
+            if(!replaceLater)
+            {
+                AssetDatabase.Refresh();
+                ReplaceShader(replaceStruct);
+                return;
+            }
+
+            ReplaceDictionary.Add(m, replaceStruct);
         }
 
         public static void Unlock (Material material)
@@ -234,7 +242,6 @@ namespace z3y.ShaderGenerator
             material.renderQueue = renderQueue;
         }
 
-        private static readonly Dictionary<Material, ReplaceStruct> ReplaceStructs = new Dictionary<Material, ReplaceStruct>();
 
         private struct ReplaceStruct
         {
@@ -246,9 +253,9 @@ namespace z3y.ShaderGenerator
 
         private static void LockApplyShader(Material material)
         {
-            if (ReplaceStructs.ContainsKey(material) == false) return;
-            ReplaceStruct applyStruct = ReplaceStructs[material];
-            ReplaceStructs.Remove(material);
+            if (ReplaceDictionary.ContainsKey(material) == false) return;
+            ReplaceStruct applyStruct = ReplaceDictionary[material];
+            ReplaceDictionary.Remove(material);
 
             ReplaceShader(applyStruct);
         }
@@ -275,6 +282,7 @@ namespace z3y.ShaderGenerator
 
             return true;
         }
+
 
         public static bool HasGeneratorKey(Shader shader)
         {

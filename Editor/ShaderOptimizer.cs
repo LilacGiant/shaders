@@ -48,7 +48,7 @@ using VRC.SDKBase.Editor.BuildPipeline;
 #endif
 #endregion
 
-namespace z3y
+namespace z3y.OldOptimizer
 {
 
 

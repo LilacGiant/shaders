@@ -1,7 +1,6 @@
 #define DECLARE_TEX2D_CUSTOM_SAMPLER(tex) SamplerState sampler##tex; Texture2D tex
 #define DECLARE_TEX2D_CUSTOM(tex)                                    Texture2D tex
 
-#define DECLARE_TEX2D_CUSTOM_SAMPLER_PROPS(tex) uint tex##_UV; float4 tex##_ST; float4 tex##_TexelSize
 #define DECLARE_TEX2D_CUSTOM_PROPS(tex)         uint tex##_UV; float4 tex##_ST; float4 tex##_TexelSize
 
 static SamplerState defaultSampler;
@@ -30,13 +29,13 @@ DECLARE_TEX2D_CUSTOM(_AnisotropyMap);
 float4 _Color;
 float _Saturation;
 float _Cutoff;
-bool _AlphaToMask;
+float _AlphaToMask;
 
 float _BumpScale;
-bool _NormalMapOrientation;
-bool _HemiOctahedron;
+float _NormalMapOrientation;
+float _HemiOctahedron;
 
-bool _GSAA;
+float _GSAA;
 float _GSAANormal;
 float _specularAntiAliasingVariance;
 float _specularAntiAliasingThreshold;
@@ -52,13 +51,13 @@ float _MetallicMin;
 float _OcclusionMin;
 float _Reflectance;
 float _SpecularOcclusion;
-bool _GlossinessInvert;
+float _GlossinessInvert;
 
-bool _EmissionMultBase;
+float _EmissionMultBase;
 float3 _EmissionColor;
 
 
-bool _DetailPacked;
+float _DetailPacked;
 float _DetailMaskScale;
 float _DetailAlbedoScale;
 float _DetailNormalScale;
@@ -76,8 +75,8 @@ float4 _MetallicGlossMapArray_TexelSize;
 float4 _BumpMapArray_TexelSize;
 
 float bakeryLightmapMode;
-DECLARE_TEX2D_CUSTOM_SAMPLER_PROPS(_MainTex);
-DECLARE_TEX2D_CUSTOM_SAMPLER_PROPS(_BumpMap);
+DECLARE_TEX2D_CUSTOM_PROPS(_MainTex);
+DECLARE_TEX2D_CUSTOM_PROPS(_BumpMap);
 DECLARE_TEX2D_CUSTOM_PROPS(_MetallicGlossMap);
 DECLARE_TEX2D_CUSTOM_PROPS(_MetallicMap);
 DECLARE_TEX2D_CUSTOM_PROPS(_SmoothnessMap);

@@ -337,7 +337,7 @@ namespace z3y.ShaderEditor
         {
             SetupGIFlags(GetProperty("_EnableEmission").floatValue, material);
             
-            if(GetProperty("wAg6H2wQzc7UbxaL").floatValue != 0) return;
+            if(GetProperty(lockKey).floatValue != 0) return;
         }
 
         MaterialEditor materialEditor;
@@ -346,6 +346,9 @@ namespace z3y.ShaderEditor
         public bool isLocked;
         public bool isBakeryMaterial;
         Material material = null;
+
+        private static readonly string lockKey = "zzuvLsxpagBqqELE";
+        
 
         MaterialProperty[] allProps = null;
 
@@ -364,10 +367,10 @@ namespace z3y.ShaderEditor
             }
             SetupPropertiesDictionary(props);
             
-            if(GetProperty("wAg6H2wQzc7UbxaL") != null)
+            if(GetProperty(lockKey) != null)
             {
-                ShaderOptimizerButton(GetProperty("wAg6H2wQzc7UbxaL"), materialEditor);
-                isLocked = GetFloatValue("wAg6H2wQzc7UbxaL") == 1;
+                ShaderOptimizerButton(GetProperty(lockKey), materialEditor, material);
+                isLocked = GetFloatValue(lockKey) == 1;
                 EditorGUI.indentLevel++;
             }
             EditorGUI.BeginChangeCheck();
