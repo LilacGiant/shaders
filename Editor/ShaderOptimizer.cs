@@ -441,7 +441,7 @@ namespace z3y.Shaders
         bool IVRCSDKBuildRequestedCallback.OnBuildRequested(VRCSDKRequestedBuildType requestedBuildType)
         {
             #if !UNITY_ANDROID
-                ShaderOptimizer.LockAllMaterials();
+                Optimizer.LockAllMaterials();
             #endif
             return true;
         }
