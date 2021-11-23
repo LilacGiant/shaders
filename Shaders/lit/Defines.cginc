@@ -56,10 +56,11 @@
         #define BAKERY_SHNONLINEAR
     #endif
 
+    #define NEED_PARALLAX_DIR
+    
     #ifdef BAKEDSPECULAR
         #define _BAKERY_LMSPEC
         #define BAKERY_LMSPEC
-        #define NEED_PARALLAX_DIR
     #endif
 
     #include "Bakery.cginc"

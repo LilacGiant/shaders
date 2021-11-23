@@ -299,7 +299,7 @@ namespace z3y.ShaderEditor
                 EditorGUILayout.Space();
 
                 Prop("_Workflow");
-                Prop("VertexLights");
+                Prop("_VertexLights");
                 Prop("_LodCrossFade");
                 EditorGUILayout.Space();
                 

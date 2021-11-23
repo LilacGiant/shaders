@@ -11,9 +11,7 @@
 
         [Toggle(TEXTUREARRAY)] _EnableTextureArray ("Texture Arrays", Float) = 0
         [Toggle(TEXTUREARRAYINSTANCED)] _EnableTextureArrayInstancing ("Instanced Array Index", Float) = 0
-        _TextureIndex ("Instance Index", Int) = 0
-
-        _TextureIndexAnimated("", Int) = 1
+        // _TextureIndex ("Instance Index", Int) = 0
 
         _MainTex ("Base Map", 2D) = "white" {}
         _MainTexArray ("Base Map Array", 2DArray) = "white" {}
@@ -131,7 +129,7 @@
         [ToggleUI] _UnlockedModePreset ("Unlocked Mode Preset", Int) = 0
 
         // optimizer toggles
-        [ToggleUI] VertexLights ("Allow Vertex Lights", Float) = 0
+        [ToggleUI] _VertexLights ("Allow Vertex Lights", Float) = 0
         // [ToggleUI] _AudioLinkLocalTexture ("LocalTexture", Float) = 1
         [ToggleUI] _LodCrossFade ("Dithered LOD Crossfade", Float) = 0
     }
@@ -146,21 +144,21 @@
         #pragma exclude_renderers gles3 gles
         #pragma fragmentoption ARB_precision_hint_fastest
               
-        #pragma shader_feature_local _ _MODE_CUTOUT _MODE_FADE _MODE_TRANSPARENT
-        #pragma shader_feature_local _WORKFLOW_UNPACKED
-        #pragma shader_feature_local BICUBIC_LIGHTMAP
-        #pragma shader_feature_local SPECULAR_HIGHLIGHTS
-        #pragma shader_feature_local REFLECTIONS
-        #pragma shader_feature_local EMISSION
+        #pragma shader_feature_local_fragment _ _MODE_CUTOUT _MODE_FADE _MODE_TRANSPARENT
+        #pragma shader_feature_local_fragment _WORKFLOW_UNPACKED
+        #pragma shader_feature_local_fragment BICUBIC_LIGHTMAP
+        #pragma shader_feature_local_fragment SPECULAR_HIGHLIGHTS
+        #pragma shader_feature_local_fragment REFLECTIONS
+        #pragma shader_feature_local_fragment EMISSION
         #pragma shader_feature_local PARALLAX
-        #pragma shader_feature_local NONLINEAR_LIGHTPROBESH
-        #pragma shader_feature_local BAKEDSPECULAR
-        #pragma shader_feature_local ANISOTROPY
-        #pragma shader_feature_local TEXTUREARRAYINSTANCED
-        #pragma shader_feature_local TEXTUREARRAY
+        #pragma shader_feature_local_fragment NONLINEAR_LIGHTPROBESH
+        #pragma shader_feature_local_fragment BAKEDSPECULAR
+        #pragma shader_feature_local_fragment ANISOTROPY
+        #pragma shader_feature_local_fragment TEXTUREARRAYINSTANCED
+        #pragma shader_feature_local_fragment TEXTUREARRAY
         #pragma shader_feature_local BAKERY_SH
         #pragma shader_feature_local BAKERY_RNM
-        #pragma shader_feature_local ENABLE_AUDIOLINK
+        #pragma shader_feature_local_fragment ENABLE_AUDIOLINK
 
         ENDCG
 
@@ -181,11 +179,19 @@
             #pragma multi_compile_fwdbase
             #pragma multi_compile_instancing
             #pragma multi_compile_fog
-            #pragma multi_compile _ LOD_FADE_CROSSFADE
 
-            //CommentIfZero_VertexLights
+            //RemoveIfZero_LodCrossFade
+            #pragma multi_compile _ LOD_FADE_CROSSFADE
+            //RemoveIfZero_LodCrossFade
+
+            //RemoveIfZero_VertexLights
             #pragma multi_compile _ VERTEXLIGHT_ON
-            //CommentIfZero_VertexLights
+            //RemoveIfZero_VertexLights
+
+            //RemoveIfOne_VertexLights
+            #pragma skip_variants VERTEXLIGHT_ON
+            //RemoveIfOne_VertexLights
+
 
             #include "PassCGI.cginc"
             ENDCG
@@ -207,7 +213,9 @@
             #pragma multi_compile_fwdadd_fullshadows
             #pragma multi_compile_instancing
             #pragma multi_compile_fog
+            //RemoveIfZero_LodCrossFade
             #pragma multi_compile _ LOD_FADE_CROSSFADE
+            //RemoveIfZero_LodCrossFade
 
             #pragma skip_variants BICUBIC_LIGHTMAP REFLECTIONS EMISSION BAKEDSPECULAR BAKERY_SH BAKERY_RNM
             #undef BICUBIC_LIGHTMAP
@@ -222,7 +230,6 @@
             ENDCG
         }
 
-
         Pass
         {
             Name "SHADOWCASTER"
@@ -235,7 +242,10 @@
             CGPROGRAM
             #pragma multi_compile_shadowcaster
             #pragma multi_compile_instancing
+            //RemoveIfZero_LodCrossFade
             #pragma multi_compile _ LOD_FADE_CROSSFADE
+            //RemoveIfZero_LodCrossFade
+            
             #pragma skip_variants FOG_LINEAR FOG_EXP FOG_EXP2
             #pragma skip_variants REFLECTIONS EMISSION BICUBIC_LIGHTMAP PARALLAX BAKEDSPECULAR ANISOTROPY NONLINEAR_LIGHTPROBESH SPECULAR_HIGHLIGHTS _WORKFLOW_UNPACKED TEXTUREARRAYMASK TEXTUREARRAYBUMP BAKERY_SH BAKERY_RNM ENABLE_AUDIOLINK
             #undef REFLECTIONS
