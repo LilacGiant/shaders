@@ -138,10 +138,10 @@ static v2f input;
 
 #include "FunctionsCGI.cginc"
 #include "VertexLights.cginc"
-#include "LitSurfaceData.cginc"
-
 #ifdef ENABLE_AUDIOLINK
     #include "AudioLink.cginc"
 #endif
+
+#include "LitSurfaceData.cginc"
 
 #include "CoreCGI.cginc"
