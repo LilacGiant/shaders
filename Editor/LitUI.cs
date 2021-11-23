@@ -454,7 +454,7 @@ namespace z3y.ShaderEditor
             EditorGUI.indentLevel += 5;
             EditorGUILayout.EndHorizontal();
             EditorGUI.EndDisabledGroup();
-            HandleMouseEvents(max, material, min);
+            HandleMouseEvents(max, material, min.name);
         }
 
 

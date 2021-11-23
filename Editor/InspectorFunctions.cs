@@ -176,7 +176,7 @@ namespace z3y.ShaderEditorFunctions
 
         static ResetPropertyData resetProperty;
 
-        public static void HandleMouseEvents (MaterialProperty p, Material material, MaterialProperty extraProperty = null)
+        public static void HandleMouseEvents (MaterialProperty p, Material material, string extraPropertyName = null)
         {
             if(p is null) return;
 
@@ -222,7 +222,7 @@ namespace z3y.ShaderEditorFunctions
             {
                 e.Use();
                 material.SetOverrideTag(animatedName, isAnimated ? "" : "1");
-                if(extraProperty != null) material.SetOverrideTag(extraProperty.name + AnimatedPropertySuffix, isAnimated ? "" : "1");
+                if(extraPropertyName != null) material.SetOverrideTag(extraPropertyName + AnimatedPropertySuffix, isAnimated ? "" : "1");
 
             }
             if(isAnimated)
@@ -285,7 +285,7 @@ namespace z3y.ShaderEditorFunctions
         {
             EditorGUI.BeginDisabledGroup(isLocked);
             me.TextureScaleOffsetProperty(property);
-            HandleMouseEvents(property, material);
+            HandleMouseEvents(property, material, property.name + "_ST");
             EditorGUI.EndDisabledGroup();
         }
 

@@ -16,6 +16,8 @@ namespace z3y.Shaders
     {
         public static readonly string GeneratorKey = "zzuvLsxpagBqqELE";
         private static readonly string OriginalShaderTag = "OriginalShaderTag";
+        private static readonly string AnimatedPropertySuffix = "Animated";
+
 
         private static Dictionary<Material, ReplaceStruct> ReplaceDictionary = new Dictionary<Material, ReplaceStruct>();
 
@@ -92,16 +94,36 @@ namespace z3y.Shaders
                 string propName = ShaderUtil.GetPropertyName(m.shader, i);
                 MaterialProperty mp = System.Array.Find(props, x => x.name == propName);
 
+                bool isAnimated = IsAnimated(m, propName, props);
+
+
                 switch(mp.type)
                 {
                     case MaterialProperty.PropType.Float:
                     case MaterialProperty.PropType.Range:
+                        if(isAnimated)
+                        {
+                            propDefines.Append($"float {mp.name};");
+                            break;
+                        }
                         propDefines.Append($"#define {mp.name} float({mp.floatValue})");
                         break;
+                        
                     case MaterialProperty.PropType.Vector:
+                        if(isAnimated)
+                        {
+                            propDefines.Append($"float4 {mp.name};");
+                            break;
+                        }
                         propDefines.Append($"#define {mp.name} float4{mp.vectorValue}");
                         break;
+
                     case MaterialProperty.PropType.Color:
+                        if(isAnimated)
+                        {
+                            propDefines.Append($"float4 {mp.name};");
+                            break;
+                        }
                         Color value;
 
                         if ((mp.flags & MaterialProperty.PropFlags.HDR) != 0)
@@ -115,25 +137,36 @@ namespace z3y.Shaders
                         string colorValue = value.ToString().Remove(0,4);
                         propDefines.Append($"#define {mp.name} float4{colorValue}");
                         break;
+
                     case MaterialProperty.PropType.Texture:
                         if(mp.textureValue != null)
                         {
                             propDefines.Append($"#define PROP{mp.name.ToUpper()}");
                             propDefines.Append(Environment.NewLine);
-                            
-                            Texture t = mp.textureValue;
-                            Vector4 texelSize = new Vector4(1f/t.width, 1f/t.height, t.width, t.height);
-                            propDefines.Append($"#define {mp.name}_TexelSize float4{texelSize.ToString("0.00000")}");
-                            propDefines.Append(Environment.NewLine);
+
+                            bool texelSizeAnimated = IsAnimated(m, propName + "_TexelSize", props);
+                            if(texelSizeAnimated)
+                            {
+                                propDefines.Append($"float4 {mp.name}_TexelSize;");
+                                propDefines.Append(Environment.NewLine);
+                            }
+                            else
+                            {
+                                Texture t = mp.textureValue;
+                                Vector4 texelSize = new Vector4(1f/t.width, 1f/t.height, t.width, t.height);
+                                propDefines.Append($"#define {mp.name}_TexelSize float4{texelSize.ToString("0.00000")}");
+                                propDefines.Append(Environment.NewLine);
+                            }
                         }
                         else
                         {
                             propDefines.Append($"#define {mp.name}_TexelSize float4(1.0, 1.0, 1.0, 1.0)");
                             propDefines.Append(Environment.NewLine);
                         }
-                        propDefines.Append($"#define {mp.name}_ST float4{mp.textureScaleAndOffset.ToString("0.00000")}");
+                        bool STAnimated = IsAnimated(m, propName + "_ST", props);
+                        if(STAnimated) propDefines.Append($"float4 {mp.name}_ST;");
+                        else propDefines.Append($"#define {mp.name}_ST float4{mp.textureScaleAndOffset.ToString("0.00000")}");
                         break;
-
                 }
 
                 propDefines.Append(Environment.NewLine);
@@ -219,6 +252,18 @@ namespace z3y.Shaders
             ReplaceDictionary.Add(m, replaceStruct);
         }
 
+        private static bool IsAnimated(Material m, string propName, MaterialProperty[] props)
+        {
+            bool isAnimated = !m.GetTag(propName + AnimatedPropertySuffix, false).Equals(string.Empty, StringComparison.Ordinal);
+            if(!isAnimated)
+            {
+                MaterialProperty animatedProp = Array.Find(props, x => x.name == propName + AnimatedPropertySuffix);
+                if (animatedProp != null) isAnimated = animatedProp.floatValue == 1;
+            }
+            Debug.Log(isAnimated);
+            return isAnimated;
+        }
+
         public static void Unlock (Material material)
         {
             if(!material.shader.name.StartsWith("Hidden/"))
@@ -274,10 +319,10 @@ namespace z3y.Shaders
             replaceStruct.Material.SetOverrideTag("RenderType", renderType);
             replaceStruct.Material.renderQueue = renderQueue;
 
-            // Remove ALL keywords
-
             foreach (string keyword in replaceStruct.Material.shaderKeywords)
+            {
                 replaceStruct.Material.DisableKeyword(keyword);
+            }
 
 
             return true;

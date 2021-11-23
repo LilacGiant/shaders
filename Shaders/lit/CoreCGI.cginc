@@ -152,7 +152,7 @@ float4 frag (v2f i, uint facing : SV_IsFrontFace) : SV_Target
             indirectSpecular = probe0;
 
             #if defined(UNITY_SPECCUBE_BLENDING)
-                
+                UNITY_BRANCH
                 if (unity_SpecCube0_BoxMin.w < 0.99999)
                 {
                     envData.reflUVW = getBoxProjection(reflDir, i.worldPos.xyz, unity_SpecCube1_ProbePosition, unity_SpecCube1_BoxMin.xyz, unity_SpecCube1_BoxMax.xyz);
