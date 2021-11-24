@@ -76,7 +76,7 @@ namespace z3y.Shaders
             ReplaceDictionary.Clear();
             MaterialPropertyDefines.Clear();
             SharedMaterialCount = 0;
-            harmony.UnpatchAll();
+            harmony.UnpatchAll(HARMONY_ID);
         }
 
         public static void LockMaterial(Material m)
