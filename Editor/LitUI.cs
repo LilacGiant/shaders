@@ -332,6 +332,7 @@ namespace z3y.ShaderEditor
             
         }
 
+
         // On inspector change
         private void ApplyChanges(MaterialProperty[] props)
         {

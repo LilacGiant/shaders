@@ -219,7 +219,7 @@ float4 frag (v2f i, uint facing : SV_IsFrontFace) : SV_Target
                 bakedSpecularColor = float3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w);
                 bakedDominantDirection = unity_SHAr.xyz + unity_SHAg.xyz + unity_SHAb.xyz;
             #endif
-                
+
             float3 bakedHalfDir = Unity_SafeNormalize(normalize(bakedDominantDirection) + viewDir);
             half nh = saturate(dot(worldNormal, bakedHalfDir));
             half bakedSpecular = D_GGX(nh, clampedRoughness);

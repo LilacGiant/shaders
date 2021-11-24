@@ -11,9 +11,10 @@ using UnityEngine;
 using Object = UnityEngine.Object;
 using UnityEngine.SceneManagement;
 using UnityEditor.Rendering;
+using HarmonyLib;
+using System.Reflection;
 
-#if VRC_SDK_VRCSDK3
-#endif
+
 #if VRC_SDK_VRCSDK2
 using VRCSDK2;
 #endif
@@ -23,6 +24,7 @@ using VRC.SDKBase.Editor.BuildPipeline;
 
 namespace z3y.Shaders
 {
+    
 
     public class Optimizer
     {
@@ -30,40 +32,51 @@ namespace z3y.Shaders
         private static readonly string OriginalShaderTag = "OriginalShaderTag";
         private static readonly string AnimatedPropertySuffix = "Animated";
 
-
+        
         private static Dictionary<Material, ReplaceStruct> ReplaceDictionary = new Dictionary<Material, ReplaceStruct>();
+        private static Dictionary<string, Material> MaterialPropertyDefines = new Dictionary<string, Material>();
+        private static int SharedMaterialCount = 0;
+
+        const string HARMONY_ID = "z3y.Shaders.Optimizer";
 
         [MenuItem("Tools/Shader Optimizer/Lock")]
         public static void LockAllMaterials()
         {
             Material[] mats = GetMaterialsUsingGenerator();
+            
+            // using harmony to patch MaterialEditor.ApplyMaterialPropertyDrawer because material.Shader = newShader calls it and its really slow
+            Harmony harmony = new Harmony(HARMONY_ID);
+            MethodInfo ApplyMaterialPropertyDrawersMethod = typeof(MaterialEditor).GetMethods(BindingFlags.Public | BindingFlags.Static).First(e => e.Name == "ApplyMaterialPropertyDrawers");
+            HarmonyMethod ApplyMaterialPropertyDrawersDisabler = new HarmonyMethod(typeof(InjectedMethods).GetMethod(nameof(InjectedMethods.ApplyMaterialPropertyDrawersDisabler)));
+            harmony.Patch(ApplyMaterialPropertyDrawersMethod, ApplyMaterialPropertyDrawersDisabler);
 
-            float progress = mats.Length;
             AssetDatabase.StartAssetEditing();
+
             for (int i = 0; i < mats.Length; i++)
             {
-                EditorUtility.DisplayCancelableProgressBar("Generating Shaders", mats[i].name, i/progress);
                 Lock(mats[i]);
 
             }
 
-            EditorUtility.ClearProgressBar();
             AssetDatabase.StopAssetEditing();
             AssetDatabase.Refresh();
 
             AssetDatabase.StartAssetEditing();
             for (int i = 0; i < mats.Length; i++)
             {
-                EditorUtility.DisplayCancelableProgressBar("Replacing Shaders", mats[i].name, i/progress);
-
+                UnityEngine.Profiling.Profiler.BeginSample("My Sample");
                 LockApplyShader(mats[i]);
                 mats[i].SetFloat(lockKey,1);
+                UnityEngine.Profiling.Profiler.EndSample();
+
             }
             AssetDatabase.StopAssetEditing();
-            EditorUtility.ClearProgressBar();
 
-            Debug.Log($"[<Color=fuchsia>ShaderOptimizer</Color>] Locked <b>{mats.Length}</b> Materials.");
-
+            Debug.Log($"[<Color=fuchsia>ShaderOptimizer</Color>] Locked <b>{mats.Length}</b> Materials. Generated {mats.Length-SharedMaterialCount} shaders");
+            ReplaceDictionary.Clear();
+            MaterialPropertyDefines.Clear();
+            SharedMaterialCount = 0;
+            harmony.UnpatchAll();
         }
 
         public static void LockMaterial(Material m)
@@ -105,7 +118,6 @@ namespace z3y.Shaders
                 MaterialProperty mp = System.Array.Find(props, x => x.name == propName);
 
                 bool isAnimated = IsAnimated(m, propName, props);
-
 
                 switch(mp.type)
                 {
@@ -184,6 +196,34 @@ namespace z3y.Shaders
 
             string[] shaderKeywords = m.shaderKeywords;
             string materialGUID = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(m));
+
+            Material sharedMaterial = null;
+            string propertyKeys = propDefines + String.Join(" ", shaderKeywords);
+            if(replaceLater)
+            {
+                if (MaterialPropertyDefines.ContainsKey(propertyKeys))
+                {
+                    MaterialPropertyDefines.TryGetValue(propertyKeys, out sharedMaterial);
+                }
+                else
+                {
+                    MaterialPropertyDefines.Add(propertyKeys, m);
+                }
+            }
+            ReplaceStruct replaceStruct = new ReplaceStruct();
+
+            if(sharedMaterial != null)
+            {
+                string sharedoldShaderFileName = Regex.Split(AssetDatabase.GetAssetPath(sharedMaterial.shader), "/").Last();
+                string sharedmaterialGUID = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(sharedMaterial));
+                SharedMaterialCount++;
+                replaceStruct.Material = m;
+                replaceStruct.Shader = sharedMaterial.shader;
+                replaceStruct.GUID = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(sharedMaterial));
+                replaceStruct.NewShaderPath = shaderPath.Replace(sharedoldShaderFileName, string.Empty) + "Generated_" + sharedmaterialGUID + "_" + sharedoldShaderFileName;
+                ReplaceDictionary.Add(m, replaceStruct);
+                return;
+            }
 
 
             string shaderFile;
@@ -283,11 +323,10 @@ namespace z3y.Shaders
             sw.Write(newShader);
             sw.Close();
 
-            ReplaceStruct replaceStruct = new ReplaceStruct();
 
             replaceStruct.Material = m;
             replaceStruct.Shader = shader;
-            replaceStruct.SmallGuid = materialGUID;
+            replaceStruct.GUID = materialGUID;
             replaceStruct.NewShaderPath = newShaderPath;
 
             if(!replaceLater)
@@ -339,7 +378,7 @@ namespace z3y.Shaders
         {
             public Material Material;
             public Shader Shader;
-            public string SmallGuid;
+            public string GUID;
             public string NewShaderPath;
         }
 
@@ -351,15 +390,15 @@ namespace z3y.Shaders
 
             ReplaceShader(applyStruct);
         }
-
+        
         private static bool ReplaceShader(ReplaceStruct replaceStruct)
         {
             replaceStruct.Material.SetOverrideTag(OriginalShaderTag, replaceStruct.Shader.name);
-            replaceStruct.Material.SetOverrideTag("OptimizedShaderFolder", replaceStruct.SmallGuid);
+            replaceStruct.Material.SetOverrideTag("OptimizedShaderFolder", replaceStruct.GUID);
 
             string renderType = replaceStruct.Material.GetTag("RenderType", false, string.Empty);
             int renderQueue = replaceStruct.Material.renderQueue;
-
+            
             Shader newShader = AssetDatabase.LoadAssetAtPath<Shader>(replaceStruct.NewShaderPath);
             
             replaceStruct.Material.shader = newShader;
@@ -431,6 +470,10 @@ namespace z3y.Shaders
         }
     }
 
+    public class InjectedMethods
+    {
+        public static bool ApplyMaterialPropertyDrawersDisabler(Material material) => false;
+    }
     
 
 #if VRC_SDK_VRCSDK2 || VRC_SDK_VRCSDK3
