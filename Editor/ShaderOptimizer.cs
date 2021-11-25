@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -11,9 +11,11 @@ using UnityEngine;
 using Object = UnityEngine.Object;
 using UnityEngine.SceneManagement;
 using UnityEditor.Rendering;
-using HarmonyLib;
 using System.Reflection;
 
+#if HARMONY_INCLUDED
+using HarmonyLib;
+#endif
 
 #if VRC_SDK_VRCSDK2
 using VRCSDK2;
@@ -44,11 +46,13 @@ namespace z3y.Shaders
         {
             Material[] mats = GetMaterialsUsingGenerator();
             
+            #if HARMONY_INCLUDED
             // using harmony to patch MaterialEditor.ApplyMaterialPropertyDrawer because material.Shader = newShader calls it and its really slow
             Harmony harmony = new Harmony(HARMONY_ID);
             MethodInfo ApplyMaterialPropertyDrawersMethod = typeof(MaterialEditor).GetMethods(BindingFlags.Public | BindingFlags.Static).First(e => e.Name == "ApplyMaterialPropertyDrawers");
             HarmonyMethod ApplyMaterialPropertyDrawersDisabler = new HarmonyMethod(typeof(InjectedMethods).GetMethod(nameof(InjectedMethods.ApplyMaterialPropertyDrawersDisabler)));
             harmony.Patch(ApplyMaterialPropertyDrawersMethod, ApplyMaterialPropertyDrawersDisabler);
+            #endif
 
             AssetDatabase.StartAssetEditing();
 
@@ -76,7 +80,9 @@ namespace z3y.Shaders
             ReplaceDictionary.Clear();
             MaterialPropertyDefines.Clear();
             SharedMaterialCount = 0;
+            #if HARMONY_INCLUDED
             harmony.UnpatchAll(HARMONY_ID);
+            #endif
         }
 
         public static void LockMaterial(Material m)
