@@ -8,22 +8,17 @@ float3 CalculateTangentViewDir(float3 tangentViewDir)
 float2 ParallaxOffsetMultiStep(float surfaceHeight, float strength, float2 uv, float3 tangentViewDir)
 {
     float2 uvOffset = 0;
-	float2 prevUVOffset = 0;
 	float stepSize = 1.0/_ParallaxSteps;
 	float stepHeight = 1;
 	float2 uvDelta = tangentViewDir.xy * (stepSize * strength);
-	float prevStepHeight = stepHeight;
-	float prevSurfaceHeight = surfaceHeight;
 
     [unroll(50)]
     for (int j = 1; j <= _ParallaxSteps && stepHeight > surfaceHeight; j++){
-        prevUVOffset = uvOffset;
-        prevStepHeight = stepHeight;
-        prevSurfaceHeight = surfaceHeight;
         uvOffset -= uvDelta;
         stepHeight -= stepSize;
         surfaceHeight = _ParallaxMap.Sample(sampler_MainTex, (uv + uvOffset)) + _ParallaxOffset;
     }
+    
     [unroll(3)]
     for (int k = 0; k < 3; k++) {
         uvDelta *= 0.5;

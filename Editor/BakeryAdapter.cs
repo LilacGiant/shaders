@@ -49,7 +49,7 @@ namespace z3y.Shaders
                             bool usingOptimizer = false;
                             try 
                             {
-                                usingOptimizer = ShaderUtil.GetPropertyName(material.shader, 0).Equals(Optimizer.lockKey);
+                                usingOptimizer = ShaderUtil.GetPropertyName(material.shader, 0).Equals(Optimizer.LockKey);
                             }
                             catch {}
                             

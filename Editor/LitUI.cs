@@ -3,6 +3,7 @@ using UnityEngine;
 using System.Collections.Generic;
 using System;
 using z3y.ShaderEditorFunctions;
+using z3y.Shaders;
 using static z3y.ShaderEditorFunctions.Functions;
 
 namespace z3y.ShaderEditor
@@ -338,7 +339,7 @@ namespace z3y.ShaderEditor
         {
             SetupGIFlags(GetProperty("_EnableEmission").floatValue, material);
             
-            if(GetProperty(lockKey).floatValue != 0) return;
+            if(GetProperty(LockKey).floatValue != 0) return;
         }
 
         MaterialEditor materialEditor;
@@ -348,7 +349,7 @@ namespace z3y.ShaderEditor
         public bool isBakeryMaterial;
         Material material = null;
 
-        private static readonly string lockKey = "zzuvLsxpagBqqELE";
+        private const string LockKey = Optimizer.LockKey;
         
 
         MaterialProperty[] allProps = null;
@@ -368,10 +369,10 @@ namespace z3y.ShaderEditor
             }
             SetupPropertiesDictionary(props);
             
-            if(GetProperty(lockKey) != null)
+            if(GetProperty(LockKey) != null)
             {
-                ShaderOptimizerButton(GetProperty(lockKey), materialEditor, material);
-                isLocked = GetFloatValue(lockKey) == 1;
+                ShaderOptimizerButton(GetProperty(LockKey), materialEditor, material);
+                isLocked = GetFloatValue(LockKey) == 1;
                 EditorGUI.indentLevel++;
             }
             EditorGUI.BeginChangeCheck();

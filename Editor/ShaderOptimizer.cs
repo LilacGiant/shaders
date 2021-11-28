@@ -1,5 +1,6 @@
 // #define HARMONY_INCLUDED
 
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -28,20 +29,20 @@ using VRC.SDKBase.Editor.BuildPipeline;
 
 namespace z3y.Shaders
 {
-    
+
 
     public class Optimizer
     {
-        public static readonly string lockKey = "zzuvLsxpagBqqELE";
-        private static readonly string OriginalShaderTag = "OriginalShaderTag";
-        private static readonly string AnimatedPropertySuffix = "Animated";
+        public const string LockKey = "zzuvLsxpagBqqELE";
+        private const string OriginalShaderTag = "OriginalShaderTag";
+        private const string AnimatedPropertySuffix = "Animated";
 
         
         private static Dictionary<Material, ReplaceStruct> ReplaceDictionary = new Dictionary<Material, ReplaceStruct>();
         private static Dictionary<string, Material> MaterialPropertyDefines = new Dictionary<string, Material>();
         private static int SharedMaterialCount = 0;
 
-        const string HARMONY_ID = "z3y.Shaders.Optimizer";
+        private const string HARMONY_ID = "z3y.Shaders.Optimizer";
 
         [MenuItem("Tools/Shader Optimizer/Lock")]
         public static void LockAllMaterials()
@@ -61,7 +62,6 @@ namespace z3y.Shaders
             for (int i = 0; i < mats.Length; i++)
             {
                 Lock(mats[i]);
-
             }
 
             AssetDatabase.StopAssetEditing();
@@ -72,7 +72,7 @@ namespace z3y.Shaders
             {
                 UnityEngine.Profiling.Profiler.BeginSample("My Sample");
                 LockApplyShader(mats[i]);
-                mats[i].SetFloat(lockKey,1);
+                mats[i].SetFloat(LockKey,1);
                 UnityEngine.Profiling.Profiler.EndSample();
 
             }
@@ -90,7 +90,7 @@ namespace z3y.Shaders
         public static void LockMaterial(Material m)
         {
             Lock(m, false);
-            m.SetFloat(lockKey,1);
+            m.SetFloat(LockKey,1);
         }
 
         [MenuItem("Tools/Shader Optimizer/Unlock")]
@@ -101,7 +101,7 @@ namespace z3y.Shaders
             foreach (Material m in mats)
             {
                 Unlock(m);
-                m.SetFloat(lockKey, 0);
+                m.SetFloat(LockKey, 0);
             }
         }
 
@@ -234,12 +234,7 @@ namespace z3y.Shaders
             }
 
 
-            string shaderFile;
-            StreamReader sr = new StreamReader(shaderPath);
-            shaderFile = sr.ReadToEnd();
-            sr.Close();
-
-            string[] fileLines = Regex.Split(shaderFile, "\r\n|\r|\n");
+            string[] fileLines = File.ReadAllLines(shaderPath);
 
             fileLines[0] = $"Shader \"Hidden/Locked/{shader.name}/{materialGUID}\"";
             
@@ -362,7 +357,7 @@ namespace z3y.Shaders
         {
             if(!material.shader.name.StartsWith("Hidden/"))
             {
-                material.SetFloat(lockKey, 0);
+                material.SetFloat(LockKey, 0);
                 return;
             }
             string originalShaderName = material.GetTag(OriginalShaderTag, false, string.Empty);
@@ -399,7 +394,7 @@ namespace z3y.Shaders
             ReplaceShader(applyStruct);
         }
         
-        private static bool ReplaceShader(ReplaceStruct replaceStruct)
+        private static void ReplaceShader(ReplaceStruct replaceStruct)
         {
             replaceStruct.Material.SetOverrideTag(OriginalShaderTag, replaceStruct.Shader.name);
             replaceStruct.Material.SetOverrideTag("OptimizedShaderFolder", replaceStruct.GUID);
@@ -417,9 +412,6 @@ namespace z3y.Shaders
             {
                 replaceStruct.Material.DisableKeyword(keyword);
             }
-
-
-            return true;
         }
 
 
@@ -428,7 +420,7 @@ namespace z3y.Shaders
             bool a = false;
             try 
             {
-                a = ShaderUtil.GetPropertyName(shader, 0) == lockKey;
+                a = ShaderUtil.GetPropertyName(shader, 0) == LockKey;
             }
             catch { }
             return a;
@@ -463,7 +455,7 @@ namespace z3y.Shaders
                 if(!mat.shader.name.Equals("Hidden/InternalErrorShader"))
                 {
                     if(!materials.Contains(mat) && HaslockKey(mat.shader))
-                        if(mat.GetFloat(lockKey) == (isLocked ? 1 : 0))
+                        if(mat.GetFloat(LockKey) == (isLocked ? 1 : 0))
                             materials.Add(mat);
                 }
                 else
@@ -516,7 +508,8 @@ namespace z3y.Shaders
 
     public class UnlockOnPlatformChange : IActiveBuildTargetChanged
     {
-        public int callbackOrder { get { return 69; } }
+        public int callbackOrder => 69;
+
         public void OnActiveBuildTargetChanged(BuildTarget previousTarget, BuildTarget newTarget)
         {
             Optimizer.UnlockAllMaterials();

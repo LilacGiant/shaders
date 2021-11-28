@@ -8,6 +8,8 @@ struct SurfaceData
     float occlusion;
     float reflectance;
     float alpha;
+    float2 anisotropicDirection;
+    float anisotropy;
 };
 
 void InitializeDefaultSurfaceData(inout SurfaceData surf)
@@ -20,4 +22,7 @@ void InitializeDefaultSurfaceData(inout SurfaceData surf)
     surf.occlusion = 1;
     surf.reflectance = 0.5;
     surf.alpha = 1;
+    surf.anisotropicDirection = 1;
+    surf.anisotropy = 0;
+
 }

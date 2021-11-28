@@ -1,3 +1,40 @@
+float2 GetUVs(float4 st, uint type)
+{
+    float2 uv = 0;
+
+    switch(type)
+    {
+        case 0:
+            uv = float2(input.coord0.xy * _MainTex_ST.xy + _MainTex_ST.zw + parallaxOffset);
+            break;
+        case 1:
+            uv = float2(input.coord0.zw * st.xy + st.zw + parallaxOffset);
+            break;
+        case 2:
+            uv = float2(input.coord1.xy * st.xy + st.zw + parallaxOffset);
+            break;
+        case 3:
+            uv = float2(input.coord0.xy * st.xy + st.zw + parallaxOffset);
+            break;
+    }
+
+    return uv;
+}
+
+float4 SampleTexture(Texture2D tex, float4 st, sampler s, int type)
+{
+    return tex.Sample(s, GetUVs(st, type));
+}
+
+float4 SampleTexture(Texture2D tex, float4 st, int type)
+{
+    return SampleTexture(tex, st, defaultSampler, type);
+}
+
+float4 SampleTextureArray(Texture2DArray tex, SamplerState s, float4 st, int type)
+{
+    return tex.Sample(s, float3(GetUVs(st, type), textureIndex));
+}
 
 void InitializeLitSurfaceData(inout SurfaceData surf, v2f i)
 {
@@ -157,4 +194,12 @@ void InitializeLitSurfaceData(inout SurfaceData surf, v2f i)
     #endif
 
     surf.reflectance = _Reflectance;
+
+    #ifdef ANISOTROPY
+        #if defined(PROP_ANISOTROPYMAP)
+            surf.anisotropicDirection = _AnisotropyMap.Sample(defaultSampler, (i.coord0.xy * _AnisotropyMap_ST.xy + _AnisotropyMap_ST.zw)).rg;
+        #endif
+        surf.anisotropy = _Anisotropy;
+    #endif
+
 }

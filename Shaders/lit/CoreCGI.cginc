@@ -125,14 +125,9 @@ float4 frag (v2f i, uint facing : SV_IsFrontFace) : SV_Target
     fresnel *= saturate(pow(length(indirectDiffuse), _SpecularOcclusion));
 
     #ifdef ANISOTROPY
-        #if defined(PROP_ANISOTROPYMAP)
-            float3 anisotropicDirection = float3(_AnisotropyMap.Sample(defaultSampler, (i.coord0.xy * _AnisotropyMap_ST.xy + _AnisotropyMap_ST.zw)).rg, 1);
-            float3 anisotropicT = normalize(tangent * anisotropicDirection);
-            float3 anisotropicB = normalize(cross(worldNormal, anisotropicT));
-        #else
-            float3 anisotropicT = tangent;
-            float3 anisotropicB = bitangent;
-        #endif
+        float3 anisotropicDirection = float3(surf.anisotropicDirection, 1);
+        float3 anisotropicT = normalize(tangent * anisotropicDirection);
+        float3 anisotropicB = normalize(cross(worldNormal, anisotropicT));
     #endif
     
     #if defined(UNITY_PASS_FORWARDBASE)
@@ -141,7 +136,7 @@ float4 frag (v2f i, uint facing : SV_IsFrontFace) : SV_Target
             #ifndef ANISOTROPY
                 float3 reflDir = reflect(-viewDir, worldNormal);
             #else
-                float3 reflDir = getAnisotropicReflectionVector(viewDir, anisotropicB, anisotropicT, worldNormal, surf.perceptualRoughness);
+                float3 reflDir = getAnisotropicReflectionVector(viewDir, anisotropicB, anisotropicT, worldNormal, surf.perceptualRoughness, surf.anisotropy);
             #endif
 
             Unity_GlossyEnvironmentData envData;
@@ -179,7 +174,7 @@ float4 frag (v2f i, uint facing : SV_IsFrontFace) : SV_Target
             float D = GGXTerm(NoH, clampedRoughness);
             float V = V_SmithGGXCorrelated ( NoV, lightNoL, clampedRoughness);
         #else
-            float anisotropy = _Anisotropy;
+            float anisotropy = surf.anisotropy;
             float3 l = lightDirection;
             float3 t = anisotropicT;
             float3 b = anisotropicB;
@@ -216,7 +211,7 @@ float4 frag (v2f i, uint facing : SV_IsFrontFace) : SV_Target
             #endif
 
             #ifndef LIGHTMAP_ON
-                bakedSpecularColor = float3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w);
+                bakedSpecularColor = float3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w) * UNITY_PI;
                 bakedDominantDirection = unity_SHAr.xyz + unity_SHAg.xyz + unity_SHAb.xyz;
             #endif
 
@@ -253,13 +248,14 @@ float4 frag (v2f i, uint facing : SV_IsFrontFace) : SV_Target
     }
     #endif
 
-
+    
 
     #if defined(_MODE_TRANSPARENT)
         surf.albedo.rgb *= surf.alpha;
         surf.alpha = lerp(surf.alpha, 1, surf.metallic);
     #endif
 
+    
     float4 finalColor = float4(surf.albedo.rgb * (1 - surf.metallic) * (indirectDiffuse * surf.occlusion + (pixelLight + vertexLight)) + indirectSpecular + directSpecular + surf.emission, surf.alpha);
 
     #if defined (_MODE_FADE) && defined(UNITY_PASS_FORWARDADD)

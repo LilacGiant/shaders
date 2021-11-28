@@ -1,42 +1,4 @@
 
-float2 GetUVs(float4 st, uint type)
-{
-    float2 uv = 0;
-
-    switch(type)
-    {
-        case 0:
-            uv = float2(input.coord0.xy * _MainTex_ST.xy + _MainTex_ST.zw + parallaxOffset);
-            break;
-        case 1:
-            uv = float2(input.coord0.zw * st.xy + st.zw + parallaxOffset);
-            break;
-        case 2:
-            uv = float2(input.coord1.xy * st.xy + st.zw + parallaxOffset);
-            break;
-        case 3:
-            uv = float2(input.coord0.xy * st.xy + st.zw + parallaxOffset);
-            break;
-    }
-
-    return uv;
-}
-
-float4 SampleTexture(Texture2D tex, float4 st, sampler s, int type)
-{
-    return tex.Sample(s, GetUVs(st, type));
-}
-
-float4 SampleTexture(Texture2D tex, float4 st, int type)
-{
-    return SampleTexture(tex, st, defaultSampler, type);
-}
-
-float4 SampleTextureArray(Texture2DArray tex, SamplerState s, float4 st, int type)
-{
-    return tex.Sample(s, float3(GetUVs(st, type), textureIndex));
-}
-
 float RemapMinMax(float value, float remapMin, float remapMax)
 {
     return value * (remapMax - remapMin) + remapMin;
@@ -206,12 +168,12 @@ half D_GGX(half NoH, half roughness)
     return k * k * (1.0 / UNITY_PI);
 }
 
-float3 getAnisotropicReflectionVector(float3 viewDir, float3 btg, float3 tg, float3 normal, float roughness)
+float3 getAnisotropicReflectionVector(float3 viewDir, float3 btg, float3 tg, float3 normal, float roughness, float anisotropy)
 {
-    float3 anisotropicDirection = (_Anisotropy >= 0.0 ? btg : tg);
+    float3 anisotropicDirection = (anisotropy >= 0.0 ? btg : tg);
     float3 anisotropicTangent = cross(anisotropicDirection, viewDir);
     float3 anisotropicNormal = cross(anisotropicTangent, anisotropicDirection);
-    float bendFactor = abs(_Anisotropy) * saturate(5.0 * roughness) ;
+    float bendFactor = abs(anisotropy) * saturate(5.0 * roughness) ;
     float3 bentNormal = normalize(lerp(normal, anisotropicNormal, bendFactor));
     return reflect(-viewDir, bentNormal);
 }
