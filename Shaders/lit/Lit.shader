@@ -25,7 +25,8 @@
         _Metallic ("Metallic", Range(0,1)) = 0
         _MetallicMin ("Metallic Min", Range(0,1)) = 0
         _Occlusion ("Occlusion", Range(0,1)) = 1
-        _OcclusionMin ("Occlusion Min", Range(0,1)) = 0
+        _OcclusionMin ("Occlusion Min", Range(0,1)) = 1
+
 
         _MetallicGlossMap ("Mask Map:Metallic(R), Occlusion(G), Detail Mask(B), Smoothness(A)", 2D) = "white" {}
         _MetallicGlossMapArray ("Mask Map Array:Metallic(R), Occlusion(G), Detail Mask(B), Smoothness(A)", 2DArray) = "white" {}
@@ -145,7 +146,7 @@
         #pragma fragmentoption ARB_precision_hint_fastest
         ENDCG
 
-        Tags { "RenderType"="Opaque" "Queue"="Geometry"}
+        Tags { "RenderType"="Opaque" "Queue"="Geometry" }
 
         Pass
         {

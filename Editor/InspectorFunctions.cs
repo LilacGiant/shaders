@@ -11,7 +11,6 @@ namespace z3y.ShaderEditorFunctions
     public class InspectorData
     {
         public Dictionary<string, bool?> FoldoutValues = new Dictionary<string, bool?>();
-        public Dictionary<string, MaterialProperty> MaterialProperties = new Dictionary<string, MaterialProperty>();
     }
 
     [InitializeOnLoad]

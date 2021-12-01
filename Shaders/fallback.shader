@@ -4,6 +4,8 @@ Shader "Hidden/z3y/lit fallback"
 {
     Properties
     {
+        [Enum(Opaque, 0, Fade, 2)] _Mode ("Rendering Mode", Int) = 0
+        
         _Color ("Color", Color) = (1,1,1,1)
         _MainTex ("Base Map", 2D) = "white" {}
         _MainTexArray ("Base Map Array", 2DArray) = "white" {}
@@ -16,15 +18,23 @@ Shader "Hidden/z3y/lit fallback"
         [Toggle(TEXTUREARRAYINSTANCED)] _EnableTextureArrayInstancing ("Instanced Array Index", Float) = 0
         _TextureIndex ("Instance Index", Int) = 0
 
+        [Enum(UnityEngine.Rendering.BlendMode)] _SrcBlend ("Source Blend", Int) = 1
+        [Enum(UnityEngine.Rendering.BlendMode)] _DstBlend ("Destination Blend", Int) = 0
+        [Enum(Off, 0, On, 1)] _ZWrite ("ZWrite", Int) = 1
         [Enum(UnityEngine.Rendering.CullMode)] _Cull ("Cull", Int) = 2
     }
     SubShader
     {
-        Tags { "LightMode" = "ForwardBase" "RenderType"="Opaque" }
-        Cull [_Cull]
+        Tags { "RenderType"="Opaque" "Queue"="Geometry"}
 
         Pass
         {
+            Name "FORWARDBASE"
+            Tags { "LightMode" = "ForwardBase" "RenderType"="Opaque" }
+            ZWrite [_ZWrite]
+            Cull [_Cull]
+            Blend [_SrcBlend] [_DstBlend]
+            
             CGPROGRAM
             #pragma target 3.5
             #pragma vertex vert
@@ -40,6 +50,8 @@ Shader "Hidden/z3y/lit fallback"
             #pragma shader_feature_local_fragment EMISSION
             #pragma shader_feature_local TEXTUREARRAY
             #pragma shader_feature_local TEXTUREARRAYINSTANCED
+            // #pragma shader_feature_local _MODE_FADE
+
 
             #include "UnityCG.cginc"
             #include "Lighting.cginc"
@@ -184,7 +196,7 @@ Shader "Hidden/z3y/lit fallback"
                 emission = _EmissionMap.Sample(defaultSampler, i.coord0.xy) * _EmissionColor;
                 #endif
 
-                half4 finalColor = half4(mainTexture.rgb * (indirectDiffuse + light) + emission, 1);
+                half4 finalColor = half4(mainTexture.rgb * (indirectDiffuse + light) + emission, mainTexture.a);
 
                 #ifdef USING_FOG
                 UNITY_APPLY_FOG(i.fogCoord, finalColor);
@@ -200,7 +212,10 @@ Shader "Hidden/z3y/lit fallback"
             Name "ShadowCaster"
             Tags { "LightMode" = "ShadowCaster" }
 
-            ZWrite On ZTest LEqual Cull Off
+            AlphaToMask Off
+            ZWrite On
+            Cull [_Cull]
+            ZTest LEqual
 
             CGPROGRAM
             #pragma vertex vert
@@ -235,4 +250,5 @@ Shader "Hidden/z3y/lit fallback"
         
     }
     FallBack "VRChat/Mobile/Lightmapped"
+    CustomEditor "z3y.ShaderEditor.LitFallbackUI"
 }

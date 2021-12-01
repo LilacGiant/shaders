@@ -2,6 +2,7 @@
 #define TAU 6.28318530718
 #define glsl_mod(x,y) (((x)-(y)*floor((x)/(y))))
 
+// #define NEED_CENTROID_NORMAL
 
 #if !defined(OPTIMIZER_ENABLED)
     #define PROP_BUMPMAP

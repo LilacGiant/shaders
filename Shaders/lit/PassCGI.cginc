@@ -53,7 +53,7 @@ struct v2f
         centroid float4 color : COLOR;
     #endif
 
-    #ifdef NEED_CENTROID_NORMAL
+    #if defined(NEED_CENTROID_NORMAL) && defined(NEED_WORLD_NORMAL)
         centroid float3 centroidWorldNormal : TEXCOORD8;
     #endif
 
@@ -130,6 +130,11 @@ v2f vert (appdata v)
 
     #ifdef NEED_SCREEN_POS
         o.screenPos = ComputeScreenPos(o.pos);
+    #endif
+
+
+    #if defined(NEED_CENTROID_NORMAL) && defined(NEED_WORLD_NORMAL)
+        o.centroidWorldNormal = o.worldNormal;
     #endif
 
     return o;

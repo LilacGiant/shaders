@@ -35,6 +35,13 @@ float4 frag (v2f i, uint facing : SV_IsFrontFace) : SV_Target
         else if(surf.alpha < _Cutoff) discard;
     #endif
 
+    #ifdef NEED_CENTROID_NORMAL
+    if ( dot(i.worldNormal, i.worldNormal) >= 1.01 )
+    {
+        i.worldNormal = i.centroidWorldNormal;
+    }
+    #endif
+
     float3 worldNormal = i.worldNormal;
     float3 bitangent = i.bitangent;
     float3 tangent = i.tangent;

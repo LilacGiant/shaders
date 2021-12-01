@@ -359,16 +359,15 @@ namespace z3y.ShaderEditor
             this.materialEditor = materialEditor;
             material = materialEditor.target as Material;
             allProps = props;
+            
 
             if (m_FirstTimeApply)
             {
                 m_FirstTimeApply = false;
                 SetupFoldoutDictionary(material);
-                SetupPropertiesDictionary(props);
                 isBakeryMaterial = !material.GetTag("OriginalMaterialPath", false, string.Empty).Equals(string.Empty, StringComparison.Ordinal);
             }
-            SetupPropertiesDictionary(props);
-            
+
             if(GetProperty(LockKey) != null)
             {
                 ShaderOptimizerButton(GetProperty(LockKey), materialEditor, material);
@@ -459,21 +458,9 @@ namespace z3y.ShaderEditor
             HandleMouseEvents(max, material, min.name);
         }
 
-
-        private void SetupPropertiesDictionary(MaterialProperty[] props)
-        {
-            data[material].MaterialProperties.Clear();
-            for (int i = 0; i < props.Length; i++)
-            {
-                MaterialProperty p = props[i];
-                data[material].MaterialProperties[p.name] = p;
-            }
-        }
-
         private MaterialProperty GetProperty(string name)
         {
             MaterialProperty p = System.Array.Find(allProps, x => x.name == name);
-            // data[material].MaterialProperties.TryGetValue(name, out MaterialProperty p);
             return p;
         }
 
