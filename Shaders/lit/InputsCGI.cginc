@@ -24,12 +24,17 @@ UNITY_DECLARE_TEX2DARRAY_NOSAMPLER(_MetallicGlossMapArray);
 UNITY_DECLARE_TEX2DARRAY(_BumpMapArray);
 DECLARE_TEX2D_CUSTOM(_AnisotropyMap);
 
+sampler3D _OcclusionProbes;
+
 #ifndef PROPERTIES_DEFINED
 
 float4 _Color;
 float _Saturation;
 float _Cutoff;
 float _AlphaToMask;
+
+float _EnableOcclusionProbes;
+float4x4 _OcclusionProbesWorldToLocal;
 
 float _BumpScale;
 float _NormalMapOrientation;
@@ -52,6 +57,7 @@ float _OcclusionMin;
 float _Reflectance;
 float _SpecularOcclusion;
 float _GlossinessInvert;
+float _SpecularIntensity;
 
 float _EmissionMultBase;
 float3 _EmissionColor;

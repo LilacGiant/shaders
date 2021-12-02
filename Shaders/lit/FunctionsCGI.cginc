@@ -194,3 +194,11 @@ float3 getRealtimeLightmap(float2 uv, float3 worldNormal, float2 parallaxOffset)
 }
 #endif
 
+float SampleOcclusionProbes(float3 positionWS)
+{
+    // TODO: no full matrix mul needed, just scale and offset the pos (don't really need to support rotation)
+    float occlusionProbes = 1;
+    float3 pos = mul(_OcclusionProbesWorldToLocal, float4(positionWS, 1)).xyz;
+    occlusionProbes = tex3D(_OcclusionProbes, pos).a;
+    return occlusionProbes;
+}

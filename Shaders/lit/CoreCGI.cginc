@@ -118,6 +118,12 @@ float4 frag (v2f i, uint facing : SV_IsFrontFace) : SV_Target
         #else
             indirectDiffuse = max(0, ShadeSH9(float4(worldNormal, 1)));
         #endif
+
+        if(_EnableOcclusionProbes)
+        {
+            float occlusionProbes = SampleOcclusionProbes(i.worldPos);
+            indirectDiffuse *= occlusionProbes;
+        }
     #endif
 
     #if defined(LIGHTMAP_SHADOW_MIXING) && defined(SHADOWS_SHADOWMASK) && defined(SHADOWS_SCREEN) && defined(LIGHTMAP_ON)
@@ -255,12 +261,14 @@ float4 frag (v2f i, uint facing : SV_IsFrontFace) : SV_Target
     }
     #endif
 
+    directSpecular *= _SpecularIntensity;
     
 
     #if defined(_MODE_TRANSPARENT)
         surf.albedo.rgb *= surf.alpha;
         surf.alpha = lerp(surf.alpha, 1, surf.metallic);
     #endif
+
 
     
     float4 finalColor = float4(surf.albedo.rgb * (1 - surf.metallic) * (indirectDiffuse * surf.occlusion + (pixelLight + vertexLight)) + indirectSpecular + directSpecular + surf.emission, surf.alpha);

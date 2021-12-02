@@ -57,6 +57,7 @@
             _FresnelIntensity ("Fresnel Intensity", Range(0,1)) = 1
             _Reflectance ("Reflectance", Range(0,1)) = 0.5
             _SpecularOcclusion ("Specular Occlusion", Range(0,1)) = 0
+            _SpecularIntensity ("Specular Highlights Intensity", Range(0,1)) = 1
             _FresnelColor ("Tint", Color) = (1,1,1)
 
 
@@ -127,7 +128,8 @@
             _ALEmissionMap ("AL Path & Mask: Path(G), Mask(A)", 2D) = "white" {}
         
 
-        [ToggleUI] _UnlockedModePreset ("Unlocked Mode Preset", Int) = 0
+        [ToggleUI] _EnableOcclusionProbes ("Occlusion Probes", Int) = 0
+        _OcclusionProbes ("_OcclusionProbes", 3D) = "white" {}
 
         // optimizer toggles
         [ToggleUI] _VertexLights ("Allow Vertex Lights", Float) = 0

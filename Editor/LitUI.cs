@@ -222,6 +222,7 @@ namespace z3y.ShaderEditor
                 Prop("_Reflectance");
                 Prop("_FresnelIntensity");
                 Prop("_SpecularOcclusion");
+                Prop("_SpecularIntensity");
                 Prop("_FresnelColor");
                 EditorGUILayout.Space();
 
@@ -254,6 +255,7 @@ namespace z3y.ShaderEditor
                 Prop("_BicubicLightmap");
                 Prop("_NonLinearLightProbeSH");
                 Prop("_BakedSpecular");
+                Prop("_EnableOcclusionProbes");
 
                 #if BAKERY_INCLUDED
                 PropertyGroup(() => {

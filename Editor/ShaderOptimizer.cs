@@ -41,6 +41,8 @@ namespace z3y.Shaders
         private static Dictionary<Material, ReplaceStruct> ReplaceDictionary = new Dictionary<Material, ReplaceStruct>();
         private static Dictionary<string, Material> MaterialPropertyDefines = new Dictionary<string, Material>();
         private static int SharedMaterialCount = 0;
+        private static readonly int OcclusionProbesWorldToLocal = Shader.PropertyToID("_OcclusionProbesWorldToLocal");
+        private static readonly int OcclusionProbes = Shader.PropertyToID("_OcclusionProbes");
 
         private const string HARMONY_ID = "z3y.Shaders.Optimizer";
 
@@ -105,8 +107,28 @@ namespace z3y.Shaders
             }
         }
 
+        private static string GlobalStaticProperties()
+        {
+            StringBuilder props = new StringBuilder(Environment.NewLine);
+
+            string[] occlusionProbesWorldToLocalMatrix = Regex.Split(Shader.GetGlobalMatrix(OcclusionProbesWorldToLocal).ToString(), "\\s");
+            string occlusionProbesWorldToLocal =  String.Join(",", occlusionProbesWorldToLocalMatrix.Select(x => x.ToString()));
+            occlusionProbesWorldToLocal = occlusionProbesWorldToLocal.Remove(occlusionProbesWorldToLocal.Length-1, 1);
+            props.Append($"#define _OcclusionProbesWorldToLocal float4x4({occlusionProbesWorldToLocal}) ");
+            props.Append(Environment.NewLine);
+            
+            return props.ToString();
+        }
+
+        private static void SetGlobalStaticTextures(Material m)
+        {
+            m.SetTexture(OcclusionProbes, Shader.GetGlobalTexture(OcclusionProbes));
+            
+        }
+
         public static void Lock(Material m, bool replaceLater = true)
         {
+            SetGlobalStaticTextures(m);
             Shader shader = m.shader;
             string shaderPath = AssetDatabase.GetAssetPath(shader);
 
@@ -201,6 +223,8 @@ namespace z3y.Shaders
 
                 propDefines.Append(Environment.NewLine);
             }
+
+            propDefines.Append(GlobalStaticProperties());
 
             string[] shaderKeywords = m.shaderKeywords;
             string materialGUID = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(m));
