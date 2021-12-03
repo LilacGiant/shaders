@@ -206,7 +206,7 @@ namespace z3y.Shaders
                             {
                                 Texture t = mp.textureValue;
                                 Vector4 texelSize = new Vector4(1f/t.width, 1f/t.height, t.width, t.height);
-                                propDefines.Append($"#define {mp.name}_TexelSize float4{texelSize.ToString("0.000000")}");
+                                propDefines.Append($"#define {mp.name}_TexelSize float4{texelSize.ToString("0.000000000")}");
                                 propDefines.Append(Environment.NewLine);
                             }
                         }
@@ -217,7 +217,7 @@ namespace z3y.Shaders
                         }
                         bool STAnimated = IsAnimated(m, propName + "_ST", props);
                         if(STAnimated) propDefines.Append($"float4 {mp.name}_ST;");
-                        else propDefines.Append($"#define {mp.name}_ST float4{mp.textureScaleAndOffset.ToString("0.000000")}");
+                        else propDefines.Append($"#define {mp.name}_ST float4{mp.textureScaleAndOffset.ToString("0.00000000")}");
                         break;
                 }
 
