@@ -285,7 +285,7 @@ float4 frag (v2f i, uint facing : SV_IsFrontFace) : SV_Target
         return float4(UnityMetaFragment(metaInput).rgb, surf.alpha);
     #endif
 
-    #ifdef FOG
+    #ifdef NEED_FOG
         UNITY_APPLY_FOG(i.fogCoord, finalColor);
     #endif
 
