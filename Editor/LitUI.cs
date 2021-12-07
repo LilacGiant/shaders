@@ -255,6 +255,7 @@ namespace z3y.ShaderEditor
             {
                 Prop("_BicubicLightmap");
                 Prop("_NonLinearLightProbeSH");
+                Prop("_LPPV");
                 Prop("_BakedSpecular");
                 Prop("_EnableOcclusionProbes");
 

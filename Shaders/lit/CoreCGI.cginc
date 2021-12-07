@@ -139,22 +139,26 @@ float4 frag (v2f i, uint facing : SV_IsFrontFace) : SV_Target
             indirectDiffuse.b = shEvaluateDiffuseL1Geomerics(L0.b, float3(L1x.b, L1y.b, L1z.b), worldNormal);
         
         #else
-    
-            #ifdef NONLINEAR_LIGHTPROBESH
-                float3 L0 = float3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w);
-                indirectDiffuse.r = shEvaluateDiffuseL1Geomerics_local(L0.r, unity_SHAr.xyz, worldNormal);
-                indirectDiffuse.g = shEvaluateDiffuseL1Geomerics_local(L0.g, unity_SHAg.xyz, worldNormal);
-                indirectDiffuse.b = shEvaluateDiffuseL1Geomerics_local(L0.b, unity_SHAb.xyz, worldNormal);
-                indirectDiffuse = max(0, indirectDiffuse);
-            #else
-                indirectDiffuse = max(0, ShadeSH9(float4(worldNormal, 1)));
-            #endif
 
-            if(_EnableOcclusionProbes)
-            {
-                float occlusionProbes = SampleOcclusionProbes(i.worldPos);
-                indirectDiffuse *= occlusionProbes;
-            }
+            #ifdef LIGHT_PROBE_PROXY_VOLUME
+                indirectDiffuse = SHEvalLinearL0L1_SampleProbeVolume(float4(worldNormal, 1), i.worldPos);
+            #else
+                #ifdef NONLINEAR_LIGHTPROBESH
+                    float3 L0 = float3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w);
+                    indirectDiffuse.r = shEvaluateDiffuseL1Geomerics_local(L0.r, unity_SHAr.xyz, worldNormal);
+                    indirectDiffuse.g = shEvaluateDiffuseL1Geomerics_local(L0.g, unity_SHAg.xyz, worldNormal);
+                    indirectDiffuse.b = shEvaluateDiffuseL1Geomerics_local(L0.b, unity_SHAb.xyz, worldNormal);
+                    indirectDiffuse = max(0, indirectDiffuse);
+                #else
+                    indirectDiffuse = max(0, ShadeSH9(float4(worldNormal, 1)));
+                #endif
+
+                if(_EnableOcclusionProbes)
+                {
+                    float occlusionProbes = SampleOcclusionProbes(i.worldPos);
+                    indirectDiffuse *= occlusionProbes;
+                }
+            #endif
         #endif
     #endif
 

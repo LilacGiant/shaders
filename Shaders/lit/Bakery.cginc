@@ -28,6 +28,10 @@
     #undef BAKERY_VERTEXLM
 #endif
 
+#if defined(BAKERY_SH) || defined(BAKERY_RNM)
+    #undef BAKERY_BICUBIC
+#endif
+
 #ifndef UNITY_SHOULD_SAMPLE_SH
     #undef BAKERY_PROBESHNONLINEAR
 #endif

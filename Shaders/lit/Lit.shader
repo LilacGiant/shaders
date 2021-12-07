@@ -139,6 +139,7 @@
         
 
         [ToggleUI] _EnableOcclusionProbes ("Occlusion Probes", Int) = 0
+        [Toggle(LIGHT_PROBE_PROXY_VOLUME)] _LPPV ("Light Probe Proxy Volume", Int) = 0
         _OcclusionProbes ("_OcclusionProbes", 3D) = "white" {}
 
         // optimizer toggles
@@ -196,6 +197,7 @@
             #pragma shader_feature_local_fragment EMISSION
             #pragma shader_feature_local PARALLAX
             #pragma shader_feature_local_fragment NONLINEAR_LIGHTPROBESH
+            #pragma shader_feature_local_fragment LIGHT_PROBE_PROXY_VOLUME
             #pragma shader_feature_local_fragment BAKEDSPECULAR
             #pragma shader_feature_local_fragment ANISOTROPY
             #pragma shader_feature_local_fragment TEXTUREARRAYINSTANCED
@@ -235,6 +237,7 @@
             #pragma shader_feature_local_fragment SPECULAR_HIGHLIGHTS
             #pragma shader_feature_local PARALLAX
             #pragma shader_feature_local_fragment NONLINEAR_LIGHTPROBESH
+            #pragma shader_feature_local_fragment LIGHT_PROBE_PROXY_VOLUME
             #pragma shader_feature_local_fragment ANISOTROPY
             #pragma shader_feature_local_fragment TEXTUREARRAYINSTANCED
             #pragma shader_feature_local_fragment TEXTUREARRAY
