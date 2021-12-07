@@ -118,6 +118,16 @@
             _RNM1("RNM1", 2D) = "black" {}
             _RNM2("RNM2", 2D) = "black" {}
 
+        [Toggle(BAKERY_VOLUME)] _BAKERY_VOLUME ("Use volumes", Float) = 0
+            _Volume0("Volume0", 3D) = "black" {}
+            _Volume1("Volume1", 3D) = "black" {}
+            _Volume2("Volume2", 3D) = "black" {}
+            _VolumeMask("Volume Mask", 3D) = "white" {}
+            _VolumeMin("Volume min", Vector) = (0,0,0)
+            _VolumeInvSize("Volume Inv Size", Vector) = (1000001, 1000001, 1000001)
+            _VolumeInvSizeAnimated("", Float) = 1
+            _VolumeMinAnimated("", Float) = 1
+
 
         [Toggle(ENABLE_AUDIOLINK)] _EnableAudioLink ("Audio Link", Float) = 0
             _AudioTexture ("Audio Link Render Texture", 2D) = "black" {}
@@ -192,6 +202,7 @@
             #pragma shader_feature_local_fragment TEXTUREARRAY
             #pragma shader_feature_local BAKERY_SH
             #pragma shader_feature_local BAKERY_RNM
+            #pragma shader_feature_local BAKERY_VOLUME
             #pragma shader_feature_local_fragment ENABLE_AUDIOLINK
 
 

@@ -51,7 +51,11 @@
     #undef BAKERY_RNM
 #endif
 
-#if defined(BAKERY_SH) || defined(BAKERY_RNM)
+#ifdef LIGHTMAP_ON
+    #undef BAKERY_VOLUME
+#endif
+
+#if defined(BAKERY_SH) || defined(BAKERY_RNM) || defined(BAKERY_VOLUME)
 
     #ifdef BAKERY_SH
         #define BAKERY_SHNONLINEAR

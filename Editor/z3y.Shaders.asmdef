@@ -1,6 +1,8 @@
 {
     "name": "z3y.Shaders",
-    "references": [],
+    "references": [
+        "BakeryRuntimeAssembly"
+    ],
     "includePlatforms": [
         "Editor"
     ],

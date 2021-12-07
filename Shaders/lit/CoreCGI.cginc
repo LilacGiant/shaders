@@ -46,6 +46,9 @@ float4 frag (v2f i, uint facing : SV_IsFrontFace) : SV_Target
     float3 bitangent = i.bitangent;
     float3 tangent = i.tangent;
 
+    float3 indirectSpecular = 0;
+    float3 directSpecular = 0;
+
     if(!facing)
     {
         worldNormal *= -1;
@@ -66,6 +69,14 @@ float4 frag (v2f i, uint facing : SV_IsFrontFace) : SV_Target
     float3 viewDir = normalize(_WorldSpaceCameraPos - i.worldPos.xyz);
     float NoV = abs(dot(worldNormal, viewDir)) + 1e-5;
 
+    #ifdef BAKERY_VOLUME
+        float3 volumelpUV = (i.worldPos - (_VolumeMin.xyz)) * (_VolumeInvSize.xyz);
+    #endif
+
+    #ifdef BAKERY_VOLUME
+        _LightColor0.rgb *= saturate(dot(_VolumeMask.Sample(sampler_Volume0, volumelpUV), unity_OcclusionMaskSelector));
+    #endif
+
     float3 pixelLight = 0;
     #ifdef USING_LIGHT_MULTI_COMPILE
         bool lightExists = any(_WorldSpaceLightPos0.xyz);
@@ -82,6 +93,8 @@ float4 frag (v2f i, uint facing : SV_IsFrontFace) : SV_Target
     #if defined(VERTEXLIGHT_ON) && defined(UNITY_PASS_FORWARDBASE)
         initVertexLights(i.worldPos, worldNormal, vertexLight, vertexLightColor);
     #endif
+
+    
 
     float3 indirectDiffuse = 1;
     #if defined(LIGHTMAP_ON)
@@ -109,21 +122,40 @@ float4 frag (v2f i, uint facing : SV_IsFrontFace) : SV_Target
 
         indirectDiffuse = lightMap;
     #else
-        #ifdef NONLINEAR_LIGHTPROBESH
-            float3 L0 = float3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w);
-            indirectDiffuse.r = shEvaluateDiffuseL1Geomerics_local(L0.r, unity_SHAr.xyz, worldNormal);
-            indirectDiffuse.g = shEvaluateDiffuseL1Geomerics_local(L0.g, unity_SHAg.xyz, worldNormal);
-            indirectDiffuse.b = shEvaluateDiffuseL1Geomerics_local(L0.b, unity_SHAb.xyz, worldNormal);
-            indirectDiffuse = max(0, indirectDiffuse);
-        #else
-            indirectDiffuse = max(0, ShadeSH9(float4(worldNormal, 1)));
-        #endif
 
-        if(_EnableOcclusionProbes)
-        {
-            float occlusionProbes = SampleOcclusionProbes(i.worldPos);
-            indirectDiffuse *= occlusionProbes;
-        }
+        #ifdef BAKERY_VOLUME
+        
+            float4 tex0, tex1, tex2;
+            float3 L0, L1x, L1y, L1z;
+            tex0 = _Volume0.Sample(sampler_Volume0, volumelpUV);
+            tex1 = _Volume1.Sample(sampler_Volume0, volumelpUV);
+            tex2 = _Volume2.Sample(sampler_Volume0, volumelpUV);
+            L0 = tex0.xyz;
+            L1x = tex1.xyz;
+            L1y = tex2.xyz;
+            L1z = float3(tex0.w, tex1.w, tex2.w);
+            indirectDiffuse.r = shEvaluateDiffuseL1Geomerics(L0.r, float3(L1x.r, L1y.r, L1z.r), worldNormal);
+            indirectDiffuse.g = shEvaluateDiffuseL1Geomerics(L0.g, float3(L1x.g, L1y.g, L1z.g), worldNormal);
+            indirectDiffuse.b = shEvaluateDiffuseL1Geomerics(L0.b, float3(L1x.b, L1y.b, L1z.b), worldNormal);
+        
+        #else
+    
+            #ifdef NONLINEAR_LIGHTPROBESH
+                float3 L0 = float3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w);
+                indirectDiffuse.r = shEvaluateDiffuseL1Geomerics_local(L0.r, unity_SHAr.xyz, worldNormal);
+                indirectDiffuse.g = shEvaluateDiffuseL1Geomerics_local(L0.g, unity_SHAg.xyz, worldNormal);
+                indirectDiffuse.b = shEvaluateDiffuseL1Geomerics_local(L0.b, unity_SHAb.xyz, worldNormal);
+                indirectDiffuse = max(0, indirectDiffuse);
+            #else
+                indirectDiffuse = max(0, ShadeSH9(float4(worldNormal, 1)));
+            #endif
+
+            if(_EnableOcclusionProbes)
+            {
+                float occlusionProbes = SampleOcclusionProbes(i.worldPos);
+                indirectDiffuse *= occlusionProbes;
+            }
+        #endif
     #endif
 
     #if defined(LIGHTMAP_SHADOW_MIXING) && defined(SHADOWS_SHADOWMASK) && defined(SHADOWS_SCREEN) && defined(LIGHTMAP_ON)
@@ -131,8 +163,7 @@ float4 frag (v2f i, uint facing : SV_IsFrontFace) : SV_Target
     #endif
 
 
-    float3 indirectSpecular = 0;
-    float3 directSpecular = 0;
+    
     float3 f0 = 0.16 * surf.reflectance * surf.reflectance * (1 - surf.metallic) + surf.albedo.rgb * surf.metallic;
     float3 fresnel = lerp(f0, F_Schlick(NoV, f0), _FresnelIntensity) * _FresnelColor;
     fresnel *= saturate(pow(length(indirectDiffuse), _SpecularOcclusion));
@@ -207,11 +238,23 @@ float4 frag (v2f i, uint facing : SV_IsFrontFace) : SV_Target
             float V = V_SmithGGXCorrelated_Anisotropic(at, ab, ToV, BoV, ToL, BoL, NoV, lightNoL);
         #endif
 
-        directSpecular = max(0, (D * V) * F) * pixelLight * UNITY_PI;
+        directSpecular += max(0, (D * V) * F) * pixelLight * UNITY_PI;
     }
     #endif
 
-    #if defined(BAKEDSPECULAR) && defined(UNITY_PASS_FORWARDBASE)
+    #if defined(BAKEDSPECULAR) && defined(BAKERY_VOLUME)
+        float3 nL1x = L1x / L0;
+        float3 nL1y = L1y / L0;
+        float3 nL1z = L1z / L0;
+        float3 dominantDir = float3(dot(nL1x, lumaConv), dot(nL1y, lumaConv), dot(nL1z, lumaConv));
+        half3 halfDir = Unity_SafeNormalize(normalize(dominantDir) + viewDir);
+        half nh = saturate(dot(worldNormal, halfDir));
+        half spec = GGXTerm(nh, clampedRoughness);
+        float3 sh = L0 + dominantDir.x * L1x + dominantDir.y * L1y + dominantDir.z * L1z;
+        directSpecular += max(spec * sh, 0.0) * fresnel;
+    #endif
+
+    #if defined(BAKEDSPECULAR) && defined(UNITY_PASS_FORWARDBASE) && !defined(BAKERY_VOLUME)
     {
         if(bakeryLightmapMode < 2)
         {
@@ -260,6 +303,9 @@ float4 frag (v2f i, uint facing : SV_IsFrontFace) : SV_Target
         indirectSpecular += prevSpec;
     }
     #endif
+
+    
+
 
     directSpecular *= _SpecularIntensity;
     

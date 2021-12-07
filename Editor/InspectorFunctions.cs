@@ -151,8 +151,7 @@ namespace z3y.ShaderEditorFunctions
             {
                 string[] p = property.displayName.Split(hoverSplitSeparator);
                 animatedProp = extraProperty != null ? extraProperty : null;
-                p[0] = p[0]; 
-
+                p[0] = p[0];
 
 
                 me.TexturePropertySingleLine(new GUIContent(p[0], p.Length == 2 ? p[1] : null), property, extraProperty);

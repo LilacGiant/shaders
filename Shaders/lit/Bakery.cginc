@@ -201,10 +201,14 @@ float4 _RNM0_TexelSize;
 #endif
 
 #ifdef BAKERY_VOLUME
-Texture3D _Volume0, _Volume1, _Volume2, _VolumeMask;
-SamplerState sampler_Volume0;
-float3 _VolumeMin, _VolumeInvSize;
-float3 _GlobalVolumeMin, _GlobalVolumeInvSize;
+    Texture3D _Volume0, _Volume1, _Volume2, _VolumeMask;
+    SamplerState sampler_Volume0;
+
+    #ifndef PROPERTIES_DEFINED
+        float3 _VolumeMin, _VolumeInvSize;
+        float3 _GlobalVolumeMin, _GlobalVolumeInvSize;
+    #endif
+
 #endif
 
 #ifdef BAKERY_BICUBIC

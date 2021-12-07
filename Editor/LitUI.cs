@@ -6,6 +6,7 @@ using z3y.ShaderEditorFunctions;
 using z3y.Shaders;
 using static z3y.ShaderEditorFunctions.Functions;
 
+
 namespace z3y.ShaderEditor
 {
 
@@ -263,6 +264,42 @@ namespace z3y.ShaderEditor
                     Prop("_BAKERY_SH");
                     Prop("_BAKERY_SHNONLINEAR");
                     Prop("_BAKERY_RNM");
+                    Prop("_BAKERY_VOLUME");
+                    if (IfProp("_BAKERY_VOLUME"))
+                    {   
+                        EditorGUI.BeginChangeCheck();
+                        _assignedVolume = (BakeryVolume) EditorGUILayout.ObjectField(_assignedVolume, typeof(BakeryVolume), true);
+                        if (EditorGUI.EndChangeCheck())
+                        {
+                            if (_assignedVolume != null)
+                            {
+                                material.SetTexture("_Volume0", _assignedVolume.bakedTexture0);
+                                material.SetTexture("_Volume1", _assignedVolume.bakedTexture1);
+                                material.SetTexture("_Volume2", _assignedVolume.bakedTexture2);
+                                material.SetTexture("_VolumeMask", _assignedVolume.bakedMask);
+                                material.SetVector("_VolumeMin", _assignedVolume.GetMin());
+                                material.SetVector("_VolumeInvSize", _assignedVolume.GetInvSize());
+                            }
+                            else
+                            {
+                                material.SetTexture("_Volume0", null);
+                                material.SetTexture("_Volume1", null);
+                                material.SetTexture("_Volume2", null);
+                                material.SetTexture("_VolumeMask", null);
+                                material.SetVector("_VolumeMin", Vector4.zero);
+                                material.SetVector("_VolumeInvSize", Vector4.zero);
+                            }
+                        }
+                        // EditorGUI.BeginDisabledGroup(true);
+                        Prop("_Volume0");
+                        Prop("_Volume1");
+                        Prop("_Volume2");
+                        Prop("_VolumeMask");
+                        Prop("_VolumeMin");
+                        Prop("_VolumeInvSize");
+                        // EditorGUI.EndDisabledGroup();
+                    }
+
                     if(IfProp("_BAKERY_SH") || IfProp("_BAKERY_RNM"))
                     {
                         EditorGUI.BeginDisabledGroup(true);
@@ -352,6 +389,10 @@ namespace z3y.ShaderEditor
         Material material = null;
 
         private const string LockKey = Optimizer.LockKey;
+        
+        #if BAKERY_INCLUDED
+        BakeryVolume _assignedVolume = null;
+        #endif
         
 
         MaterialProperty[] allProps = null;
