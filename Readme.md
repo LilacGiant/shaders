@@ -23,5 +23,6 @@ A standard shader replacement for VRChat worlds. Phisically based shading partia
 - dithered shadow with transparency
 
 ### [Examples](https://imgur.com/a/5UQqlF1)
-
+### [Documentation](https://github.com/z3y/shaders/wiki)
+#
 If you want to ask something add me z3y#3214 or join https://discord.gg/bw46tKgRFT
