@@ -117,7 +117,7 @@ void InitializeLitSurfaceData(inout SurfaceData surf, v2f i)
     float4 detailNormalMap = float4(0.5, 0.5, 1, 1);
     #if defined(PROP_DETAILMAP) || defined(PROP_DETAILALBEDOMAP) || defined(PROP_DETAILNORMALMAP) || defined(PROP_DETAILMASKMAP)
 
-        float detailMask = lerp(1, maskMap.a, _DetailMaskScale);
+        float detailMask = lerp(1, maskMap.b, _DetailMaskScale);
         float4 detailMap = 0.5;
         float3 detailAlbedo = 0;
         float detailSmoothness = 0;
